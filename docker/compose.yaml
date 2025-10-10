@@ -1,0 +1,20 @@
+services:
+  ros:
+    image: slarc/dev:latest
+    container_name: slarc_dev
+    build:
+      context: .
+      args:
+        - USER_ID=$USER_ID
+        - GROUP_ID=$GROUP_ID
+        - USER_NAME=$USER
+    environment:
+      - DISPLAY=$DISPLAY
+      - ROS_DOMAIN_ID=$ROS_DOMAIN_ID
+    volumes:
+      - ../ros_ws/:/slarc_ws/:rw
+      - /tmp/.X11-unix/:/tmp/.X11-unix/:rw
+    network_mode: host
+    privileged: true
+    stdin_open: true
+    tty: true
