@@ -15,7 +15,8 @@ RUN apt update && apt install -y \
     ros-jazzy-rqt-graph \
     ros-jazzy-rviz2 \
     ros-jazzy-navigation2 \
-    ros-jazzy-nav2-bringup
+    ros-jazzy-nav2-bringup \
+    ros-jazzy-depthai-ros
 
 # Install gazebo harmonic
 RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
