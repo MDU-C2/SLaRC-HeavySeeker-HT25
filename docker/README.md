@@ -2,8 +2,8 @@
 
 ## Build Container
 
-[!NOTE]
-All commands sould be ran from the docker folder (this folder)
+> [!NOTE] 
+> All commands sould be ran from the docker folder (this folder)
 
 Before building remember to set ROS_DOMAIN_ID, it defaults to 0.
 
@@ -47,12 +47,12 @@ Then connect to container
 docker exec -it slarc_dev bash
 ```
 
-[!NOTE]
-If you want to show any graphical interfaces from the container you need to allow xhost. Simpliest is to allow all connections to xhost.
-  ```sh
-  # Allow all xhost connections
-  xhost +
-  ```
+>[!NOTE]
+>If you want to show any graphical interfaces from the container you need to allow xhost. Simpliest is to allow all connections to xhost.
+>  ```sh
+>  # Allow all xhost connections
+>  xhost +
+>  ```
 
 
 ## shut down container
