@@ -4,7 +4,7 @@
   <name>hs_description</name>
   <version>0.0.0</version>
   <description>Heavy Seeker description</description>
-  <maintainer email="slarc25@proton.me">slarc@2025</maintainer>
+  <maintainer email="slarc25@proton.me">Vladislav Saburov</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
