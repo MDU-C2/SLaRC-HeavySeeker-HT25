@@ -21,3 +21,9 @@ $ colcon build && source install/setup.bash
 
 3. Run the simulation
 $ ros2 launch seeker_sim seeker_sim.launch.py
+
+4. Run simulation with arguments (optional)
+
+$ ros2 launch seeker_sim seeker_sim.launch.py --show -args
+And follow the description there.
+
