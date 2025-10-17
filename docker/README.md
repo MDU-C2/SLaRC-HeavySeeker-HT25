@@ -48,7 +48,7 @@ docker exec -it slarc_dev bash
 ```
 
 >[!NOTE]
->If you want to show any graphical interfaces from the container you need to allow xhost. Simpliest is to allow all connections to xhost.
+>If you want to show any graphical interfaces from the container you need to allow xhost. Simpliest is to allow all connections to xhost. Open a new terminal outside the docker container and run:
 >  ```sh
 >  # Allow all xhost connections
 >  xhost +
