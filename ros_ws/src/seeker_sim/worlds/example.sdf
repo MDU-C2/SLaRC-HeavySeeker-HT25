@@ -75,8 +75,8 @@
 
     <!-- Husky model -->
     <include>
-      <uri>model://Husky</uri>
-      <name>Husky</name>
+      <uri>model://mid360_lidar</uri>
+      <name>Lidar</name>
       <pose>0 0 0.2 0 0 0</pose>
     </include>
 
@@ -200,5 +200,26 @@
       <pose>-8 0 0 0 0 -1.5708</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Base Station</uri>
     </include>
+
+    
+
+    <include>
+  <uri>model://ground_plane</uri>
+  <pose>0 0 0 0 0 0</pose>
+</include>
+
+<model name="debug_box">
+  <pose>1 0 0.5 0 0 0</pose>
+  <static>true</static>
+  <link name="box_link">
+    <collision name="c">
+      <geometry><box><size>1 1 1</size></box></geometry>
+    </collision>
+    <visual name="v">
+      <geometry><box><size>1 1 1</size></box></geometry>
+    </visual>
+  </link>
+</model> 
+
   </world>
 </sdf>
