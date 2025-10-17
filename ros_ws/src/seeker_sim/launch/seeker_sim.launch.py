@@ -1,67 +1,53 @@
+#from distro import name
 from launch import LaunchDescription
 from launch_ros.actions import Node 
-from launch.actions import ExecuteProcess, SetEnvironmentVariable, LogInfo, TimerAction, DeclareLaunchArgument
-from launch.substitutions import EnvironmentVariable, PathJoinSubstitution, LaunchConfiguration, PythonExpression, TextSubstitution
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, SetEnvironmentVariable, LogInfo, TimerAction, RegisterEventHandler
+from launch.substitutions import LaunchConfiguration, EnvironmentVariable, PathJoinSubstitution, TextSubstitution
 from ament_index_python.packages import get_package_share_directory
-from launch.conditions import IfCondition, UnlessCondition
-
+from launch.event_handlers import OnProcessStart
 
 
 def generate_launch_description():
 
-    
-    #--- Launch arguments ---
+
+    # ─── Launch Arguments ───────────────────────────────────────────────
     world_arg = DeclareLaunchArgument(
         'world',
         default_value='example.sdf',
-        description='World filename located under this packages worlds/ directory.'
+        description='World file to load (from seeker_sim/worlds/)'
     )
 
-    #Enabels fullpath description to world
-    world_path_arg = DeclareLaunchArgument(
-    'world_path',
-    default_value='',
-    description='Absolute path to a .sdf world. If set (non-empty), overrides the world filename.'
-    )
-
-    
     model_arg = DeclareLaunchArgument(
         'model',
-        default_value='Husky',
-        description='Model FOLDER located under this packages model/ directory.\n' \
-        '   OBS the model files should always be named model.sdf and have a model.config\n' \
-        '   The folder should also contain a materials and meshes folder if necesary\n' \
-        '   See src/model/Husky for clarification'
+        default_value='/Husky/model.sdf', #husky
+        description='Model name to spawn in the world'
     )
 
-    #Enabels fullpath description to model
-    model_path_arg = DeclareLaunchArgument(
-    'model_path',
-    default_value='',
-    description='Absolute path to a model folder If set (non-empty), overrides the world filename.' \
-    '\n     The folder should follow the structure listed above'
+    world_name_arg = DeclareLaunchArgument(
+    'world_name', default_value='example',
+    description='Name of the world inside the SDF (often "default")'
     )
+    name_arg = DeclareLaunchArgument('name', default_value='husky', description='Spawned model name')
 
-    rviz_config_arg = DeclareLaunchArgument(
-        'rviz_config',
-        default_value='seeker_sim_config_points.rviz',
-        description='Config filename located under this packages config/ directory.'
-    )
+    x_arg = DeclareLaunchArgument('x', default_value='0.0')
+    y_arg = DeclareLaunchArgument('y', default_value='0.0')
+    z_arg = DeclareLaunchArgument('z', default_value='0.2')
+    roll_arg  = DeclareLaunchArgument('roll',  default_value='0.0')
+    pitch_arg = DeclareLaunchArgument('pitch', default_value='0.0')
+    yaw_arg   = DeclareLaunchArgument('yaw',   default_value='0.0')
 
-    #Enabels fullpath description to rviz config file
-    rviz_config_path_arg = DeclareLaunchArgument(
-    'rviz_config_path',
-    default_value='',
-    description='Absolute path to a .rviz file If set (non-empty), overrides the world filename.'
-    )
-    
+    world = LaunchConfiguration('world')
+    model = LaunchConfiguration('model')
+    world_name = LaunchConfiguration('world_name')
+    name = LaunchConfiguration('name')
+    x, y, z = LaunchConfiguration('x'), LaunchConfiguration('y'), LaunchConfiguration('z')
+    roll, pitch, yaw = LaunchConfiguration('roll'), LaunchConfiguration('pitch'), LaunchConfiguration('yaw')
 
 
-    # --- Paths to package resources (world, models, configs) ---
-    # Resolve the package share directory and point to the world, model, and config folders.
+    # ─── Paths ──────────────────────────────────────────────────────────    
     world_root = PathJoinSubstitution([
         get_package_share_directory('seeker_sim'),
-        'worlds', LaunchConfiguration('world')
+        'worlds', world
     ])
 
     model_root = PathJoinSubstitution([
@@ -72,13 +58,14 @@ def generate_launch_description():
         get_package_share_directory('seeker_sim'), 'config'
     ])
 
-    # RViz2 configuration file (which views/panels to load)
-    # make sure the file is located in src/seeker_sim/config folder
     rviz_config_root = PathJoinSubstitution([
-        config_root, LaunchConfiguration('rviz_config')
+        config_root, 'seeker_sim_config.rviz'
     ])
-    
-    #Makes sure gazebo looks for the model file in the src/seeker_sim/model folder 
+
+    model_file = PathJoinSubstitution([
+    get_package_share_directory('seeker_sim'), 'model', model  # model is your existing LaunchConfiguration('model')
+    ])
+
     set_gz_path = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
         value=[
@@ -87,67 +74,36 @@ def generate_launch_description():
         ]
     )
 
-    #--- Check if absolute path argument was passed
-
-    have_full_world_path = IfCondition(
-    PythonExpression(['"', LaunchConfiguration('world_path'), '" != ""'])
-    )
-    no_full_world_path = UnlessCondition(
-    PythonExpression(['"', LaunchConfiguration('world_path'), '" != ""'])
-    )
-
-    have_full_model_path = IfCondition(
-    PythonExpression(['"', LaunchConfiguration('model_path'), '" != ""'])
-    )
-    no_full_model_path = UnlessCondition(
-    PythonExpression(['"', LaunchConfiguration('model_path'), '" != ""'])
-    )
-
-    have_full_rviz_config_path = IfCondition(
-    PythonExpression(['"', LaunchConfiguration('rviz_config_path'), '" != ""'])
-    )
-    no_full_rviz_config_path = UnlessCondition(
-    PythonExpression(['"', LaunchConfiguration('rviz_config_path'), '" != ""'])
-    )
-
-
-
-    # --- Processes launched via shell commands (not ROS 2 nodes) ---
-
-    # Start Gazebo Harmonic (gz sim) with the selected world.
-    # Note: Here '-r' is used to start the simulation; behavior can vary between tools.
+    # ─── Nodes and Processes ────────────────────────────────────────────
     start_gz = ExecuteProcess(
-            cmd=['gz', 'sim', '-r', world_root],
-            output='screen',
-            condition = no_full_world_path
+            cmd=['gz', 'sim', '-r', world_root],   # t.ex. 'gz sim my_world.sdf'
+            output='screen'
         )
     
-    start_gz_absolute_path = ExecuteProcess(
-        cmd=['gz', 'sim', '-r', LaunchConfiguration('world_path')],
-        output='screen',
-        condition=have_full_world_path
-    )
-    
-    # Start RViz2 with the given .rviz configuration.
     start_rviz = ExecuteProcess(
             cmd=['rviz2','-d', rviz_config_root], 
             output='screen',
-            condition = no_full_rviz_config_path
+            
         )
     
-    start_rviz_absolute_path = ExecuteProcess(
-            cmd=['rviz2','-d', LaunchConfiguration('rviz_config_path')], 
-            output='screen',
-            condition = have_full_rviz_config_path
-        )
+    spawn_cmd = ExecuteProcess(
+        cmd=[
+            'ros2', 'run', 'ros_gz_sim', 'create',
+            '-world', world_name,
+            '-file', model_file,
+            '-name', name,
+            '-x', x, '-y', y, '-z', z,
+            '-R', roll, '-P', pitch, '-Y', yaw,
+            '--allow_renaming', '0'
+        ],
+        output='screen'
+    )
     
-    # Open a separate terminal window with teleop_twist_keyboard so you can drive the robot.
-    # Remap cmd_vel to Gazebos Husky command topic.
     teleop_cmd = (
         'source /opt/ros/jazzy/setup.bash; '
         'ros2 run teleop_twist_keyboard teleop_twist_keyboard '
         '--ros-args -r cmd_vel:=/model/husky/cmd_vel; '
-        'exec bash'  # Keeps the terminal window open after node termination
+        'exec bash'  # håll fönstret öppet
     )
     
     teleop = ExecuteProcess(
@@ -155,18 +111,6 @@ def generate_launch_description():
             output='screen'
         )
     
-
-    
-    # --- ROS 2 nodes ---
-
-    # ros_gz_bridge::parameter_bridge
-    # Bridges messages between Gazebo (GZ Transport) and ROS 2 types:
-    #  - Husky velocity command (Twist <-> gz.msgs.Twist)
-    #  - Odometry (Odometry <-> gz.msgs.Odometry)
-    #  - /clock (simulated time to ROS 2)
-    #  - Lidar point cloud (PointCloud2 <-> gz.msgs.PointCloudPacked)
-    # Also remaps /lidar/mid360/points/points -> /lidar/mid360/points.
-
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
@@ -181,18 +125,13 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Custom node in the seeker_sim package (executable: cloud_frame_relay).
-    # receives point clouds and republishes them under a different frame/namespace.
     simple_bridge = Node(
             package='seeker_sim',
             namespace='sim1',
-            executable='cloud_frame_relay', 
+            executable='cloud_frame_relay', #kanske byt till cloud_frame_relay.py
             name='sim'
         )
     
-    # Publish a static transform between base_link and lidar.
-    # Args: x y z roll pitch yaw parent child
-    # Places the lidar 0.716 m above base_link with zero rotation.
     lidar_tf = Node(
             package='tf2_ros',
             executable='static_transform_publisher',
@@ -200,41 +139,39 @@ def generate_launch_description():
             output='screen'
         )
     
-    #Delays the start of Rviz to ensure all previous nodes are up and running before. 
     delay_start_rviz = TimerAction(
         period= 3.0,
-        actions=[start_rviz],
-        condition = no_full_rviz_config_path
+        actions=[start_rviz]
+    )
+    
+    # Fire spawn only once gz is up (a small extra delay is still fine)
+    spawn_when_gz_is_ready = RegisterEventHandler(
+        OnProcessStart(
+            target_action=start_gz,
+            on_start=[TimerAction(period=1.5, actions=[spawn_cmd])]
+        )
     )
 
-    delay_start_rviz_path = TimerAction(
-        period= 3.0,
-        actions=[start_rviz_absolute_path],
-        condition = have_full_rviz_config_path
-    )
-    
-    
-    #Starting order
+
     ld = LaunchDescription()
     ld.add_action(world_arg)
-    ld.add_action(world_path_arg)
-
     ld.add_action(model_arg)
-    ld.add_action(model_path_arg)
-
-    ld.add_action(rviz_config_arg)
-    ld.add_action(rviz_config_path_arg)
+    ld.add_action(world_name_arg)
+    ld.add_action(name_arg)
+    ld.add_action(x_arg); ld.add_action(y_arg); ld.add_action(z_arg)
+    ld.add_action(roll_arg); ld.add_action(pitch_arg); ld.add_action(yaw_arg)
 
     ld.add_action(set_gz_path)
-    ld.add_action(simple_bridge)
-
     ld.add_action(start_gz)
-    ld.add_action(start_gz_absolute_path)
-
+    ld.add_action(spawn_when_gz_is_ready)
     ld.add_action(lidar_tf) 
     ld.add_action(bridge)
-    #ld.add_action(teleop)
+    ld.add_action(simple_bridge)
+    
+    ld.add_action(teleop)
     ld.add_action(delay_start_rviz)
-    ld.add_action(delay_start_rviz_path)
+    
+    
 
-    return LaunchDescription([ld,LogInfo(msg=[TextSubstitution(text='!!!!!!!!!!!!!!!HERE: '), model_root])])
+
+    return LaunchDescription([ld])
