@@ -65,8 +65,11 @@ def generate_launch_description():
     ])
 
     model_root = PathJoinSubstitution([
-        get_package_share_directory('seeker_sim'), 'model'
+        get_package_share_directory('seeker_sim'), 'model','Sensors'
     ])
+
+    #standard model path for Gazebo
+    gz_std = '/usr/share/gz/models'
 
     config_root = PathJoinSubstitution([
         get_package_share_directory('seeker_sim'), 'config'
@@ -82,10 +85,22 @@ def generate_launch_description():
     set_gz_path = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
         value=[
-            EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),
+            EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),gz_std,
             ':', model_root
         ]
     )
+    
+    # set_gz_path =SetEnvironmentVariable(
+    #         name='GZ_SIM_RESOURCE_PATH',
+    #         value=[
+    #             # Behåll befintligt värde om det råkar finnas
+    #             EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),
+    #             # Lägg till dina egna modeller
+    #             f':{model_root}',
+    #             # Lägg till GZ standardbibliotek
+    #             f':{gz_std}',
+    #         ]
+    #     )
 
     #--- Check if absolute path argument was passed
 
