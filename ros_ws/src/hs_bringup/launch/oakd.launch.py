@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 # @author Roni Kreinin (rkreinin@clearpathrobotics.com)
-# @author slarc@2025 (slarc25@proton.me)
+# @author Vladislav Saburov (slarc25@proton.me)
 
 from ament_index_python.packages import get_package_share_directory
 
