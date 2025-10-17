@@ -7,7 +7,8 @@ RUN apt update && apt install -y \
     gnupg \
     build-essential \
     nano \
-    neovim
+    neovim \
+    gh
 
 RUN apt update && apt install -y \
     ros-dev-tools \
@@ -16,7 +17,8 @@ RUN apt update && apt install -y \
     ros-jazzy-rviz2 \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup \
-    ros-jazzy-depthai-ros
+    ros-jazzy-depthai-ros \
+    ros-jazzy-septentrio-gnss-driver
 
 # Install gazebo harmonic
 RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
