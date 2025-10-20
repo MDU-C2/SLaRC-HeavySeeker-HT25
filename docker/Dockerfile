@@ -18,7 +18,8 @@ RUN apt update && apt install -y \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup \
     ros-jazzy-depthai-ros \
-    ros-jazzy-septentrio-gnss-driver
+    ros-jazzy-septentrio-gnss-driver \
+    ros-jazzy-usb-cam
 
 # Install gazebo harmonic
 RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
@@ -49,13 +50,13 @@ RUN chown -R ${USER_NAME}:${USER_NAME} /slarc_ws
 
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /home/${USER_NAME}/.bashrc
 RUN echo "source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash" >> /home/${USER_NAME}/.bashrc
-RUN echo "source /usr/share/colcon_cd/function/colcon_cd.sh" >> ~/.bashrc
+RUN echo "source /usr/share/colcon_cd/function/colcon_cd.sh" >> /home/${USER_NAME}/.bashrc
 
-RUN echo "export _colcon_cd_root=/opt/ros/jazzy/" >> ~/.bashrc
-RUN echo "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> ~/.bashrc
+RUN echo "export _colcon_cd_root=/opt/ros/jazzy/" >> /home/${USER_NAME}/.bashrc
+RUN echo "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> /home/${USER_NAME}/.bashrc
 
 ARG ROS_DOMAIN_ID=0
-RUN echo "export ROS_DOMAIN_ID=" + ${ROS_DOMAIN_ID} >> ~/.bashrc
+RUN echo "export ROS_DOMAIN_ID=" + ${ROS_DOMAIN_ID} >> /home/${USER_NAME}/.bashrc
 
 # Switch to the new user
 USER ${USER_NAME}
