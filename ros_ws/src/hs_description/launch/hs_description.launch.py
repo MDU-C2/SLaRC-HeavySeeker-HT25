@@ -27,7 +27,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     description_dir = get_package_share_directory('hs_description')
     xacro_file = PathJoinSubstitution(
-        [description_dir, 'urdf', 'hs.urdf.xacro'])
+        [description_dir, 'sdf', 'hs.sdf.xacro'])
 
     ARGUMENTS = [DeclareLaunchArgument(
         'namespace', default_value='hs', description='Robot namespace')]
