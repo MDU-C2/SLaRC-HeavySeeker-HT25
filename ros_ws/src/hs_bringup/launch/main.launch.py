@@ -36,7 +36,7 @@ def generate_launch_description():
             "namespace", default_value="", description="Robot namespace"
         )
     ]
-    cameras_launch_file = PathJoinSubstitution([camera_dir, "launch", "oakd.launch.py"])
+    cameras_launch_file = PathJoinSubstitution([camera_dir, "launch", "cameras.launch.py"])
     #oakd_launch_file = PathJoinSubstitution([bringup_dir, "launch", "oakd.launch.py"])
 
     septentrio_launch_file = PathJoinSubstitution(
