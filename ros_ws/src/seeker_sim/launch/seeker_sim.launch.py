@@ -4,6 +4,7 @@ from launch.actions import ExecuteProcess, SetEnvironmentVariable, LogInfo, Time
 from launch.substitutions import EnvironmentVariable, PathJoinSubstitution, LaunchConfiguration, PythonExpression, TextSubstitution
 from ament_index_python.packages import get_package_share_directory
 from launch.conditions import IfCondition, UnlessCondition
+import os
 
 
 
@@ -13,7 +14,7 @@ def generate_launch_description():
     #--- Launch arguments ---
     world_arg = DeclareLaunchArgument(
         'world',
-        default_value='example.sdf',
+        default_value='example_2.sdf',
         description='World filename located under this packages worlds/ directory.'
     )
 
@@ -27,11 +28,11 @@ def generate_launch_description():
     
     model_arg = DeclareLaunchArgument(
         'model',
-        default_value='Husky',
-        description='Model FOLDER located under this packages model/ directory.\n' \
+        default_value='Rig1',
+        description='Model FOLDER located under one of the subfolders of this packages model/ directory.\n' \
         '   OBS the model files should always be named model.sdf and have a model.config\n' \
-        '   The folder should also contain a materials and meshes folder if necesary\n' \
-        '   See src/model/Husky for clarification'
+        '   The folder should also contain a materials and meshes folder even if empty\n' \
+        '   See src/model/UGV/Husky as an example.'
     )
 
     #Enabels fullpath description to model
@@ -64,13 +65,6 @@ def generate_launch_description():
         'worlds', LaunchConfiguration('world')
     ])
 
-    model_root = PathJoinSubstitution([
-        get_package_share_directory('seeker_sim'), 'model','Sensors'
-    ])
-
-    #standard model path for Gazebo
-    gz_std = '/usr/share/gz/models'
-
     config_root = PathJoinSubstitution([
         get_package_share_directory('seeker_sim'), 'config'
     ])
@@ -80,27 +74,31 @@ def generate_launch_description():
     rviz_config_root = PathJoinSubstitution([
         config_root, LaunchConfiguration('rviz_config')
     ])
+
+    sdf_roots = [
+        os.path.join(get_package_share_directory('seeker_sim'), 'model', 'Sensors'),   
+        os.path.join(get_package_share_directory('seeker_sim'), 'model', 'Rigs'),
+        os.path.join(get_package_share_directory('seeker_sim'), 'model', 'Assemblies'),
+        os.path.join(get_package_share_directory('seeker_sim'), 'model', 'UGV'),
+        
+    ]
+
     
-    #Makes sure gazebo looks for the model file in the src/seeker_sim/model folder 
+    new_paths = [p for p in sdf_roots if os.path.isdir(p)]
+
+    existing = os.environ.get("GZ_SIM_RESOURCE_PATH", "")
+    value_parts = new_paths + ([existing] if existing else [])
+    merged_value = os.pathsep.join(value_parts)
+    
+
+    # Set GZ_SIM_RESOURCE_PATH to include the model paths
+
     set_gz_path = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
-        value=[
-            EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),gz_std,
-            ':', model_root
-        ]
+        value=merged_value
     )
     
-    # set_gz_path =SetEnvironmentVariable(
-    #         name='GZ_SIM_RESOURCE_PATH',
-    #         value=[
-    #             # Behåll befintligt värde om det råkar finnas
-    #             EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),
-    #             # Lägg till dina egna modeller
-    #             f':{model_root}',
-    #             # Lägg till GZ standardbibliotek
-    #             f':{gz_std}',
-    #         ]
-    #     )
+    
 
     #--- Check if absolute path argument was passed
 
@@ -132,7 +130,8 @@ def generate_launch_description():
     # Start Gazebo Harmonic (gz sim) with the selected world.
     # Note: Here '-r' is used to start the simulation; behavior can vary between tools.
     start_gz = ExecuteProcess(
-            cmd=['gz', 'sim', '-r', world_root],
+            #cmd=['gz', 'sim', '-r', world_root],
+            cmd=['gz', 'sim', world_root],
             output='screen',
             condition = no_full_world_path
         )
@@ -155,6 +154,20 @@ def generate_launch_description():
             output='screen',
             condition = have_full_rviz_config_path
         )
+    
+    model_uri = PythonExpression(["'model://' + '", LaunchConfiguration('model'), "'"])
+
+    spawn_cmd = ExecuteProcess(
+        cmd=[
+            'ros2', 'run', 'ros_gz_sim', 'create',
+            '-world', "example_2",
+            '-file', model_uri,
+            '-x', '0.0', '-y', '0.0', '-z', '2.0',
+            '-R', '0.0', '-P', '0.0', '-Y', '0.0',
+            '--allow_renaming', '0'
+        ],
+        output='screen'
+    )
     
     # Open a separate terminal window with teleop_twist_keyboard so you can drive the robot.
     # Remap cmd_vel to Gazebos Husky command topic.
@@ -227,6 +240,11 @@ def generate_launch_description():
         actions=[start_rviz_absolute_path],
         condition = have_full_rviz_config_path
     )
+
+    delay_spawn = TimerAction(
+        period= 3.0,
+        actions=[spawn_cmd],
+    )
     
     
     #Starting order
@@ -244,11 +262,13 @@ def generate_launch_description():
     ld.add_action(simple_bridge)
 
     ld.add_action(start_gz)
-    ld.add_action(start_gz_absolute_path)
+    #ld.add_action(start_gz_absolute_path)
+
 
     ld.add_action(lidar_tf) 
     ld.add_action(bridge)
-    ld.add_action(teleop)
+    #ld.add_action(teleop)
+    ld.add_action(delay_spawn)
     ld.add_action(delay_start_rviz)
     ld.add_action(delay_start_rviz_path)
 

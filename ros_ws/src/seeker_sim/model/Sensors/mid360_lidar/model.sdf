@@ -3,7 +3,7 @@
   <model name="mid360_lidar">
     <pose>0 0 1 0 0 0</pose>
       <link name="lidar_link">
-
+        <gravity>true</gravity> 
         <visual name="Lidar_vizual_1">
         <pose relative_to="lidar_link">0 0 0 0 0 0</pose>
         <geometry>
@@ -13,6 +13,18 @@
           </mesh>
         </geometry>
       </visual>
+
+      <collision name="Lidar_collision_1">
+        <pose relative_to="lidar_link">0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>meshes/VLP16_base_1.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+
+
       <visual name="Lidar_vizual_2">
         <pose relative_to="lidar_link">0 0 0 0 0 0</pose>
         <geometry>
@@ -22,6 +34,18 @@
           </mesh>
         </geometry>
       </visual>
+      <collision name="Lidar_collision_2">
+        <pose relative_to="lidar_link">0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>meshes/VLP16_base_2.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+
+
+
       <visual name="Lidar_vizual_3">
         <pose relative_to="lidar_link">0 0 0 0 0 0</pose>
         <geometry>
@@ -31,6 +55,15 @@
           </mesh>
         </geometry>
       </visual>
+      <collision name="Lidar_collision_3">
+        <pose relative_to="lidar_link">0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>meshes/VLP16_scan.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
 
         <sensor name="mid360_like" type="gpu_lidar">
                 <visualize>true</visualize>
