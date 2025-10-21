@@ -73,11 +73,11 @@
       <direction>0 0 -1</direction>
     </light>
 
-    <!-- Husky model -->
+  
     <include>
-      <uri>model://mid360_lidar</uri>
+      <uri>model://box_with_lidar</uri>
       <name>Lidar</name>
-      <pose>0 0 0.2 0 0 0</pose>
+      <pose>0 0 0.01 0 0 0</pose>
     </include>
 
 
@@ -203,23 +203,6 @@
 
     
 
-    <include>
-  <uri>model://ground_plane</uri>
-  <pose>0 0 0 0 0 0</pose>
-</include>
-
-<model name="debug_box">
-  <pose>1 0 0.5 0 0 0</pose>
-  <static>true</static>
-  <link name="box_link">
-    <collision name="c">
-      <geometry><box><size>1 1 1</size></box></geometry>
-    </collision>
-    <visual name="v">
-      <geometry><box><size>1 1 1</size></box></geometry>
-    </visual>
-  </link>
-</model> 
 
   </world>
 </sdf>

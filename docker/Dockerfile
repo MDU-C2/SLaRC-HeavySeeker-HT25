@@ -19,34 +19,34 @@ RUN apt update && apt install -y \
     ros-jazzy-depthai-ros
 
 # Install gazebo harmonic
-# RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
-#     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
-#     apt-get update \
-#     apt-get install gz-harmonic
+RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
+    apt-get update \
+    apt-get install gz-harmonic
 
 # 1) Base tools + add OSRF repo
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl gnupg lsb-release ca-certificates \ 
-    && curl -fsSL https://packages.osrfoundation.org/gazebo.gpg \
-    -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
-&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] \
-    https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
-> /etc/apt/sources.list.d/gazebo-stable.list \
-&& apt-get update
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     curl gnupg lsb-release ca-certificates \ 
+#     && curl -fsSL https://packages.osrfoundation.org/gazebo.gpg \
+#     -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+# && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] \
+#     https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
+# > /etc/apt/sources.list.d/gazebo-stable.list \
+# && apt-get update
 
-# 2) Install GZ (Harmonic). No commas; add useful tools/GUI as needed.
-RUN apt-get install -y --no-install-recommends \
-    gz-harmonic gz-sim gz-tools gz-gui \
-&& rm -rf /var/lib/apt/lists/*
+# # 2) Install GZ (Harmonic). No commas; add useful tools/GUI as needed.
+# RUN apt-get install -y --no-install-recommends \
+#     gz-harmonic gz-sim gz-tools gz-gui \
+# && rm -rf /var/lib/apt/lists/*
 
 # 3) (Option A) Pre-download “standard” models from Fuel into the image
 # You can add more models similarly.
-RUN mkdir -p /root/.gz/fuel \
-&& gz fuel download --url "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground%20Plane" \
-&& gz fuel download --url "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun"
+# RUN mkdir -p /root/.gz/fuel \
+# && gz fuel download --url "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground%20Plane" \
+# && gz fuel download --url "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun"
 
 # 4) Make Fuel cache available by default + leave room to append your own project path
-ENV GZ_SIM_RESOURCE_PATH="/root/.gz/fuel"
+# ENV GZ_SIM_RESOURCE_PATH="/root/.gz/fuel"
 
 
 # Create worksapce folder
