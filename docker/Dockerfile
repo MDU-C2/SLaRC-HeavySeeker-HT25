@@ -10,10 +10,7 @@ RUN apt update && apt install -y \
     neovim \
     git \
     cmake \
-    libpcl-dev \
-    ros-jazzy-pcl-conversions \
-    ros-jazzy-pcl-msgs
-
+    libpcl-dev 
 
 RUN apt update && apt install -y \
     ros-dev-tools \
@@ -23,6 +20,8 @@ RUN apt update && apt install -y \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup \
     ros-jazzy-depthai-ros \
+    ros-jazzy-pcl-conversions \
+    ros-jazzy-pcl-msgs \
     ros-jazzy-cartographer \
     ros-jazzy-cartographer-ros
 
