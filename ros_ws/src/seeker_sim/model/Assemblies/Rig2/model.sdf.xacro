@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="$(find seeker_sim)/model/Rigs/Rig_simpelBox_xacro/model.sdf.xacro" />
+  <xacro:include filename="$(find seeker_sim)/model/Sensors/oakd/model.sdf.xacro"/>
+  <model name="Rig2" canonical_link='rig_link'>
+    <link name="rig_link">
+      <must_be_base_link>false</must_be_base_link>
+    </link>
+
+    <xacro:property name="oakd_x_offset" value="${0*cm2m}"/>
+    <xacro:property name="oakd_y_offset" value="${0*cm2m}"/>
+    <xacro:property name="oakd_z_offset" value="${0*cm2m}"/>
+
+    
+    <xacro:Rig_simpelBox_xacro/>
+    <!--use box_size_x,box_size_y,box_size_z in the offset to allign sensor placement-->
+
+    <!-- <origin xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}"/> -->
+
+    <link name="rig_bottom_link">
+    <pose relative_to="rig_link">0 0 ${-0.5*box_size_z} 0 ${pi/2} 0</pose>
+    </link>
+
+    <link name="rig_top_link">
+    <pose relative_to="rig_link">0 0 ${0.5*box_size_z} 0 ${-pi/2} 0</pose>
+    </link>
+
+    <link name="rig_front_link">
+    <pose relative_to="rig_link">${0.5*box_size_x} 0 0 0 0 0</pose>
+    </link>
+
+    <link name="rig_back_link">
+    <pose relative_to="rig_link">${-0.5*box_size_x} 0 0 0 0 ${pi}</pose>
+    </link>
+
+    <link name="rig_left_link">
+    <pose relative_to="rig_link">0 ${0.5*box_size_y} 0 0 0 ${pi/2}</pose>
+    </link>
+
+    <link name="rig_right_link">
+    <pose relative_to="rig_link">0 ${-0.5*box_size_y} 0 0 0 ${-pi/2}</pose>
+    </link>
+
+    <xacro:oakd parent_link="rig_left_link" xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}" rpy="0 0 0"/>
+
+
+    <joint name="base_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_bottom_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+
+    <joint name="top_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_top_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+
+    <joint name="right_side_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_right_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+
+    <joint name="left_side_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_left_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+
+    <joint name="left_front_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_front_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+    <joint name="left_back_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_back_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+
+
+    <joint name="box_mount" type="fixed">
+      <parent>rig_link</parent>
+      <child>box_link</child>
+    </joint>
+
+    <pose>0 0 0 0 0 0</pose>
+  </model>
+</sdf>
