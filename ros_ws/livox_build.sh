@@ -1,4 +1,9 @@
 #!/bin/bash
+#Synchronize and update git submodules
+cd /
+git submodule sync --recursive
+git submodule update --init --recursive
+
 # Downloand and build/install Livox-SDK2
 cd /third_party_sdk_drivers/Livox-SDK2/
 cat sdk_core/logger_handler/file_manager.h | grep '#include <cstdint>' || sed -i '31i #include <cstdint>' sdk_core/logger_handler/file_manager.h
