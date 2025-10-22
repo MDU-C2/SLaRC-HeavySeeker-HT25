@@ -9,7 +9,11 @@ RUN apt update && apt install -y \
     nano \
     neovim \
     git \
-    cmake
+    cmake \
+    libpcl-dev \
+    ros-jazzy-pcl-conversions \
+    ros-jazzy-pcl-msgs
+
 
 RUN apt update && apt install -y \
     ros-dev-tools \
@@ -18,7 +22,9 @@ RUN apt update && apt install -y \
     ros-jazzy-rviz2 \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup \
-    ros-jazzy-depthai-ros
+    ros-jazzy-depthai-ros \
+    ros-jazzy-cartographer \
+    ros-jazzy-cartographer-ros
 
 # Install gazebo harmonic
 RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
@@ -26,24 +32,8 @@ RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyri
     apt-get update \
     apt-get install gz-harmonic
 
-# Downloand and build/install Livox-SDK2
-RUN git clone https://github.com/Livox-SDK/Livox-SDK2.git
-RUN cd ./Livox-SDK2/ && \
-    mkdir build && \
-    cd build && \
-    cmake .. && make -j && \
-    make install -y && \
-    cd ../..
-
 # Create worksapce folder
 RUN mkdir -p /slarc_ws/src
-
-# Download and build livox_ros_driver2
-RUN cd /slarc_ws/src && \
-    git clone https://github.com/Livox-SDK/livox_ros_driver2.git && \
-    cd livox_ros_driver2 && \
-    ./build.sh humble && \
-    cd ../../..
 
 # User ARGs
 ARG USER_ID

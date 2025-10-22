@@ -30,7 +30,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
     use_rviz = LaunchConfiguration('use_rviz', default='true')
-    livox_cartographer_prefix = get_package_share_directory('livox_listener')
+    livox_cartographer_prefix = get_package_share_directory('hs_bringup')
     cartographer_config_dir = LaunchConfiguration('cartographer_config_dir', default=os.path.join(
                                                   livox_cartographer_prefix, 'config'))
     configuration_basename = LaunchConfiguration('configuration_basename',
@@ -39,7 +39,7 @@ def generate_launch_description():
     resolution = LaunchConfiguration('resolution', default='0.05')
     publish_period_sec = LaunchConfiguration('publish_period_sec', default='1.0')
 
-    rviz_config_dir = os.path.join(get_package_share_directory('livox_listener'),
+    rviz_config_dir = os.path.join(get_package_share_directory('hs_bringup'),
                                    'config', 'display_point_cloud_ROS2.rviz')
 
     return LaunchDescription([
