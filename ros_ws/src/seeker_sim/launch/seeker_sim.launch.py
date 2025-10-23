@@ -162,7 +162,7 @@ def generate_launch_description():
             'ros2', 'run', 'ros_gz_sim', 'create',
             '-world', "example_2",
             '-file', model_uri,
-            '-x', '0.0', '-y', '0.0', '-z', '2.0',
+            '-x', '0.0', '-y', '0.0', '-z', '0.2',
             '-R', '0.0', '-P', '0.0', '-Y', '0.0',
             '--allow_renaming', '0'
         ],
@@ -267,7 +267,7 @@ def generate_launch_description():
 
     ld.add_action(lidar_tf) 
     ld.add_action(bridge)
-    #ld.add_action(teleop)
+    ld.add_action(teleop)
     ld.add_action(delay_spawn)
     ld.add_action(delay_start_rviz)
     ld.add_action(delay_start_rviz_path)
