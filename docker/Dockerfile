@@ -11,6 +11,7 @@ RUN apt update && apt install -y \
     git \
     cmake \
     libpcl-dev 
+    gh
 
 RUN apt update && apt install -y \
     ros-dev-tools \
@@ -24,6 +25,7 @@ RUN apt update && apt install -y \
     ros-jazzy-pcl-msgs \
     ros-jazzy-cartographer \
     ros-jazzy-cartographer-ros
+    ros-jazzy-septentrio-gnss-driver
 
 # Install gazebo harmonic
 RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \

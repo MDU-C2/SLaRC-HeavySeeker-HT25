@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 # @author Roni Kreinin (rkreinin@clearpathrobotics.com)
-# @author slarc@2025 (slarc25@proton.me)
+# @author Vladislav Saburov (slarc25@proton.me)
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -27,20 +27,31 @@ from launch_ros.actions import PushRosNamespace
 
 
 def generate_launch_description():
-    bringup_dir = get_package_share_directory('hs_bringup')
+    bringup_dir = get_package_share_directory("hs_bringup")
 
-    namespace = LaunchConfiguration('namespace')
+    namespace = LaunchConfiguration("namespace")
 
-    ARGUMENTS = [DeclareLaunchArgument(
-        'namespace', default_value='', description='Robot namespace')]
+    ARGUMENTS = [
+        DeclareLaunchArgument(
+            "namespace", default_value="", description="Robot namespace"
+        )
+    ]
 
-    oakd_launch_file = PathJoinSubstitution(
-        [bringup_dir, 'launch', 'oakd.launch.py'])
+    oakd_launch_file = PathJoinSubstitution([bringup_dir, "launch", "oakd.launch.py"])
+
+    septentrio_launch_file = PathJoinSubstitution(
+        [bringup_dir, "launch", "rover_node.launch.py"]
+    )
 
     actions = [
         PushRosNamespace(namespace),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(
-            [oakd_launch_file]), launch_arguments=[('namespace', namespace)])
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([oakd_launch_file]),
+            launch_arguments=[("namespace", namespace)],
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([septentrio_launch_file]), launch_arguments=[]
+        ),
     ]
 
     hs = GroupAction(actions)
