@@ -59,4 +59,4 @@ usb_cameras:
       auto_white_balance: false
       auto_exposure: false
       auto_focus: false
-      fps: 15.0
+      framerate: 15.0

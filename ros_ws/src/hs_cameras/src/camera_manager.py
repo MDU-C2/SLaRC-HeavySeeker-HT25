@@ -43,9 +43,9 @@ DEFAULT_USB_PARAMS = {
     "image_height": 720,
     "pixel_format": 'mjpeg2rgb', 
     "auto_white_balance": False,
-    "auto_exposure": False,
+    "autoexposure": False,
     "auto_focus": False,
-
+    "framerate": 15.0,
 }
 
 # ------------------------------------------------------------
