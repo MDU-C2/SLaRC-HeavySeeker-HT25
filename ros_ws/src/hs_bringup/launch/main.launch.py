@@ -43,6 +43,10 @@ def generate_launch_description():
         [bringup_dir, "launch", "rover_node.launch.py"]
     )
 
+    livox_launch_file = PathJoinSubstitution(
+        [bringup_dir, "launch", "livox_lds.launch.py"]
+    )
+
     actions = [
         PushRosNamespace(namespace),
         IncludeLaunchDescription(
@@ -51,6 +55,9 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([septentrio_launch_file]), launch_arguments=[]
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([livox_launch_file]), launch_arguments=[]
         ),
     ]
 

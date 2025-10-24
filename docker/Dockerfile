@@ -8,6 +8,9 @@ RUN apt update && apt install -y \
     build-essential \
     nano \
     neovim \
+    git \
+    cmake \
+    libpcl-dev \
     gh
 
 RUN apt update && apt install -y \
@@ -19,6 +22,10 @@ RUN apt update && apt install -y \
     ros-jazzy-nav2-bringup \
     ros-jazzy-nav2-route \
     ros-jazzy-depthai-ros \
+    ros-jazzy-pcl-conversions \
+    ros-jazzy-pcl-msgs \
+    ros-jazzy-cartographer \
+    ros-jazzy-cartographer-ros \
     ros-jazzy-septentrio-gnss-driver
 
 # Install gazebo harmonic
