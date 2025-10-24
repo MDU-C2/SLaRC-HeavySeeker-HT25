@@ -4,8 +4,7 @@ import logging
 import copy
 from src.utils import load_camera_config, choose_best_pixel_format
 from src.detect_cameras.detect_cameras import DetectCameras
-#from src.utils import load_camera_config, choose_best_pixel_format
-#from src.detect_cameras.detect_cameras import DetectCameras
+
 
 
 logger = logging.getLogger("CameraManager")

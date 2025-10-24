@@ -37,7 +37,7 @@ def generate_launch_description():
         )
     ]
     cameras_launch_file = PathJoinSubstitution([camera_dir, "launch", "cameras.launch.py"])
-    #oakd_launch_file = PathJoinSubstitution([bringup_dir, "launch", "oakd.launch.py"])
+    oakd_launch_file = PathJoinSubstitution([bringup_dir, "launch", "oakd.launch.py"])
 
     septentrio_launch_file = PathJoinSubstitution(
         [bringup_dir, "launch", "rover_node.launch.py"]
@@ -45,8 +45,12 @@ def generate_launch_description():
 
     actions = [
         PushRosNamespace(namespace),
+        #IncludeLaunchDescription(
+        #    PythonLaunchDescriptionSource([cameras_launch_file]),
+        #    launch_arguments=[("namespace", namespace)],
+        #),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([cameras_launch_file]),
+            PythonLaunchDescriptionSource([oakd_launch_file]),
             launch_arguments=[("namespace", namespace)],
         ),
         IncludeLaunchDescription(

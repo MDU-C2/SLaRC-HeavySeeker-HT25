@@ -109,7 +109,7 @@ class DetectCameras:
 
         # Deduplicate cameras — prefer MJPG-capable or higher-res devices
         unique = {}
-
+        # If the camera have several video outputs, choose the one with best resolution
         def score_device(dev_path):
             """Return a score for device capability based on v4l2-ctl output."""
             try:
