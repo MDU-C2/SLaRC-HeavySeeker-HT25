@@ -13,7 +13,7 @@ find_package(ament_cmake REQUIRED)
 find_package(depthai_ros_driver REQUIRED)
 
 install(
-  DIRECTORY launch config
+  DIRECTORY launch config rviz
   DESTINATION share/${PROJECT_NAME}
 )
 

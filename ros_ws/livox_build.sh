@@ -13,7 +13,7 @@ cd /
 # Download and build livox_ros_driver2
 cd /slarc_ws/src/livox_ros_driver2
 source /opt/ros/jazzy/setup.bash
-./build.sh humble
+./build.sh humble #This is fine for jazzy
 cd /
 
 # Configure dynamic linker run-time bindings

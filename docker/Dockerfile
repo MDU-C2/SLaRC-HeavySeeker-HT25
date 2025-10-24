@@ -32,7 +32,7 @@ RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyri
     apt-get install gz-harmonic
 
 # Create worksapce folder
-RUN mkdir -p /slarc_ws/src
+RUN mkdir /slarc_ws
 
 # User ARGs
 ARG USER_ID

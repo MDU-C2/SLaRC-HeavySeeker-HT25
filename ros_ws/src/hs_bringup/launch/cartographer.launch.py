@@ -40,7 +40,9 @@ def generate_launch_description():
     publish_period_sec = LaunchConfiguration('publish_period_sec', default='1.0')
 
     rviz_config_dir = os.path.join(get_package_share_directory('hs_bringup'),
-                                   'config', 'display_point_cloud_ROS2.rviz')
+                                   'rviz', 'display_point_cloud_ROS2.rviz')
+    
+    print("RVIZ CONFIG DIR: ", rviz_config_dir)
 
     return LaunchDescription([
         DeclareLaunchArgument(

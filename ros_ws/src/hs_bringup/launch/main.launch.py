@@ -36,11 +36,16 @@ def generate_launch_description():
 
     oakd_launch_file = PathJoinSubstitution(
         [bringup_dir, 'launch', 'oakd.launch.py'])
+    
+    livox_launch_file = PathJoinSubstitution(
+        [bringup_dir, 'launch', 'livox.launch.py'])
 
     actions = [
         PushRosNamespace(namespace),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(
-            [oakd_launch_file]), launch_arguments=[('namespace', namespace)])
+            [oakd_launch_file]), launch_arguments=[('namespace', namespace)]),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(
+            [livox_launch_file]), launch_arguments=[('namespace', namespace)]),
     ]
 
     hs = GroupAction(actions)
