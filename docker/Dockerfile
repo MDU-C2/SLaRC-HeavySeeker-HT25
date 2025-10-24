@@ -18,13 +18,15 @@ RUN apt update && apt install -y \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup \
     ros-jazzy-depthai-ros \
-    ros-jazzy-septentrio-gnss-driver
+    ros-jazzy-septentrio-gnss-driver \
+    ros-jazzy-teleop-twist-keyboard \
+    ros-jazzy-teleop-twist-joy
 
-# Install gazebo harmonic
-RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
-    apt-get update \
-    apt-get install gz-harmonic
+# Install gazebo harmonic and gz-sensors
+RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' && \
+    wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add - && \
+    sudo apt-get update && \
+    sudo apt-get install -y libgz-sensors10-navsat libgz-sensors10-navsat-dev gz-harmonic
 
 
 # Create worksapce folder
@@ -58,7 +60,7 @@ RUN echo "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> /home/${USER_NAME}/
 
 
 ARG ROS_DOMAIN_ID=0
-RUN echo "export ROS_DOMAIN_ID=" + ${ROS_DOMAIN_ID} >> /home/${USER_NAME}/.bashrc
+RUN echo "export ROS_DOMAIN_ID=${ROS_DOMAIN_ID}" >> /home/${USER_NAME}/.bashrc
 
 # Switch to the new user
 USER ${USER_NAME}
