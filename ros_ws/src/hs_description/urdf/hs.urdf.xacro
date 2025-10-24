@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<robot name="heavy_seeker" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <link name="base_link" />
+
+  <xacro:include filename="$(find hs_description)/urdf/common.urdf.xacro" />
+  <xacro:include filename="$(find hs_description)/urdf/oakd.urdf.xacro" />
+
+  <!-- Mechanical properties -->
+  <xacro:property name="oakd_x_offset" value="${0*cm2m}"/>
+  <xacro:property name="oakd_y_offset" value="${0*cm2m}"/>
+  <xacro:property name="oakd_z_offset" value="${0*cm2m}"/>
+
+  <!-- Sensor definitions -->
+  <xacro:oakd parent_link="base_link">
+    <origin xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}"/>
+  </xacro:oakd>
+
+  <link name="base_footprint" />
+  <joint name="base_footprint_joint" type="fixed">
+    <origin xyz=" 0 0 0" rpy="0 0 0" />
+    <parent link="base_link" />
+    <child link="base_footprint" />
+  </joint>
+</robot>
