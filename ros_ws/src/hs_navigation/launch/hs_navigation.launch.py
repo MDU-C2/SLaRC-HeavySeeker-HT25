@@ -19,7 +19,7 @@ def generate_launch_description():
     ekf_config = PathJoinSubstitution([nav_dir, 'config', 'ekf.yaml'])
     nav2_config = PathJoinSubstitution([nav_dir, 'config', 'nav2_params.yaml'])
 
-    ARGUMENTS = [DeclareLaunchArgument('namespace', default_value='hs', description='Robot namespace'),
+    ARGUMENTS = [DeclareLaunchArgument('namespace', default_value='', description='Robot namespace'),
                  DeclareLaunchArgument('use_rviz', default_value='False',
                                        description='Turn on rviz2 visualization', choices=['True', 'False']),
                  DeclareLaunchArgument('use_sim_time', default_value='False', description='Use time from simulation', choices=['True', 'False'])]
@@ -33,9 +33,9 @@ def generate_launch_description():
             "launch",
             "hs_description.launch.py"
         ]),
-        launch_arguments={
-            'namespace': namespace
-        }
+        launch_arguments=[
+            ('namespace', namespace)
+        ]
     )
 
     rviz_node = Node(
@@ -44,7 +44,7 @@ def generate_launch_description():
         name='rviz2',
         output='screen',
         arguments=['-d', rviz_config],
-        condition=IfCondition(LaunchConfiguration(use_rviz))
+        condition=IfCondition(LaunchConfiguration('use_rviz'))
     )
 
     robot_localization_node = Node(
@@ -61,10 +61,10 @@ def generate_launch_description():
             'launch',
             'online_async_launch.py'
         ]),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-            'namespace': namespace
-        }
+        launch_arguments=[
+            ('use_sim_time', use_sim_time),
+            ('namespace', namespace)
+        ]
     )
 
     nav2_bringup_cmd = IncludeLaunchDescription(
@@ -73,11 +73,11 @@ def generate_launch_description():
             'launch',
             'navigation_launch.py'
         ]),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-            'namespace': namespace,
-            'params_file': nav2_config
-        }
+        launch_arguments=[
+            ('use_sim_time', use_sim_time),
+            ('namespace', namespace),
+            ('params_file', nav2_config)
+        ]
     )
 
     actions = [
@@ -85,8 +85,8 @@ def generate_launch_description():
         description_base_link_cmd,
         robot_localization_node,
         rviz_node,
-        TimerAction(period=10.0, actions=[slam_toolbox_cmd]),
-        TimerAction(period=20.0, actions=[nav2_bringup_cmd])
+        # TimerAction(period=10.0, actions=[slam_toolbox_cmd]),
+        # TimerAction(period=20.0, actions=[nav2_bringup_cmd])
     ]
     hs = GroupAction(actions)
 

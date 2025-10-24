@@ -17,6 +17,7 @@ RUN apt update && apt install -y \
     ros-jazzy-rviz2 \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup \
+    ros-jazzy-nav2-route \
     ros-jazzy-depthai-ros \
     ros-jazzy-septentrio-gnss-driver
 

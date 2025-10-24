@@ -40,7 +40,8 @@ def generate_launch_description():
         name='robot_state_publisher',
         output='screen',
         parameters=[{'robot_description': Command(
-            ['xacro ', ' ', xacro_file, ' ', 'namespace:=', namespace])}]
+            # ['xacro ', ' ', xacro_file, ' ', 'namespace:=', namespace])}]
+            ['xacro', ' ', xacro_file])}]
     )
 
     joint_state_publisher_node = Node(
@@ -54,5 +55,5 @@ def generate_launch_description():
 
     ld = LaunchDescription(ARGUMENTS)
     ld.add_action(robot_state_publisher_node)
-    ld.add_action(joint_state_publisher_node)
+    # ld.add_action(joint_state_publisher_node)
     return ld
