@@ -267,7 +267,7 @@ def generate_launch_description():
 
     ld.add_action(lidar_tf) 
     ld.add_action(bridge)
-    ld.add_action(teleop)
+    #ld.add_action(teleop)
     ld.add_action(delay_spawn)
     ld.add_action(delay_start_rviz)
     ld.add_action(delay_start_rviz_path)
