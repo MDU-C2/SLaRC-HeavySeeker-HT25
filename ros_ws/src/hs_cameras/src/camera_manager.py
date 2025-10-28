@@ -109,7 +109,7 @@ class CameraManager:
         detector = DetectCameras()
         usb_detected, oak_detected = detector.detect()
 
-       # Assign names
+        # Assign names
         oak_assigned = assign_names(oak_detected, oak_cfg, prefix="oak", id_key="mxid", port_key="port_path")
         usb_assigned = assign_names(usb_detected, usb_cfg, prefix="camera", id_key="id", port_key="port_path")
 

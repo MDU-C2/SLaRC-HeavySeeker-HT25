@@ -44,12 +44,13 @@ def choose_best_pixel_format(device: str) -> str:
         output = result.stdout.lower()
 
 
-        if "mjpeg" in output or "mjpg" in output:
-            logger.info("%s: selected pixel format = MJPEG", device)
-            return "mjpeg2rgb"
-        elif "yuyv" in output:
+        # We prefere yuyv before mjpeg, though if not avaialbel we will choose mjped instead.
+        if "yuyv" in output:
             logger.info("%s: selected pixel format = YUYV", device)
             return "yuyv"
+        elif "mjpeg" in output or "mjpg" in output:
+            logger.info("%s: selected pixel format = MJPEG", device)
+            return "mjpeg2rgb"
         else:
             logger.warning("%s: no common pixel formats found, defaulting to YUYV", device)
             return "yuyv"
