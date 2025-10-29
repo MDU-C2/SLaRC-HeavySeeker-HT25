@@ -36,7 +36,7 @@ def generate_launch_description():
 
     model_arg = DeclareLaunchArgument(
         "model",
-        default_value="Rig1",
+        default_value="Rig4",
         description="Model FOLDER located under one of the subfolders of this packages model/ directory.\n"
         "   OBS the model files should always be named model.sdf and have a model.config\n"
         "   The folder should also contain a materials and meshes folder even if empty\n"
