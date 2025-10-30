@@ -6,6 +6,7 @@ from launch.actions import (
     LogInfo,
     TimerAction,
     DeclareLaunchArgument,
+    OpaqueFunction,
 )
 from launch.substitutions import (
     EnvironmentVariable,
@@ -17,6 +18,14 @@ from launch.substitutions import (
 from ament_index_python.packages import get_package_share_directory
 from launch.conditions import IfCondition, UnlessCondition
 import os
+from seeker_sim.convert_xacro_to_sdf import convert_xacro_to_sdf
+
+
+def prepare_model(context, *args, **kwargs):
+    model_name = LaunchConfiguration("model").perform(context)
+    sdf_path = convert_xacro_to_sdf(model_name)
+    print(f"[INFO] Using generated SDF: {sdf_path}")
+    return []
 
 
 def generate_launch_description():
@@ -84,6 +93,7 @@ def generate_launch_description():
         [config_root, LaunchConfiguration("rviz_config")]
     )
 
+    
     sdf_roots = [
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Sensors"),
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Rigs"),
@@ -131,8 +141,8 @@ def generate_launch_description():
     # Start Gazebo Harmonic (gz sim) with the selected world.
     # Note: Here '-r' is used to start the simulation; behavior can vary between tools.
     start_gz = ExecuteProcess(
-        # cmd=['gz', 'sim', '-r', world_root],
-        cmd=["gz", "sim", world_root],
+        cmd=['gz', 'sim', '-r', world_root],
+        #cmd=["gz", "sim", world_root],
         output="screen",
         condition=no_full_world_path,
     )
@@ -196,7 +206,8 @@ def generate_launch_description():
     )
 
     teleop = ExecuteProcess(
-        cmd=["gnome-terminal", "--", "bash", "-lc", teleop_cmd], output="screen"
+        #cmd=["gnome-terminal", "--", "bash", "-lc", teleop_cmd], output="screen"
+        cmd=[teleop_cmd], output="screen"
     )
 
     # --- ROS 2 nodes ---
@@ -278,6 +289,9 @@ def generate_launch_description():
 
     ld.add_action(lidar_tf)
     ld.add_action(bridge)
+
+    ld.add_action(OpaqueFunction(function=prepare_model))
+
     #ld.add_action(teleop)
     ld.add_action(delay_spawn)
     ld.add_action(delay_start_rviz)

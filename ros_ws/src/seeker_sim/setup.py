@@ -1,7 +1,8 @@
 # setup.py  (minimal, ROS 2 ament_python)
-from setuptools import setup
+from setuptools import setup, find_packages
 from glob import glob
 import os
+# from scripts.convert_xacro_to_sdf import convert_xacro_to_sdf
 
 package_name = 'seeker_sim'
 
