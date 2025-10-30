@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.11" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:include filename="$(find hs_description)/urdf/oakd.sdf.xacro" />
+  <xacro:include filename="$(find hs_description)/sdf/oakd.sdf.xacro" />
 
   <model name="heavy_seeker" canonical_link='base_link'>
 

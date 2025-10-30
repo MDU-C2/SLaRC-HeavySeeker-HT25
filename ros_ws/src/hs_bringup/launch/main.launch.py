@@ -28,7 +28,7 @@ from launch_ros.actions import PushRosNamespace
 
 def generate_launch_description():
     bringup_dir = get_package_share_directory("hs_bringup")
-
+    camera_dir = get_package_share_directory("hs_cameras")
     namespace = LaunchConfiguration("namespace")
 
     ARGUMENTS = [
@@ -36,7 +36,7 @@ def generate_launch_description():
             "namespace", default_value="", description="Robot namespace"
         )
     ]
-
+    cameras_launch_file = PathJoinSubstitution([camera_dir, "launch", "cameras.launch.py"])
     oakd_launch_file = PathJoinSubstitution([bringup_dir, "launch", "oakd.launch.py"])
 
     septentrio_launch_file = PathJoinSubstitution(
@@ -45,6 +45,10 @@ def generate_launch_description():
 
     actions = [
         PushRosNamespace(namespace),
+        #IncludeLaunchDescription(
+        #    PythonLaunchDescriptionSource([cameras_launch_file]),
+        #    launch_arguments=[("namespace", namespace)],
+        #),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([oakd_launch_file]),
             launch_arguments=[("namespace", namespace)],

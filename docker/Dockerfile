@@ -8,7 +8,8 @@ RUN apt update && apt install -y \
     build-essential \
     nano \
     neovim \
-    gh
+    gh \
+    python3-pip
 
 RUN apt update && apt install -y \
     ros-dev-tools \
@@ -17,17 +18,23 @@ RUN apt update && apt install -y \
     ros-jazzy-rviz2 \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup \
+    ros-jazzy-nav2-route \
     ros-jazzy-depthai-ros \
     ros-jazzy-septentrio-gnss-driver \
     ros-jazzy-teleop-twist-keyboard \
-    ros-jazzy-teleop-twist-joy
+    ros-jazzy-teleop-twist-joy \
+    ros-jazzy-usb-cam
 
 # Install gazebo harmonic and gz-sensors
 RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' && \
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add - && \
     sudo apt-get update && \
     sudo apt-get install -y libgz-sensors10-navsat libgz-sensors10-navsat-dev gz-harmonic
+     
 
+
+# Install DepthAI (Python SDK)
+RUN pip install depthai --no-deps --force-reinstall --break-system-packages
 
 # Create worksapce folder
 RUN mkdir /slarc_ws

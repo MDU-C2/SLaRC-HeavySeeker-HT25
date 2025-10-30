@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <sdf version="1.11" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:include filename="$(find hs_description)/urdf/common.sdf.xacro" />
+  <xacro:include filename="$(find hs_description)/sdf/common.sdf.xacro" />
 
-    <xacro:macro name="oakd" params="name:=oakd_pro parent_link *origin">
+    <xacro:macro name="oakd" params="name:=oakd parent_link *origin">
 
       <xacro:property name="mass"       value="0.061"/>
       <xacro:property name="baseline"   value="0.075" />
@@ -227,7 +227,7 @@
       <joint name="${name}_imu_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_imu_frame</child>
-        <pose>0 0 0 -${M_PI/2} 0 -${M_PI/2}</pose>
+        <pose>0 0 0 -0.5 0.5 -0.5 0.5</pose>
       </joint>
 
     </xacro:macro>
