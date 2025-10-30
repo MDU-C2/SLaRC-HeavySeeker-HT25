@@ -1,40 +1,32 @@
 import os
 import subprocess
+from ament_index_python.packages import get_package_share_directory
 
+def convert_xacro_sdf(model_name: str) -> str:
 
-SRC_MODEL_PATH = "/slarc_ws/src/seeker_sim/model"
-INSTALL_MODEL_PATH = "/slarc_ws/install/seeker_sim/share/seeker_sim/model"
+    model_dir = os.path.join(get_package_share_directory("seeker_sim"),"model","Assemblies",model_name)
+    # Paths
+    xacro_file = os.path.join(model_dir, "model.sdf.xacro")
+    sdf_file_path   = os.path.join(model_dir, "model.sdf")
 
+    # Safety: check if we have a sdf.xacro file
+    if not os.path.exists(xacro_file):
+        raise FileNotFoundError(f"[ERROR] Xacro file not found: {xacro_file}")
 
-os.environ["GAZEBO_MODEL_PATH"] = f"{INSTALL_MODEL_PATH}:/opt/ros/jazzy/share:{SRC_MODEL_PATH}"
-os.environ["GZ_SIM_RESOURCE_PATH"] = f"{INSTALL_MODEL_PATH}::{SRC_MODEL_PATH}:{SRC_MODEL_PATH}"
+    
+    
+    print(f"[INFO] Converting {xacro_file} → {sdf_file_path}")
 
-print("GAZEBO_MODEL_PATH:", os.environ["GAZEBO_MODEL_PATH"])
-print("GZ_SIM_RESOURCE_PATH:", os.environ["GZ_SIM_RESOURCE_PATH"])
+    # Run xacro directly on the SDF.xacro and write result to model.sdf
+    # This is basically: xacro model.sdf.xacro -o model.sdf
+    with open(sdf_file_path, "w") as sdf_out:
+        subprocess.run(
+            ["xacro", xacro_file],
+            check=True,
+            stdout=sdf_out
+        )
 
+    print(f"[INFO] Done. Wrote {sdf_file_path}")
 
-for root, dirs, files in os.walk(SRC_MODEL_PATH):
-    for file in files:
-        if file.endswith(".sdf.xacro"):
-            xacro_file = os.path.join(root, file)
-            
-            rel_path = os.path.relpath(xacro_file, SRC_MODEL_PATH)
-            sdf_file = os.path.join(INSTALL_MODEL_PATH, rel_path.replace(".sdf.xacro", ".sdf"))
+    return sdf_file_path
 
-            
-            if os.path.exists(sdf_file):
-                print(f"Skipping {xacro_file}, {sdf_file} already exists")
-                continue
-
-            
-            os.makedirs(os.path.dirname(sdf_file), exist_ok=True)
-
-            print(f"Converting {xacro_file} -> {sdf_file}")
-            try:
-                subprocess.run([
-                    "ros2", "run", "xacro", "xacro",
-                    xacro_file,
-                    "-o", sdf_file
-                ], check=True)
-            except subprocess.CalledProcessError:
-                print(f"ERROR converting {xacro_file}")
