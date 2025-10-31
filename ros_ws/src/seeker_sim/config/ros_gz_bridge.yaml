@@ -1,0 +1,29 @@
+ros_gz_bridge:
+  ros__parameters:
+    topics:
+
+      # Send teleop commands from ROS into Gazebo
+      - topic_name: "/cmd_vel"
+        ros_type: "geometry_msgs/msg/Twist"
+        gz_type: "gz.msgs.Twist"
+        direction: "ros_to_gz"
+
+      # Bring robot odom from Gazebo into ROS
+      - topic_name: "/odometry"
+        ros_type: "nav_msgs/msg/Odometry"
+        gz_type: "gz.msgs.Odometry"
+        direction: "gz_to_ros"
+
+      # Simulation time -> ROS /clock
+      - topic_name: "/clock"
+        ros_type: "rosgraph_msgs/msg/Clock"
+        gz_type: "gz.msgs.Clock"
+        direction: "gz_to_ros"
+
+      # Lidar point cloud
+      - topic_name: "/lidar_points/points"
+        ros_type: "sensor_msgs/msg/PointCloud2"
+        gz_type: "gz.msgs.PointCloudPacked"
+        direction: "gz_to_ros"
+
+    use_sim_time: true

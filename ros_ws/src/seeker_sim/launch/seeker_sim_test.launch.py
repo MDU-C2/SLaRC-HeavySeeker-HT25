@@ -87,11 +87,6 @@ def generate_launch_description():
         [get_package_share_directory("seeker_sim"), "config"]
     )
 
-    bridge_config = PathJoinSubstitution([
-        config_root,
-        "ros_gz_bridge.yaml"
-    ])
-
     # RViz2 configuration file (which views/panels to load)
     # make sure the file is located in src/seeker_sim/config folder
     rviz_config_root = PathJoinSubstitution(
@@ -160,8 +155,7 @@ def generate_launch_description():
 
     # Start RViz2 with the given .rviz configuration.
     start_rviz = ExecuteProcess(
-        #cmd=["rviz2", "-d", rviz_config_root],
-        cmd=["rviz2"],
+        cmd=["rviz2", "-d", rviz_config_root],
         output="screen",
         condition=no_full_rviz_config_path,
     )
@@ -207,6 +201,7 @@ def generate_launch_description():
     teleop_cmd = (
         "source /opt/ros/jazzy/setup.bash; "
         "ros2 run teleop_twist_keyboard teleop_twist_keyboard "
+        "--ros-args -r cmd_vel:=/model/husky/cmd_vel; "
         "exec bash"  # Keeps the terminal window open after node termination
     )
 
@@ -217,11 +212,26 @@ def generate_launch_description():
 
     # --- ROS 2 nodes ---
 
+    # ros_gz_bridge::parameter_bridge
+    # Bridges messages between Gazebo (GZ Transport) and ROS 2 types:
+    #  - Husky velocity command (Twist <-> gz.msgs.Twist)
+    #  - Odometry (Odometry <-> gz.msgs.Odometry)
+    #  - /clock (simulated time to ROS 2)
+    #  - Lidar point cloud (PointCloud2 <-> gz.msgs.PointCloudPacked)
+    # Also remaps /lidar/mid360/points/points -> /lidar/mid360/points.
+
     bridge = Node(
         package="ros_gz_bridge",
-        name="ros_gz_bridge",
         executable="parameter_bridge",
-        parameters=[bridge_config],
+        arguments=[
+            "/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist",
+            "/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry",
+            "/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
+            "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
+            "--ros-args",
+            "-r",
+            "/lidar_points/points:=/lidar_points",
+        ],
         output="screen",
     )
 
@@ -275,7 +285,7 @@ def generate_launch_description():
     ld.add_action(simple_bridge)
 
     ld.add_action(start_gz)
-    #ld.add_action(start_gz_absolute_path)
+    # ld.add_action(start_gz_absolute_path)
 
     ld.add_action(lidar_tf)
     ld.add_action(bridge)

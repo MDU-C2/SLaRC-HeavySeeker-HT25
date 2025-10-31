@@ -4,8 +4,8 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
 
-IN  = '/lidar/mid360/points'       # or the name you bridged to
-OUT = '/lidar/mid360/points_fixed'
+IN  = '/lidar_points/points'       # or the name you bridged to
+OUT = '/lidar_points_fixed'
 FRAME = 'lidar'
 
 class Relay(Node):
