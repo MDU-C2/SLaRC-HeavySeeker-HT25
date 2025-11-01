@@ -55,7 +55,7 @@ usb_cameras:
     params:
       image_width: 1280
       image_height: 720
-      pixel_format: yuyv 
+      pixel_format: mjpeg2rgb 
       auto_white_balance: false
       auto_exposure: false
       auto_focus: false
