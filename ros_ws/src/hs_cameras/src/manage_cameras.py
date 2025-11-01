@@ -2,13 +2,13 @@ import os
 import re
 import logging
 import copy
-from src.utils import load_camera_config, choose_best_pixel_format
-from src.detect_cameras.detect_cameras import DetectCameras
+from src.utils import load_camera_config, choose_pixel_format, assign_names
+from src.detect_cameras import DetectCameras
 
 
 
 logger = logging.getLogger("CameraManager")
-
+'''
 DEFAULT_OAK_PARAMS = {
     "camera": {
         "i_enable_imu": False,
@@ -95,7 +95,7 @@ def assign_names(detected, config, prefix, port_key="port_path", id_key="mxid"):
         cam["params"] = copy.deepcopy(DEFAULT_OAK_PARAMS if prefix == "oak" else DEFAULT_USB_PARAMS)
         assigned.append(cam)
     return assigned
-
+'''
 # ------------------------------------------------------------
 # Camera Manager (no ROS dependencies)
 # ------------------------------------------------------------
@@ -123,7 +123,7 @@ class CameraManager:
         for cam in usb_assigned:
             if "pixel_format" not in cam["params"]:
                 dev = cam.get("device", "")
-                cam["params"]["pixel_format"] = choose_best_pixel_format(dev)
+                cam["params"]["pixel_format"] = choose_pixel_format(dev)
 
 
         # Build structured results

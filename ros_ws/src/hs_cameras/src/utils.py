@@ -1,11 +1,50 @@
 import subprocess
 import yaml
 import os
+import re
 import logging
-import os
+import copy
 
 #-------------------------Configure logging -------------------------
 logger = logging.getLogger("CameraConfig")
+
+DEFAULT_OAK_PARAMS = {
+    "camera": {
+        "i_enable_imu": False,
+        "i_enable_ir": False,
+        "i_floodlight_brightness": 0,
+        "i_laser_dot_brightness": 100,
+        "i_nn_type": "none",
+        "i_pipeline_type": "RGBD",
+        "i_usb_speed": "SUPER_PLUS",
+    },
+    "rgb": {
+        "i_board_socket_id": 0,
+        "i_fps": 30.0,
+        "i_height": 720,
+        "i_interleaved": False,
+        "i_max_q_size": 10,
+        "i_preview_size": 250,
+        "i_enable_preview": True,
+        "i_low_bandwidth": True,
+        "i_keep_preview_aspect_ratio": True,
+        "i_publish_topic": False,
+        "i_resolution": '1080P',
+        "i_width": 1280,
+    },
+    "use_sim_time": False,
+}
+
+
+DEFAULT_USB_PARAMS = {
+    "image_width": 1280,
+    "image_height": 720,
+    "pixel_format": 'mjpeg2rgb', 
+    "auto_white_balance": False,
+    "autoexposure": False,
+    "auto_focus": False,
+    "framerate": 15.0,
+}
 
 
 #--------------------Load camera configuration yaml file----------------------------
@@ -32,7 +71,7 @@ def load_camera_config(yaml_path: str):
 
 #----------- Detect best pixel format-----------------------
 # Can be used always but for now it is only used for unkown devices (devices not in the config file)
-def choose_best_pixel_format(device: str) -> str:
+def choose_pixel_format(device: str) -> str:
     # Detects available formats provided by the device and returns the best format. Priority yuyv over mjpeg. Fallback to yuyv.
     logger.debug("Checking available pixel formats for %s", device)
 
@@ -44,7 +83,7 @@ def choose_best_pixel_format(device: str) -> str:
         output = result.stdout.lower()
 
 
-        # We prefere yuyv before mjpeg, though if not avaialbel we will choose mjped instead.
+        # We prefere mjpeg over yuyv, though if not avaialbel we will choose yuyv instead.
         if "mjpeg" in output or "mjpg" in output:
             logger.info("%s: selected pixel format = MJPEG", device)
             return "mjpeg2rgb"
@@ -67,3 +106,51 @@ def choose_best_pixel_format(device: str) -> str:
     
 
 
+# ------------------------------------------------------------
+# Helper: Assign names deterministically based on config + ports
+# ------------------------------------------------------------
+def assign_names(detected, config, prefix, port_key="port_path", id_key="mxid"):
+    configured = config or {}
+    name_slots = [f"{prefix}{i}" for i in range(10)]
+    used_names = set()
+    assigned = []
+
+    # Split into known and unknown
+    known, unknown = [], []
+    for cam in detected:
+        cam_id = str(cam.get(id_key)).strip()
+        if cam_id in configured:
+            known.append(cam)
+        else:
+            unknown.append(cam)
+
+    # Assign known names (from config)
+    for cam in known:
+        cam_id = cam[id_key]
+        cfg = configured.get(cam_id, {})
+        name = cfg.get("name", f"{prefix}_unknown_{cam_id}")
+        cam["assigned_name"] = name
+        cam["params"] = cfg.get("params", {})
+        used_names.add(name)
+        assigned.append(cam)
+
+    # Sort unknown by port number (ascending order)
+    def port_sort(cam):
+        port = str(cam.get(port_key, ""))
+        nums = re.findall(r"\d+", port)
+        return tuple(map(int, nums)) if nums else (999,)
+    unknown.sort(key=port_sort)
+
+    # Determine available names
+    available = [n for n in name_slots if n not in used_names]
+
+    # Assign names to unknown devices
+    for cam in unknown:
+        if available:
+            name = available.pop(0)
+        else:
+            name = f"{prefix}_extra_{cam[id_key]}"
+        cam["assigned_name"] = name
+        cam["params"] = copy.deepcopy(DEFAULT_OAK_PARAMS if prefix == "oak" else DEFAULT_USB_PARAMS)
+        assigned.append(cam)
+    return assigned
