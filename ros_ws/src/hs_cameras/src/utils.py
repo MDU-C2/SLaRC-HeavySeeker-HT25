@@ -207,48 +207,42 @@ def _ffmpeg_supports(encoder_name):
 # 1. First we search the system for the most common GPUs:
 #    NVIDIA, Intel, AMD, VAAPI, Rasberry-Pi
 # 2. Then for the detected GPU we check if the ffmpeg support a specifi encoder.
-# 3. Then we always choose H.265 if available, otherwise we choos H.264.
+# 3. Then we always prefer H.265(hevc) if available, otherwise we choos H.264.
 # 4. If no encoder was detected we fallback to CPU, though this can become very heavy on the CPU as it is not designed for grafics.
 def detect_encoder(prefer_hevc=True):
-    
-    def make_encoder(encoder, desc):
-        return {
-            "name": encoder,
-            "description": desc,
-            "hardware_accelerated": not encoder.startswith("libx"),
-        }
     
     # --- NVIDIA GPUs ---
     if os.path.exists('/dev/nvidia0') or _has_cmd("nvidia-smi"):
         if prefer_hevc and _ffmpeg_supports("hevc_nvenc"):
-            return make_encoder("hevc_nvenc", "NVIDIA NVENC (H.265)")
-        return make_encoder("h264_nvenc", "NVIDIA NVENC (H.264)")
+            return {"name": "hevc_nvenc", "description": "NVIDIA NVENC (H.265)", "codec": "H.265"}
+        return {"name": "h264_nvenc", "description": "NVIDIA NVENC (H.264)", "codec": "H.264"}
 
     # --- Intel Quick Sync ---
     if os.path.exists('/dev/dri/renderD128') and _has_gpu("intel"):
         if prefer_hevc and _ffmpeg_supports("hevc_qsv"):
-            return make_encoder("hevc_qsv", "Intel Quick Sync (H.265)")
-        return make_encoder("h264_qsv", "Intel Quick Sync (H.264)")
+            return {"name": "hevc_qsv", "description": "Intel Quick Sync (H.265)", "codec": "H.265"}
+        return {"name": "h264_qsv", "description": "Intel Quick Sync (H.264)", "codec": "H.264"}
 
     # --- AMD GPUs (AMF) ---
     if _has_gpu("amd") and _ffmpeg_supports("h264_amf"):
         if prefer_hevc and _ffmpeg_supports("hevc_amf"):
-            return make_encoder("hevc_amf", "AMD AMF (H.265)")
-        return make_encoder("h264_amf", "AMD AMF (H.264)")
+            return {"name": "hevc_amf", "description": "AMD AMF (H.265)", "codec": "H.265"}
+        return {"name": "h264_amf", "description": "AMD AMF (H.264)", "codec": "H.264"}
 
-    # --- VAAPI (Generic GPU acceleration) ---
+    # --- VAAPI ---
     if os.path.exists('/dev/dri/renderD128') and _ffmpeg_supports("h264_vaapi"):
         if prefer_hevc and _ffmpeg_supports("hevc_vaapi"):
-            return make_encoder("hevc_vaapi", "VAAPI (H.265)")
-        return make_encoder("h264_vaapi", "VAAPI (H.264)")
+            return {"name": "hevc_vaapi", "description": "VAAPI (H.265)", "codec": "H.265"}
+        return {"name": "h264_vaapi", "description": "VAAPI (H.264)", "codec": "H.264"}
 
-    # --- Raspberry Pi / ARM (V4L2M2M) ---
+    # --- Raspberry Pi / ARM ---
     if _has_cmd("v4l2-ctl") and _ffmpeg_supports("h264_v4l2m2m"):
         if prefer_hevc and _ffmpeg_supports("hevc_v4l2m2m"):
-            return make_encoder("hevc_v4l2m2m", "V4L2M2M (H.265)")
-        return make_encoder("h264_v4l2m2m", "V4L2M2M (H.264)")
+            return {"name": "hevc_v4l2m2m", "description": "V4L2M2M (H.265)", "codec": "H.265"}
+        return {"name": "h264_v4l2m2m", "description": "V4L2M2M (H.264)", "codec": "H.264"}
 
     # --- CPU fallback ---
     if prefer_hevc and _ffmpeg_supports("libx265"):
-        return make_encoder("libx265", "CPU Software (H.265)")
-    return make_encoder("libx264", "CPU Software (H.264)")
+        return {"name": "libx265", "description": "CPU Software (H.265)", "codec": "H.265"}
+    return {"name": "libx264", "description": "CPU Software (H.264)", "codec": "H.264"}
+
