@@ -8,6 +8,8 @@ RUN apt update && apt install -y \
     build-essential \
     nano \
     neovim \
+    cmake \
+    libpcl-dev \
     gh \
     python3-pip
 
@@ -20,6 +22,10 @@ RUN apt update && apt install -y \
     ros-jazzy-nav2-bringup \
     ros-jazzy-nav2-route \
     ros-jazzy-depthai-ros \
+    ros-jazzy-pcl-conversions \
+    ros-jazzy-pcl-msgs \
+    ros-jazzy-cartographer \
+    ros-jazzy-cartographer-ros \
     ros-jazzy-septentrio-gnss-driver \
     ros-jazzy-teleop-twist-keyboard \
     ros-jazzy-teleop-twist-joy \
