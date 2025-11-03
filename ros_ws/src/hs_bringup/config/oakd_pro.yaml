@@ -1,7 +1,7 @@
 /oakd:
   ros__parameters:
     camera:
-      i_enable_imu: false
+      i_enable_imu: true
       i_enable_ir: false
       i_floodlight_brightness: 0
       i_laser_dot_brightness: 100
