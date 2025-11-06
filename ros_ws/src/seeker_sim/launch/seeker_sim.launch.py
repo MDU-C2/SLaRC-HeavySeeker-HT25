@@ -1,5 +1,6 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch.actions import (
     ExecuteProcess,
     SetEnvironmentVariable,
@@ -7,6 +8,7 @@ from launch.actions import (
     TimerAction,
     DeclareLaunchArgument,
     OpaqueFunction,
+    SetLaunchConfiguration,
 )
 from launch.substitutions import (
     EnvironmentVariable,
@@ -21,11 +23,30 @@ import os
 from seeker_sim.convert_xacro_to_sdf import convert_xacro_to_sdf
 
 
+
+
 def prepare_model(context, *args, **kwargs):
     model_name = LaunchConfiguration("model").perform(context)
     sdf_path = convert_xacro_to_sdf(model_name)
+    #global_sdf_path = sdf_path
     print(f"[INFO] Using generated SDF: {sdf_path}")
-    return []
+    return [SetLaunchConfiguration("model", sdf_path)]
+
+def robot_state_generator(context, *args, **kwargs):
+    with open(LaunchConfiguration("model").perform(context), 'r') as infp:
+            robot_desc = infp.read()
+
+    robot_state_pub = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        parameters=[{
+            'use_sim_time': True,
+            'robot_description': ParameterValue(robot_desc, value_type=str),
+        }],
+        output='screen',
+    )
+    return [robot_state_pub]
+    
 
 
 def generate_launch_description():
@@ -45,7 +66,7 @@ def generate_launch_description():
 
     model_arg = DeclareLaunchArgument(
         "model",
-        default_value="Rig4",
+        default_value="Rig5",
         description="Model FOLDER located under one of the subfolders of this packages model/ directory.\n"
         "   OBS the model files should always be named model.sdf and have a model.config\n"
         "   The folder should also contain a materials and meshes folder even if empty\n"
@@ -62,7 +83,7 @@ def generate_launch_description():
 
     rviz_config_arg = DeclareLaunchArgument(
         "rviz_config",
-        default_value="seeker_sim_config_points.rviz",
+        default_value="seeker_sim_oakd_lidar.rviz",
         description="Config filename located under this packages config/ directory.",
     )
 
@@ -224,35 +245,59 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            "/model/husky/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist",
-            "/model/husky/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry",
+            "/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist",
+            "/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry",
             "/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
-            "/lidar/mid360/points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
+            "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
+            "/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
+            "/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "--ros-args",
             "-r",
-            "/lidar/mid360/points/points:=/lidar/mid360/points",
+            "/lidar_points/points:=/lidar_points",
+            "-r",
+            "/oakd/rgbd/image:=/oakd_image",
+            "-r",
+            "/oakd/rgbd/points:=/oakd_points",
         ],
         output="screen",
     )
+
+
+    # with open(global_sdf_path, 'r') as infp:
+    #     robot_desc = infp.read()
+
+    # Robot_state_pub = Node(
+    #     package="robot_state_publisher",
+    #     executable="robot_state_publisher",
+    #     name="robot_state_publisher",
+    #     output="screen",
+    #     parameters=[{
+    #         "use_sim_time": True,
+    #         "robot_description": robot_desc,
+    #     }],
+    # )
+
+
 
     # Custom node in the seeker_sim package (executable: cloud_frame_relay).
     # receives point clouds and republishes them under a different frame/namespace.
     simple_bridge = Node(
         package="seeker_sim",
-        namespace="sim1",
         executable="cloud_frame_relay",
-        name="sim",
+        name="cloud_frame_relay",
     )
 
     # Publish a static transform between base_link and lidar.
     # Args: x y z roll pitch yaw parent child
     # Places the lidar 0.716 m above base_link with zero rotation.
-    lidar_tf = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        arguments=["0", "0", "0.716", "0", "0", "0", "base_link", "lidar"],
-        output="screen",
-    )
+    # lidar_tf = Node(
+    #     package="tf2_ros",
+    #     executable="static_transform_publisher",
+    #     arguments=["0", "0", "0.716", "0", "0", "0", "base_link", "lidar"],
+    #     output="screen",
+    # )
+
+
 
     # Delays the start of Rviz to ensure all previous nodes are up and running before.
     delay_start_rviz = TimerAction(
@@ -287,10 +332,15 @@ def generate_launch_description():
     ld.add_action(start_gz)
     # ld.add_action(start_gz_absolute_path)
 
-    ld.add_action(lidar_tf)
+    #ld.add_action(lidar_tf)
     ld.add_action(bridge)
 
     ld.add_action(OpaqueFunction(function=prepare_model))
+    ld.add_action(OpaqueFunction(function=robot_state_generator))
+
+    
+
+    #ld.add_action(Robot_state_pub)
 
     #ld.add_action(teleop)
     ld.add_action(delay_spawn)
