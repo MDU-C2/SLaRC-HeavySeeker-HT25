@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-FPV Viewer Client — ROS 2 Jazzy compatible Action Client node.
-Subscribes to /available_cameras and sends test action goals to /start_camera_encoding.
-"""
 
 import json
 import threading
@@ -14,7 +9,7 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import String
-from hs_cameras.action import StartCamera
+from hs_cameras.action import StartCamera # type: ignore
 
 
 # --------------------------------------------------------------------

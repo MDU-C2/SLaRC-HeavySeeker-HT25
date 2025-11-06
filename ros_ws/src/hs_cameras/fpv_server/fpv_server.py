@@ -19,7 +19,7 @@ from rclpy.action import ActionServer, GoalResponse, CancelResponse
 from rclpy.executors import MultiThreadedExecutor
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
-from hs_cameras.action import StartCamera
+from hs_cameras.action import StartCamera # type: ignore
 
 
 
