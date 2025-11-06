@@ -58,5 +58,5 @@ usb_cameras:
       pixel_format: mjpeg2rgb 
       auto_white_balance: false
       auto_exposure: false
-      auto_focus: false
-      framerate: 15.0
+      auto_focus: true
+      framerate: 24.0

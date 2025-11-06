@@ -1,0 +1,9 @@
+# goal
+string camera_name
+---
+# result
+bool success
+string message
+---
+# feedback
+string status
