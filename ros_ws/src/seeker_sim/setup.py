@@ -1,4 +1,3 @@
-# setup.py  (minimal, ROS 2 ament_python)
 from setuptools import setup, find_packages
 from glob import glob
 import os
