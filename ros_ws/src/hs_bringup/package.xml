@@ -12,6 +12,7 @@
   <depend>depthai_ros_driver</depend>
   <depend>septentrio_gnss_driver</depend>
   <depend>nav2common</depend>
+  <depend>pointcloud_to_laserscan</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
