@@ -1,36 +1,52 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
+import subprocess
 from launch.actions import (
     ExecuteProcess,
     SetEnvironmentVariable,
-    LogInfo,
     TimerAction,
     DeclareLaunchArgument,
     OpaqueFunction,
     SetLaunchConfiguration,
 )
 from launch.substitutions import (
-    EnvironmentVariable,
     PathJoinSubstitution,
     LaunchConfiguration,
     PythonExpression,
-    TextSubstitution,
 )
 from ament_index_python.packages import get_package_share_directory
 from launch.conditions import IfCondition, UnlessCondition
-import os
+import os, subprocess
 from seeker_sim.convert_xacro_to_sdf import convert_xacro_to_sdf
+from launch.utilities import perform_substitutions
 
 
 
 
-def prepare_model(context, *args, **kwargs):
-    model_name = LaunchConfiguration("model").perform(context)
-    sdf_path = convert_xacro_to_sdf(model_name)
-    #global_sdf_path = sdf_path
-    print(f"[INFO] Using generated SDF: {sdf_path}")
-    return [SetLaunchConfiguration("model", sdf_path)]
+def convert_model(context,*,model_dir, **kwargs):
+
+
+    model_dir_str = perform_substitutions(context, [model_dir])
+    print(f"[INFO] string {model_dir_str}")
+
+    sdf_file_path   = os.path.join(model_dir_str, "model.sdf")
+    model_xacro_file   = os.path.join(model_dir_str, "model.sdf.xacro")
+    print(f"[INFO] Converting {model_xacro_file} → {sdf_file_path}")
+
+    # Run xacro directly on the SDF.xacro and write result to model.sdf
+    # This is basically: xacro model.sdf.xacro -o model.sdf
+    with open(sdf_file_path, "w") as sdf_out:
+        subprocess.run(
+            ["xacro", model_xacro_file],
+            check=True,
+            stdout=sdf_out
+        )
+
+    print(f"[INFO] Done. Wrote {sdf_file_path}")
+    return [SetLaunchConfiguration("model", sdf_file_path)]
+
+
 
 def robot_state_generator(context, *args, **kwargs):
     with open(LaunchConfiguration("model").perform(context), 'r') as infp:
@@ -94,6 +110,7 @@ def generate_launch_description():
         description="Absolute path to a .rviz file If set (non-empty), overrides the world filename.",
     )
 
+
     # --- Paths to package resources (world, models, configs) ---
     # Resolve the package share directory and point to the world, model, and config folders.
     world_root = PathJoinSubstitution(
@@ -107,6 +124,12 @@ def generate_launch_description():
     config_root = PathJoinSubstitution(
         [get_package_share_directory("seeker_sim"), "config"]
     )
+
+    model_root = PathJoinSubstitution(
+        [get_package_share_directory("seeker_sim"), "model","Assemblies", LaunchConfiguration("model")]
+    )
+
+
 
     # RViz2 configuration file (which views/panels to load)
     # make sure the file is located in src/seeker_sim/config folder
@@ -198,7 +221,7 @@ def generate_launch_description():
             "-world",
             "example_2",
             "-file",
-            model_uri,
+            LaunchConfiguration("model"),
             "-x",
             "0.0",
             "-y",
@@ -217,29 +240,9 @@ def generate_launch_description():
         output="screen",
     )
 
-    # Open a separate terminal window with teleop_twist_keyboard so you can drive the robot.
-    # Remap cmd_vel to Gazebos Husky command topic.
-    teleop_cmd = (
-        "source /opt/ros/jazzy/setup.bash; "
-        "ros2 run teleop_twist_keyboard teleop_twist_keyboard "
-        "--ros-args -r cmd_vel:=/model/husky/cmd_vel; "
-        "exec bash"  # Keeps the terminal window open after node termination
-    )
-
-    teleop = ExecuteProcess(
-        #cmd=["gnome-terminal", "--", "bash", "-lc", teleop_cmd], output="screen"
-        cmd=[teleop_cmd], output="screen"
-    )
 
     # --- ROS 2 nodes ---
 
-    # ros_gz_bridge::parameter_bridge
-    # Bridges messages between Gazebo (GZ Transport) and ROS 2 types:
-    #  - Husky velocity command (Twist <-> gz.msgs.Twist)
-    #  - Odometry (Odometry <-> gz.msgs.Odometry)
-    #  - /clock (simulated time to ROS 2)
-    #  - Lidar point cloud (PointCloud2 <-> gz.msgs.PointCloudPacked)
-    # Also remaps /lidar/mid360/points/points -> /lidar/mid360/points.
 
     bridge = Node(
         package="ros_gz_bridge",
@@ -263,19 +266,8 @@ def generate_launch_description():
     )
 
 
-    # with open(global_sdf_path, 'r') as infp:
-    #     robot_desc = infp.read()
 
-    # Robot_state_pub = Node(
-    #     package="robot_state_publisher",
-    #     executable="robot_state_publisher",
-    #     name="robot_state_publisher",
-    #     output="screen",
-    #     parameters=[{
-    #         "use_sim_time": True,
-    #         "robot_description": robot_desc,
-    #     }],
-    # )
+
 
 
 
@@ -286,17 +278,6 @@ def generate_launch_description():
         executable="cloud_frame_relay",
         name="cloud_frame_relay",
     )
-
-    # Publish a static transform between base_link and lidar.
-    # Args: x y z roll pitch yaw parent child
-    # Places the lidar 0.716 m above base_link with zero rotation.
-    # lidar_tf = Node(
-    #     package="tf2_ros",
-    #     executable="static_transform_publisher",
-    #     arguments=["0", "0", "0.716", "0", "0", "0", "base_link", "lidar"],
-    #     output="screen",
-    # )
-
 
 
     # Delays the start of Rviz to ensure all previous nodes are up and running before.
@@ -332,17 +313,12 @@ def generate_launch_description():
     ld.add_action(start_gz)
     # ld.add_action(start_gz_absolute_path)
 
-    #ld.add_action(lidar_tf)
     ld.add_action(bridge)
 
-    ld.add_action(OpaqueFunction(function=prepare_model))
+    ld.add_action(OpaqueFunction(function=convert_model,kwargs={"model_dir": model_root}))
     ld.add_action(OpaqueFunction(function=robot_state_generator))
 
-    
 
-    #ld.add_action(Robot_state_pub)
-
-    #ld.add_action(teleop)
     ld.add_action(delay_spawn)
     ld.add_action(delay_start_rviz)
     ld.add_action(delay_start_rviz_path)
