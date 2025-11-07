@@ -4,7 +4,6 @@ import os
 import re
 import logging
 import copy
-import shutil
 
 # ---------------------------------------------------------------------------------
 #------------------------ Camera config utils -------------------------------------
