@@ -9,10 +9,14 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(hs_msgs REQUIRED)
 
 add_executable(health_check src/health_check.cpp)
+add_executable(robot_node src/robot.cpp)
 
-ament_target_dependencies(health_check rclcpp std_msgs)
+ament_target_dependencies(health_check rclcpp std_msgs hs_msgs)
+ament_target_dependencies(robot_node rclcpp std_msgs geometry_msgs hs_msgs)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -28,6 +32,7 @@ endif()
 
 install(TARGETS 
   health_check
+  robot_node
   DESTINATION lib/${PROJECT_NAME})
 
 ament_package()
