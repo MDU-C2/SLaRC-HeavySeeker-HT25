@@ -8,7 +8,10 @@ RUN apt update && apt install -y \
     build-essential \
     nano \
     neovim \
-    gh
+    cmake \
+    libpcl-dev \
+    gh \
+    python3-pip
 
 RUN apt update && apt install -y \
     ros-dev-tools \
@@ -17,15 +20,28 @@ RUN apt update && apt install -y \
     ros-jazzy-rviz2 \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup \
+    ros-jazzy-nav2-route \
     ros-jazzy-depthai-ros \
+    ros-jazzy-pcl-conversions \
+    ros-jazzy-pcl-msgs \
+    ros-jazzy-cartographer \
+    ros-jazzy-cartographer-ros \
     ros-jazzy-septentrio-gnss-driver \
-    ros-jazzy-usb-cam
+    ros-jazzy-teleop-twist-keyboard \
+    ros-jazzy-teleop-twist-joy \
+    ros-jazzy-usb-cam \
+    ros-jazzy-pointcloud-to-laserscan
 
-# Install gazebo harmonic
-RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
-    apt-get update \
-    apt-get install gz-harmonic
+# Install gazebo harmonic and gz-sensors
+RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' && \
+    wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add - && \
+    sudo apt-get update && \
+    sudo apt-get install -y libgz-sensors10-navsat libgz-sensors10-navsat-dev gz-harmonic
+     
+
+
+# Install DepthAI (Python SDK)
+RUN pip install depthai --no-deps --force-reinstall --break-system-packages
 
 # Create worksapce folder
 RUN mkdir /slarc_ws
@@ -56,7 +72,7 @@ RUN echo "export _colcon_cd_root=/opt/ros/jazzy/" >> /home/${USER_NAME}/.bashrc
 RUN echo "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> /home/${USER_NAME}/.bashrc
 
 ARG ROS_DOMAIN_ID=0
-RUN echo "export ROS_DOMAIN_ID=" + ${ROS_DOMAIN_ID} >> /home/${USER_NAME}/.bashrc
+RUN echo "export ROS_DOMAIN_ID=${ROS_DOMAIN_ID}" >> /home/${USER_NAME}/.bashrc
 
 # Switch to the new user
 USER ${USER_NAME}
