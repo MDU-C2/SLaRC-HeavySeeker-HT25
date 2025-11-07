@@ -8,6 +8,20 @@
 #include "hs_msgs/msg/operation_modes.hpp"
 
 
+/** Class RobotNode
+ * 
+ * This node control subscribes to control inputs for manual and autonomous drive and based on allowed and selected modes 
+ * publish the correct control input to /cmd_vel
+ * 
+ * Subscribers:
+ *  - /allowed_operation_modes - hs_msgs/msg/operation_modes - information about allowed operation modes, this is the heartbeat
+ *  - /telop_cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel for manual control
+ *  - /auto_cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel for autonomous control
+ * 
+ * Publishers:
+ *  - /cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel
+ * 
+ */
 class RobotNode : public rclcpp::Node {
 
     public:
@@ -15,14 +29,16 @@ class RobotNode : public rclcpp::Node {
      : Node("robot_node") {
         using std::placeholders::_1;
 
-        sub_allowed_operation_modes = this->create_subscription<hs_msgs::msg::OperationModes>("allowed_operation_modes", 10, std::bind(&RobotNode::callback_operation_modes, this, _1));
+        sub_allowed_operation_modes = this->create_subscription<hs_msgs::msg::OperationModes>("/allowed_operation_modes", 10, std::bind(&RobotNode::callback_operation_modes, this, _1));
 
-        sub_remote_telop_cmd_vel = this->create_subscription<geometry_msgs::msg::TwistStamped>("telop_cmd_vel", 10,  std::bind(&RobotNode::callback_remote_telop_cmd, this, _1));
-        sub_auto_cmd_vel = this->create_subscription<geometry_msgs::msg::TwistStamped>("auto_cmd_vel", 10,  std::bind(&RobotNode::callback_auto_cmd, this, _1));
+        sub_remote_telop_cmd_vel = this->create_subscription<geometry_msgs::msg::TwistStamped>("/telop_cmd_vel", 10,  std::bind(&RobotNode::callback_remote_telop_cmd, this, _1));
+        sub_auto_cmd_vel = this->create_subscription<geometry_msgs::msg::TwistStamped>("/auto_cmd_vel", 10,  std::bind(&RobotNode::callback_auto_cmd, this, _1));
         
-        pub_cmd_vel = this->create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel", 10);
+        pub_cmd_vel = this->create_publisher<geometry_msgs::msg::TwistStamped>("/cmd_vel", 10);
 
+        // timer to check if hearbeat is missing
         restartTimerHeartBeat();
+        // timer to stop driving if cmd_vel is missing or old
         restartTimerSoftStop();
     }
 
@@ -32,26 +48,23 @@ class RobotNode : public rclcpp::Node {
 
         RCLCPP_WARN(this->get_logger(), "Missing heart beat, NO operation allowed");
 
-        allow_local_telop = false;
-        allow_remote_telop = false;
-        allow_auto = false;
+        this->allow_local_telop = false;
+        this->allow_remote_telop = false;
+        this->allow_auto = false;
 
-        geometry_msgs::msg::TwistStamped cmd_vel;
-        publishCmdVel(cmd_vel);
-
-        stopTimer(timer_heart_beat);
+        sendZeroVel();
+        stopTimer(this->timer_heart_beat);
     }
 
     void callback_timer_soft_stop() {
 
-        if(abs(this->time_last_cmd_vel.nanoseconds() - this->now().nanoseconds()) < 50*pow(10, 6))
+        // if cmd_vel is older then 100ms, cmd_vel is considered missing
+        if(abs(this->time_last_cmd_vel.nanoseconds() - this->now().nanoseconds()) < 100*pow(10, 6))
             return;
 
         RCLCPP_WARN(this->get_logger(), "Missing cmd vel, setting velocity to 0");
         
-        geometry_msgs::msg::TwistStamped cmd_vel;
-        publishCmdVel(cmd_vel);
-        
+        sendZeroVel();
         stopTimer(this->timer_soft_stop);
     }
 
@@ -61,17 +74,18 @@ class RobotNode : public rclcpp::Node {
             RCLCPP_INFO(this->get_logger(), "Heart Beat is back, operation allowed");
 
         restartTimerHeartBeat();
-        allow_local_telop = allowed_modes.local_telop;
-        allow_remote_telop = allowed_modes.remote_telop;
-        allow_auto = allowed_modes.autonomy_drive;
+        this->allow_local_telop = allowed_modes.local_telop;
+        this->allow_remote_telop = allowed_modes.remote_telop;
+        this->allow_auto = allowed_modes.autonomy_drive;
     }
 
 
     void callback_remote_telop_cmd(geometry_msgs::msg::TwistStamped cmd_vel) {
-        // deactivate auto maode
+        // deactivate auto mode
         this->m_mode_auto = false;
         
-        if(!allow_remote_telop)
+        // check if manual drive is allowed
+        if(!this->allow_remote_telop)
             return;
         
 
@@ -81,9 +95,11 @@ class RobotNode : public rclcpp::Node {
 
     void callback_auto_cmd(geometry_msgs::msg::TwistStamped cmd_vel) {
         
+        // check if mode auto is True
         if(!this->m_mode_auto)
             return;
         
+        // check if autonomous drive is allowed
         if(!this->allow_auto)
             return;
 
@@ -112,9 +128,21 @@ class RobotNode : public rclcpp::Node {
 
     rclcpp::Time time_last_cmd_vel;
 
-    inline void publishCmdVel(geometry_msgs::msg::TwistStamped cmd_vel) {
+    void publishCmdVel(geometry_msgs::msg::TwistStamped& cmd_vel) {
         this->time_last_cmd_vel = cmd_vel.header.stamp;
+        
+        if(abs(this->time_last_cmd_vel.nanoseconds() - this->now().nanoseconds()) > 100*pow(10, 6)) {
+            RCLCPP_WARN(this->get_logger(), "Old cmd_vel, ignoring");
+            return;
+        }
+
         this->pub_cmd_vel->publish(cmd_vel);
+    }
+
+    inline void sendZeroVel() {
+        geometry_msgs::msg::TwistStamped cmd_vel;
+        cmd_vel.header.stamp = this->now();
+        publishCmdVel(cmd_vel);
     }
 
     inline void stopTimer(rclcpp::TimerBase::SharedPtr& timer) {
@@ -123,13 +151,13 @@ class RobotNode : public rclcpp::Node {
 
     inline void restartTimerSoftStop() {
         using namespace std::chrono_literals;
-        this->timer_soft_stop.reset();
+        stopTimer(this->timer_soft_stop);
         this->timer_soft_stop = this->create_timer(100ms, std::bind(&RobotNode::callback_timer_soft_stop, this));
     }
 
     inline void restartTimerHeartBeat() {
         using namespace std::chrono_literals;
-        this->timer_heart_beat.reset();
+        stopTimer(this->timer_heart_beat);
         this->timer_heart_beat = this->create_timer(600ms, std::bind(&RobotNode::callback_timer_heart_beat, this));
     }
 };
