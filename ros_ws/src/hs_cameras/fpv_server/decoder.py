@@ -12,7 +12,7 @@ from sensor_msgs.msg import CompressedImage
 
 
 class FPVDecoder(Node):
-    """Decode and display multiple FPV streams in one OpenCV window."""
+    #Decode and display multiple FPV streams in one OpenCV window.
 
     def __init__(self, topic_names):
         super().__init__("fpv_multi_decoder")
