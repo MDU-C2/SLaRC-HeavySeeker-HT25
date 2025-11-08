@@ -4,6 +4,7 @@ string camera_name
 # result
 bool success
 string message
+string topic
 ---
 # feedback
 string status
