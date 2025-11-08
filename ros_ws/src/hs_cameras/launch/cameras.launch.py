@@ -1,22 +1,29 @@
 #!/usr/bin/env python3
 import os
+import sys
+import json
 import logging
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch_ros.descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_directory
 from cameras.manage_cameras import CameraManager
 
+#-----------------Setup logging--------------------------
 logger = logging.getLogger("hs_camera_launch")
 logging.basicConfig(level=logging.INFO, format="[%(name)s] %(levelname)s: %(message)s")
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
+#=================== Launch description ==================
 def generate_launch_description():
+    # Path to camera config file
     config_path = os.path.join(
         get_package_share_directory("hs_cameras"),
         "config",
         "cameras.yaml",
     )
-    logger.info(f"Using camera configuration: {config_path}")
 
+    # Run camera manager to detect all cameras and manage them-
     manager = CameraManager(config_path)
     cameras = manager.get_camera_configurations()
 
@@ -34,7 +41,7 @@ def generate_launch_description():
                 name=node_name,
                 namespace=node_name,
                 parameters=[params],
-                output="screen",
+                output="log",
             ))
 
         elif cam["type"] == "oak":
@@ -45,19 +52,20 @@ def generate_launch_description():
                 namespace=node_name,
                 parameters=[params],
                 output="screen",
-
             ))
         else:
-            logger.warning(f"Unknown camera type: {cam['type']}")
+            print(f"Unknown camera type: {cam['type']}")
 
-    # --- Launch FPV Server (idle until a client requests a stream) ---
+    # --- Launch FPV Server ---
     nodes.append(Node(
         package="hs_cameras",
         executable="fpv_server",
-        name="fpv_server",
+        name="server",
         output="screen",
-    ))
+        parameters=[{"cameras_json": ParameterValue(json.dumps(cameras), value_type=str)}],
+        ))
+
     if not nodes:
-        logger.warning("No cameras detected or configured — nothing to launch.")
+        print(" No cameras detected or configured — nothing to launch.")
 
     return LaunchDescription(nodes)
