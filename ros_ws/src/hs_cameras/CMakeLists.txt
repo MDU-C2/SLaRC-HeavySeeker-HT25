@@ -1,26 +1,36 @@
 cmake_minimum_required(VERSION 3.8)
 project(hs_cameras)
 
+# --------------------------------------------------------------------
+# Dependencies
+# --------------------------------------------------------------------
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 # --------------------------------------------------------------------
-# Generate StartCamera.action
+# ✅ Generate Actions and Services
 # --------------------------------------------------------------------
+# These will generate headers and Python bindings for your interfaces.
 rosidl_generate_interfaces(${PROJECT_NAME}
   "fpv_server/action/StartCamera.action"
+  "fpv_server/action/StopCamera.action"
+  "fpv_server/srv/GetCameras.srv"
   DEPENDENCIES builtin_interfaces
 )
 
-# --------------------------------------------------------------------
-# Install Python subpackages
-# --------------------------------------------------------------------
-ament_python_install_package(cameras)
-ament_python_install_package(fpv_server)
+# Make sure the generated interfaces are available at runtime
+ament_export_dependencies(rosidl_default_runtime)
 
 # --------------------------------------------------------------------
-# Install executables (ROS 2 nodes)
+# ✅ Install Python packages
+# --------------------------------------------------------------------
+# Ensure both the camera library and FPV server package are installed.
+ament_python_install_package(fpv_server)
+ament_python_install_package(cameras)
+
+# --------------------------------------------------------------------
+# ✅ Install Executables (ROS 2 Nodes)
 # --------------------------------------------------------------------
 install(PROGRAMS
   fpv_server/fpv_server.py
@@ -34,8 +44,14 @@ install(PROGRAMS
   RENAME fpv_client
 )
 
+install(PROGRAMS
+  fpv_server/decoder.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME decoder
+)
+
 # --------------------------------------------------------------------
-# Install launch + config
+# ✅ Install Launch and Config Directories
 # --------------------------------------------------------------------
 install(
   DIRECTORY launch cameras/config
@@ -43,7 +59,7 @@ install(
 )
 
 # --------------------------------------------------------------------
-# Export dependencies and finalize
+# ✅ Make sure messages are generated before Python code uses them
 # --------------------------------------------------------------------
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()
