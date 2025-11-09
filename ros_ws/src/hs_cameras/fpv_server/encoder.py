@@ -5,7 +5,6 @@ from sensor_msgs.msg import Image, CompressedImage
 
 
 class CameraEncoder:
-    """GPU/CPU encoder that auto-detects frame size and launches FFmpeg."""
 
     def __init__(self, node, camera_name, encoder_info, fps=30, output_topic=None):
         self.node = node
@@ -37,7 +36,7 @@ class CameraEncoder:
 
     # ------------------------------------------------------------------
     def start(self):
-        """Subscribe to /image_raw and wait for first frame."""
+        # Subscribe to /image_raw and wait for first frame.
         topic = f"/{self.camera_name}/image_raw"
         self.sub = self.node.create_subscription(Image, topic, self._callback, 10)
         self.node.get_logger().info(
@@ -46,7 +45,7 @@ class CameraEncoder:
 
     # ------------------------------------------------------------------
     def _callback(self, msg):
-        """On first frame: launch ffmpeg, then stream frames."""
+        # On first frame: launch ffmpeg, then stream frames
         if not self.running:
             self._first_frame_size = (msg.width, msg.height)
             self._launch_ffmpeg()
