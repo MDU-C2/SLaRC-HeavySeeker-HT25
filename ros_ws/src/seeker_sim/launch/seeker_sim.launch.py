@@ -26,7 +26,7 @@ def generate_launch_description():
     # --- Launch arguments ---
     world_arg = DeclareLaunchArgument(
         "world",
-        default_value="example_2.sdf",
+        default_value="example_2",
         description="World filename located under this packages worlds/ directory.",
     )
 
@@ -61,7 +61,7 @@ def generate_launch_description():
         [
             get_package_share_directory("seeker_sim"),
             "worlds",
-            LaunchConfiguration("world")
+            [LaunchConfiguration("world"),".sdf"],
         ]
     )
 
@@ -85,7 +85,7 @@ def generate_launch_description():
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Rigs"),
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Assemblies"),
         os.path.join(get_package_share_directory("seeker_sim"), "model", "UGV"),
-    ]
+        os.path.join(get_package_share_directory("seeker_sim"), "model", "world_models")    ]
 
     new_paths = [p for p in sdf_roots if os.path.isdir(p)]
 
@@ -99,11 +99,28 @@ def generate_launch_description():
         name="GZ_SIM_RESOURCE_PATH", value=merged_value
     )
 
+    # Log the resolved resource path so we can debug model:// lookups at runtime
+    log_gz_path = LogInfo(msg=["GZ_SIM_RESOURCE_PATH=", merged_value])
+
+    # Ensure the gz process inherits the same model/resource path. Pass an env
+    # dict to the ExecuteProcess so we are certain the simulator sees these
+    # variables (some simulator invocations read GZ_RESOURCE_PATH / GZ_MODEL_PATH).
+    start_env = os.environ.copy()
+    # update common resource/model env vars used by gz / gazebo
+    start_env.update({
+        "GZ_SIM_RESOURCE_PATH": merged_value,
+        "GZ_RESOURCE_PATH": merged_value,
+        "GZ_MODEL_PATH": merged_value,
+        "GAZEBO_MODEL_PATH": merged_value,
+    })
+
 
     launch_Robot_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(Robot_description_launch),
         launch_arguments={
             'model':       LaunchConfiguration('model'),
+            'simulation':  "true",
+            'world':       LaunchConfiguration('world'),
         }.items()
     )
 
@@ -118,6 +135,7 @@ def generate_launch_description():
         cmd=['gz', 'sim', '-r', world_root],
         #cmd=["gz", "sim", world_root],
         output="screen",
+        env=start_env,
     )
 
     # Start RViz2 with the given .rviz configuration.
@@ -136,16 +154,16 @@ def generate_launch_description():
             "ros_gz_sim",
             "create",
             "-world",
-            "example_2",
-            #LaunchConfiguration("model"), #should be this
+            #"example_2",
+            LaunchConfiguration("world"), #should be this
             "-file",
             LaunchConfiguration("model"),
             "-x",
-            "0.0",
+            "100.0",
             "-y",
-            "0.0",
+            "100.0",
             "-z",
-            "0.2",
+            "11.8",
             "-R",
             "0.0",
             "-P",
@@ -186,9 +204,6 @@ def generate_launch_description():
 
 
 
-
-
-
     # Custom node in the seeker_sim package (executable: cloud_frame_relay).
     # receives point clouds and republishes them under a different frame/namespace.
     relay_bridge = Node(
@@ -218,9 +233,11 @@ def generate_launch_description():
 
     ld.add_action(set_gz_path)
 
-    ld.add_action(start_gz)
-
+    
+    ld.add_action(log_gz_path)
     ld.add_action(launch_Robot_description)
+    
+    ld.add_action(start_gz)
     
     ld.add_action(bridge)
     ld.add_action(relay_bridge)
@@ -228,4 +245,5 @@ def generate_launch_description():
     ld.add_action(delay_spawn)
     ld.add_action(delay_start_rviz)
 
-    return LaunchDescription([ld])
+    return ld
+

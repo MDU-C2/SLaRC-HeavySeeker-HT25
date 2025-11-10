@@ -26,12 +26,13 @@ data_files=[
         [os.path.join('resource', package_name)]),
         (os.path.join('share', package_name), ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),  # om du har launch/
-        (os.path.join('share', package_name, 'worlds'), glob('worlds/*.sdf')),
+        #(os.path.join('share', package_name, 'worlds'), glob('worlds/*.sdf')),
         (os.path.join('share', package_name, 'materials'), glob('materials/textures/*.jpg')),
         (os.path.join('share', package_name, 'config'), glob('config/*')),
 
     ]
 data_files += tree_as_data_files('model', 'share/{}/model'.format(package_name))
+data_files += tree_as_data_files('worlds', 'share/{}/worlds'.format(package_name))
 
 setup(
     name=package_name,
