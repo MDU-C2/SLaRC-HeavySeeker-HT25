@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import asyncio
-import json
 import re
+import json
 import time
+import rclpy
+
 from typing import Dict, List
 
-import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer, GoalResponse, CancelResponse
-from sensor_msgs.msg import Image
+
 from std_msgs.msg import String
+from sensor_msgs.msg import Image
+
 
 from fpv_server.utils import detect_encoder
 from fpv_server.encoder import CameraEncoder
 
-from hs_cameras.action import StopCamera   # type: ignore
-from hs_cameras.action import StartCamera  # type: ignore
-from hs_cameras.srv import GetCameras      # type: ignore
+from hs_cameras.srv import GetCameras                   # type: ignore
+from hs_cameras.action import StopCamera, StartCamera   # type: ignore
 
 
 # --------------------------------------------------------------------
@@ -28,7 +29,7 @@ class EncoderManager:
     """Handles encoder detection and parameter configuration."""
 
     DEFAULTS = {
-            "encoder.prefer_hevc": True,
+            "encoder.prefer_hevc": False,
 
             # Encoder quality preset (speed vs. quality trade-off)
             # Typical range: 1 (best quality, slowest) → 7 (fastest, lowest quality)

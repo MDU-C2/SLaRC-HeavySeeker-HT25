@@ -8,7 +8,7 @@ oak_cameras:
         i_floodlight_brightness: 0
         i_laser_dot_brightness: 100
         i_nn_type: none
-        i_pipeline_type: RGBD
+        i_pipeline_type: RGB
         i_usb_speed: SUPER_PLUS
       rgb:
         i_board_socket_id: 0
@@ -19,13 +19,17 @@ oak_cameras:
         i_preview_size: 250
         i_enable_preview: true
         i_low_bandwidth: true
+        i_low_bandwidth_ffmpeg_encoder: h264
         i_keep_preview_aspect_ratio: true
-        i_publish_topic: false
+        i_publish_topic: true
         i_resolution: '1080P'
         i_width: 1280
+        i_enable_h264: true            # <-- Add this line
+        i_h264_bitrate: 8000000        # <-- Optional, adjust bitrate (8 Mbps)
+        i_h264_profile: main           # <-- Optional: baseline, main, high
       use_sim_time: false
   "19443010B1627E4800": #deviceId for oak1
-    name: oak2
+    name: oak1
     params:
       camera:
         i_enable_imu: false
@@ -33,7 +37,7 @@ oak_cameras:
         i_floodlight_brightness: 0
         i_laser_dot_brightness: 100
         i_nn_type: none
-        i_pipeline_type: RGBD
+        i_pipeline_type: RGB
         i_usb_speed: SUPER_PLUS
       rgb:
         i_board_socket_id: 0
@@ -44,10 +48,14 @@ oak_cameras:
         i_preview_size: 250
         i_enable_preview: true
         i_low_bandwidth: true
+        i_low_bandwidth_ffmpeg_encoder: h264
         i_keep_preview_aspect_ratio: true
-        i_publish_topic: false
+        i_publish_topic: true
         i_resolution: '1080P'
         i_width: 1280
+        i_enable_h264: true            # <-- Add this line
+        i_h264_bitrate: 8000000        # <-- Optional, adjust bitrate (8 Mbps)
+        i_h264_profile: main           # <-- Optional: baseline, main, high
       use_sim_time: false
 usb_cameras:
   "2450ZB1354S8": # USB camera0 serial number

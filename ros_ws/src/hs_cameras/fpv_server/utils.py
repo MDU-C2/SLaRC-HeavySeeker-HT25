@@ -40,16 +40,40 @@ def _ffmpeg_supports(name: str) -> bool:
     return name in _FFMPEG_ENCODERS_CACHE
 
 def _test_ffmpeg_encoder(name: str) -> bool:
+    """Try to encode one test frame using the given encoder."""
     try:
+        # HEVC NVENC requires at least 128x128
+        test_size = "128x128" if "hevc_nvenc" in name else "64x64"
+
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
-            "-f", "lavfi", "-i", "testsrc=size=64x64:rate=1",
+            "-f", "lavfi", "-i", f"testsrc=size={test_size}:rate=1",
             "-frames:v", "1", "-c:v", name, "-f", "null", "-"
         ]
-        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=3)
-        return True
-    except Exception:
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5)
+        stderr = proc.stderr.decode(errors="ignore")
+
+        if proc.returncode == 0 and not any(
+            e in stderr.lower()
+            for e in [
+                "no such device",
+                "initialization failed",
+                "not supported",
+                "failed to create",
+                "driver not found",
+                "could not load"
+            ]
+        ):
+            return True
+
+        logger.warning(f"Encoder test failed for {name}: {stderr.strip()[:200]}")
         return False
+
+    except Exception as e:
+        logger.warning(f"Encoder test exception for {name}: {e}")
+        return False
+
+
 
 # ------------------------------------------------------------------------------
 # Unified Encoder Settings Mapper
@@ -151,26 +175,27 @@ def map_encoder_settings(name: str, codec: str, settings: dict) -> tuple[dict, l
 # ------------------------------------------------------------------------------
 
 def detect_encoder(prefer_hevc: bool = True, settings: dict = None) -> dict:
-    """Return the best available encoder configuration for this system."""
+    """Return the best available and working encoder configuration for this system."""
     if settings is None:
         settings = {}
 
     candidates = []
 
     def _add_candidate(name, desc, codec, hw):
+        if not _ffmpeg_supports(name):
+            return
         opts, extra = map_encoder_settings(name, codec, settings)
 
         # Normalize codec info
-        if codec.upper() in ("HEVC", "H265"):
+        if codec.lower() in ("hevc", "h265"):
             codec_name = "h265"
             container_name = "hevc"
-            bitstream_filter = "hevc_mp4toannexb"
+            bitstream_filter = "hevc_mp4toannexb"  # <-- fixed here
         else:
             codec_name = "h264"
             container_name = "h264"
             bitstream_filter = "h264_mp4toannexb"
 
-        # Get mux config from settings (provided by fpv_server)
         mux_format = settings.get("mux", "mpegts")
         mux_flags_str = settings.get("mux_flags", "")
         mux_flags = mux_flags_str.split() if isinstance(mux_flags_str, str) else list(mux_flags_str)
@@ -188,44 +213,39 @@ def detect_encoder(prefer_hevc: bool = True, settings: dict = None) -> dict:
             "mux_flags": mux_flags,
         })
 
-    # --- hardware detection logic (same as before) ---
+    # --- GPU and encoder detection ---
     if os.path.exists("/dev/nvidia0") or _has_cmd("nvidia-smi"):
-        if prefer_hevc and _ffmpeg_supports("hevc_nvenc"):
-            _add_candidate("hevc_nvenc", "NVIDIA NVENC (H.265)", "h265", True)
-        if _ffmpeg_supports("h264_nvenc"):
-            _add_candidate("h264_nvenc", "NVIDIA NVENC (H.264)", "h264", True)
+        _add_candidate("hevc_nvenc", "NVIDIA NVENC (H.265)", "h265", True)
+        _add_candidate("h264_nvenc", "NVIDIA NVENC (H.264)", "h264", True)
 
     if os.path.exists("/dev/dri/renderD128") and _has_gpu("intel"):
-        if prefer_hevc and _ffmpeg_supports("hevc_qsv"):
-            _add_candidate("hevc_qsv", "Intel Quick Sync (H.265)", "h265", True)
-        if _ffmpeg_supports("h264_qsv"):
-            _add_candidate("h264_qsv", "Intel Quick Sync (H.264)", "h264", True)
+        _add_candidate("hevc_qsv", "Intel Quick Sync (H.265)", "h265", True)
+        _add_candidate("h264_qsv", "Intel Quick Sync (H.264)", "h264", True)
 
     if os.path.exists("/dev/dri/renderD128") and (_has_gpu("intel") or _has_gpu("amd")):
-        if prefer_hevc and _ffmpeg_supports("hevc_vaapi"):
-            _add_candidate("hevc_vaapi", "VAAPI (H.265)", "h265", True)
-        if _ffmpeg_supports("h264_vaapi"):
-            _add_candidate("h264_vaapi", "VAAPI (H.264)", "h264", True)
+        _add_candidate("hevc_vaapi", "VAAPI (H.265)", "h265", True)
+        _add_candidate("h264_vaapi", "VAAPI (H.264)", "h264", True)
 
     if _has_cmd("v4l2-ctl"):
-        if prefer_hevc and _ffmpeg_supports("hevc_v4l2m2m"):
-            _add_candidate("hevc_v4l2m2m", "V4L2 M2M (H.265)", "h265", True)
-        if _ffmpeg_supports("h264_v4l2m2m"):
-            _add_candidate("h264_v4l2m2m", "V4L2 M2M (H.264)", "h264", True)
+        _add_candidate("hevc_v4l2m2m", "V4L2 M2M (H.265)", "h265", True)
+        _add_candidate("h264_v4l2m2m", "V4L2 M2M (H.264)", "h264", True)
 
-    if prefer_hevc and _ffmpeg_supports("libx265"):
-        _add_candidate("libx265", "CPU Software (H.265)", "h265", False)
-    if _ffmpeg_supports("libx264"):
-        _add_candidate("libx264", "CPU Software (H.264)", "h264", False)
-
-    # Pick first working encoder
+    # --- Always include software encoders ---
+    _add_candidate("libx265", "CPU Software (H.265)", "h265", False)
+    _add_candidate("libx264", "CPU Software (H.264)", "h264", False)
+    
+    if not prefer_hevc:
+        # Move all H.264 encoders before H.265/HEVC ones
+        candidates.sort(key=lambda e: 0 if e["codec"] == "h264" else 1)
+    
+    # --- Test candidates in order ---
     for enc in candidates:
         if _test_ffmpeg_encoder(enc["name"]):
-            logger.info(f" Using encoder: {enc['description']} ({enc['name']})")
+            logger.info(f"✅ Using encoder: {enc['description']} ({enc['name']})")
             return enc
 
-    # Fallback
-    logger.error(" No working encoder found, falling back to libx264 (CPU).")
+    # --- Fallback ---
+    logger.error("❌ No working encoder found, falling back to libx264 (CPU).")
     opts, extra = map_encoder_settings("libx264", "h264", settings)
     return {
         "name": "libx264",

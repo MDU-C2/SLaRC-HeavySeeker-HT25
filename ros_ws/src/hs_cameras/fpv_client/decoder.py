@@ -3,7 +3,6 @@ import sys
 import subprocess
 import threading
 import time
-import os
 import numpy as np
 import cv2
 import rclpy
@@ -12,7 +11,7 @@ from sensor_msgs.msg import CompressedImage
 
 
 class FPVDecoder(Node):
-    #Decode and display multiple FPV streams in one OpenCV window.
+    """Decode and display multiple FPV streams in one OpenCV window."""
 
     def __init__(self, topic_names):
         super().__init__("fpv_multi_decoder")
@@ -23,9 +22,12 @@ class FPVDecoder(Node):
         self.running = True
         self.resolutions = {}
         self.input_buffer = {t: b"" for t in topic_names}
-        self.stats = {t: {"bytes": 0, "mbit_s": 0.0, "fps": 0.0} for t in topic_names}
+        self.stats = {
+            t: {"bytes": 0, "mbit_s": 0.0, "fps": 0.0, "last_ts": None, "avg_window": []}
+            for t in topic_names
+        }
 
-        # Subscribe to each camera topic
+        # Subscribe to each encoded stream
         for topic in topic_names:
             self.create_subscription(
                 CompressedImage, topic,
@@ -33,12 +35,13 @@ class FPVDecoder(Node):
             )
             self.get_logger().info(f"🎥 Listening on {topic}")
 
-        # Launch display + stats threads
+        # Launch display and bitrate monitor threads
         threading.Thread(target=self._display_loop, daemon=True).start()
         threading.Thread(target=self._stats_thread, daemon=True).start()
 
     # ------------------------------------------------------------------
     def _start_ffmpeg(self, topic, codec):
+        """Spawn ffmpeg decoder process for one topic."""
         proc = subprocess.Popen([
             "ffmpeg",
             "-hide_banner", "-loglevel", "error",
@@ -52,7 +55,6 @@ class FPVDecoder(Node):
             "-f", "rawvideo", "-"
         ], stdin=subprocess.PIPE, stdout=subprocess.PIPE, bufsize=0)
 
-
         self.ffmpegs[topic] = proc
         threading.Thread(target=self._frame_reader, args=(topic,), daemon=True).start()
 
@@ -63,7 +65,6 @@ class FPVDecoder(Node):
         frame_size = w * h * 3
         proc = self.ffmpegs[topic]
         buf = b""
-        frame_times = []
 
         while self.running and proc.poll() is None:
             chunk = proc.stdout.read(frame_size)
@@ -77,61 +78,71 @@ class FPVDecoder(Node):
                 frame = np.frombuffer(raw, np.uint8).reshape((h, w, 3))
                 self.frames[topic] = frame
 
-                # FPS tracking
-                now = time.time()
-                frame_times.append(now)
-                frame_times = [t for t in frame_times if now - t <= 1.0]
-                self.stats[topic]["fps"] = len(frame_times)
-
         proc.stdout.close()
 
     # ------------------------------------------------------------------
     def callback(self, msg: CompressedImage, topic: str):
-        """Feed encoded bytes into per-topic ffmpeg."""
+        """Feed encoded bytes into per-topic ffmpeg and compute camera FPS."""
         fmt = msg.format.lower()
 
-        # Parse codec and metadata directly from msg.format
+        # Detect codec
         if "h265" in fmt or "hevc" in fmt:
             codec = "h265"
         elif "h264" in fmt or "avc" in fmt:
             codec = "h264"
         else:
-            self.get_logger().warn(f"{topic}: unknown codec in format='{msg.format}', defaulting to h264")
+            self.get_logger().warn(f"{topic}: unknown codec in format='{msg.format}', assuming h264")
             codec = "h264"
 
-        # Extract width, height, fps from format string (e.g., video/h265;width=1280;height=720;fps=30)
+        # Extract width/height/fps metadata
         parts = dict(p.split("=", 1) for p in fmt.split(";") if "=" in p)
         w = int(parts.get("width", 1280))
         h = int(parts.get("height", 720))
-        fps = float(parts.get("fps", parts.get("framerate", 30.0)))
-
 
         if topic not in self.ffmpegs:
             self.resolutions[topic] = (w, h)
             self._start_ffmpeg(topic, codec)
-
-            # Print full header for debugging
             self.get_logger().info(
                 f"\n====== New stream detected ======\n"
                 f"   • Topic: {topic}\n"
                 f"   • Codec: {codec.upper()}\n"
                 f"   • Resolution: {w}x{h}\n"
-                f"   • Framerate: {fps:.1f} fps\n"
                 f"=================================\n"
             )
 
+        # --- Use real camera timestamps for FPS tracking ---
+        try:
+            stamp = msg.header.stamp
+            t_sec = stamp.sec + stamp.nanosec * 1e-9
+        except Exception:
+            t_sec = time.time()
+
+        s = self.stats[topic]
+        last = s["last_ts"]
+        s["last_ts"] = t_sec
+
+        if last is not None:
+            dt = t_sec - last
+            if 0.001 < dt < 1.0:
+                fps = 1.0 / dt
+                if fps < 240:  # ignore spikes
+                    s["avg_window"].append(fps)
+                    if len(s["avg_window"]) > 20:
+                        s["avg_window"].pop(0)
+                    s["fps"] = sum(s["avg_window"]) / len(s["avg_window"])
+
+        # --- Feed encoded bytes to ffmpeg ---
         try:
             proc = self.ffmpegs[topic]
             if proc and proc.stdin:
                 data = bytes(msg.data)
                 self.input_buffer[topic] += data
 
-                # flush buffer in chunks to avoid fragmented NALs
                 if len(self.input_buffer[topic]) > 65536:
                     proc.stdin.write(self.input_buffer[topic])
                     self.input_buffer[topic] = b""
 
-                self.stats[topic]["bytes"] += len(data)
+                s["bytes"] += len(data)
         except BrokenPipeError:
             self.get_logger().error(f"{topic}: ffmpeg pipe closed")
         except Exception as e:
@@ -139,18 +150,41 @@ class FPVDecoder(Node):
 
     # ------------------------------------------------------------------
     def _stats_thread(self):
-        """Update bitrate stats every second."""
+        """Compute bitrate per stream every second, time-accurate and smoothed."""
         last_bytes = {t: 0 for t in self.topic_names}
+        last_time = time.time()
+
+        # Exponential moving average smoothing factor (0.2 = responsive but stable)
+        alpha = 0.2
+
         while rclpy.ok() and self.running:
-            time.sleep(1)
+            time.sleep(1.0)
+            now = time.time()
+            elapsed = now - last_time
+            last_time = now
+            if elapsed <= 0:
+                continue
+
             for t in self.topic_names:
-                cur = self.stats[t]["bytes"]
-                self.stats[t]["mbit_s"] = (cur - last_bytes[t]) * 8 / 1_000_000
+                s = self.stats[t]
+                cur = s["bytes"]
+
+                # bits per second (megabits)
+                mbps = (cur - last_bytes[t]) * 8 / (1_000_000 * elapsed)
                 last_bytes[t] = cur
+
+                # Apply exponential moving average for stability
+                if "avg_mbps" not in s:
+                    s["avg_mbps"] = mbps
+                else:
+                    s["avg_mbps"] = (1 - alpha) * s["avg_mbps"] + alpha * mbps
+
+                s["mbit_s"] = s["avg_mbps"]
+
 
     # ------------------------------------------------------------------
     def _display_loop(self):
-        """Combine all frames and display them."""
+        """Display all decoded frames in one OpenCV window."""
         while self.running:
             if not self.frames:
                 time.sleep(0.05)
@@ -161,21 +195,16 @@ class FPVDecoder(Node):
             if not frames:
                 continue
 
-            # Resize all to same height
+            # Normalize height and combine into one view
             h = min(f.shape[0] for f in frames)
             frames = [cv2.resize(f, (int(f.shape[1] * h / f.shape[0]), h)) for f in frames]
-
-            # Stack horizontally or in grid
             combined = np.hstack(frames) if len(frames) <= 3 else self._grid(frames, cols=2)
 
-            # Overlay stats per feed
+            # Draw stats text overlays
             y = 30
             for c in cams:
-                if c not in self.stats:
-                    continue
-                fps = self.stats[c]["fps"]
-                mbit = self.stats[c]["mbit_s"]
-                text = f"{c}: {mbit:.1f} Mbps  {fps:.1f} FPS"
+                s = self.stats[c]
+                text = f"{c}: {s['mbit_s']:.2f} Mbps  {s['fps']:.1f} FPS"
                 cv2.putText(combined, text, (10, y), cv2.FONT_HERSHEY_SIMPLEX,
                             0.7, (0, 255, 0), 2, cv2.LINE_AA)
                 y += 30
@@ -203,6 +232,7 @@ class FPVDecoder(Node):
 
     # ------------------------------------------------------------------
     def destroy_node(self):
+        """Stop all decoder processes cleanly."""
         self.running = False
         for p in self.ffmpegs.values():
             try:

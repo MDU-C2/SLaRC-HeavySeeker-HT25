@@ -5,6 +5,7 @@ from sensor_msgs.msg import Image, CompressedImage
 
 
 class CameraEncoder:
+    """Encodes raw Image frames using FFmpeg and publishes CompressedImage messages."""
 
     def __init__(self, node, camera_name, encoder_info, fps=30, output_topic=None):
         self.node = node
@@ -25,6 +26,7 @@ class CameraEncoder:
         self.pub = self.node.create_publisher(CompressedImage, self.output_topic, 10)
 
         self._first_frame_size = None
+        self._last_input_stamp = None  # <-- store last camera timestamp for sync
 
         self.node.get_logger().info(
             f"[{self.camera_name}] Using encoder: {self.encoder_info['description']} "
@@ -36,7 +38,6 @@ class CameraEncoder:
 
     # ------------------------------------------------------------------
     def start(self):
-        # Subscribe to /image_raw and wait for first frame.
         topic = f"/{self.camera_name}/image_raw"
         self.sub = self.node.create_subscription(Image, topic, self._callback, 10)
         self.node.get_logger().info(
@@ -44,8 +45,8 @@ class CameraEncoder:
         )
 
     # ------------------------------------------------------------------
-    def _callback(self, msg):
-        # On first frame: launch ffmpeg, then stream frames
+    def _callback(self, msg: Image):
+        """Handle incoming raw frames and feed them into FFmpeg."""
         if not self.running:
             self._first_frame_size = (msg.width, msg.height)
             self._launch_ffmpeg()
@@ -70,9 +71,12 @@ class CameraEncoder:
                 self.stop()
                 return
 
+            # Save original capture timestamp
+            self._last_input_stamp = msg.header.stamp
+
+            # Convert to BGR24 and push raw bytes to ffmpeg
             frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
             self.process.stdin.write(frame.tobytes())
-            # No explicit flush needed; OS pipe buffering is fine for low-latency
 
         except BrokenPipeError:
             self.node.get_logger().error(f"[{self.camera_name}] Encoder pipe closed.")
@@ -98,14 +102,14 @@ class CameraEncoder:
             "-c:v", enc["name"],
         ]
 
-        # Add encoder options
+        # Encoder options
         for k, v in enc.get("options", {}).items():
             cmd += [f"-{k}", str(v)]
 
-        # Add extra args (rate control, lookahead, etc.)
+        # Add extra args (rate control, tuning, etc.)
         cmd += enc.get("extra_args", [])
 
-        # Optional bitstream filter (hevc_mp4toannexb, etc.)
+        # Optional bitstream filter (e.g. h264_mp4toannexb)
         if enc.get("bitstream_filter"):
             cmd += ["-bsf:v", enc["bitstream_filter"]]
 
@@ -130,14 +134,12 @@ class CameraEncoder:
 
     # ------------------------------------------------------------------
     def _reader_loop(self):
-        """Publish encoded video chunks with metadata headers."""
+        """Reads encoded output from ffmpeg and publishes CompressedImage messages."""
         width, height = self._first_frame_size
         try:
             stdout = self.process.stdout
             read_fn = getattr(stdout, "read1", stdout.read)
-
-            # Read a reasonable chunk of TS data each time (~18KB)
-            chunk_size = 188 * 100
+            chunk_size = 188 * 100  # MPEG-TS packet multiple (~18 KB)
 
             while self.process and self.process.poll() is None:
                 chunk = read_fn(chunk_size)
@@ -145,15 +147,16 @@ class CameraEncoder:
                     continue
 
                 msg = CompressedImage()
-                msg.header.stamp = self.node.get_clock().now().to_msg()
+                # Use the timestamp of the last camera frame that generated this chunk
+                msg.header.stamp = self._last_input_stamp or self.node.get_clock().now().to_msg()
                 msg.header.frame_id = self.camera_name
                 msg.format = (
                     f"video/{self.encoder_info['codec'].lower()};"
                     f"width={width};height={height};fps={self.fps}"
                 )
                 msg.data = chunk
-
                 self.pub.publish(msg)
+
         except Exception as e:
             self.node.get_logger().error(f"[{self.camera_name}] Reader loop error: {e}")
 
