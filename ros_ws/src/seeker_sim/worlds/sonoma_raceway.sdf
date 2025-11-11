@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<sdf version="1.10">
+  <world name="sonoma_raceway">
+    <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"/>
+    <plugin name="gz::sim::systems::SceneBroadcaster" filename="gz-sim-scene-broadcaster-system"/>
+    <plugin name="gz::sim::systems::Physics" filename="gz-sim-physics-system"/>
+    <plugin name="gz::sim::systems::UserCommands" filename="gz-sim-user-commands-system"/>
+
+    <physics name="default" type="gz-physics">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+
+    <!-- (Valfritt men bra) sätt geodetisk referens för rimliga lat/lon från NavSat -->
+    <!-- Byt till Sonamas lat/lon/höjd om du vill ha "riktiga" GPS-koordinater -->
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>38.0</latitude_deg>
+      <longitude_deg>-122.5</longitude_deg>
+      <elevation>0.0</elevation>
+      <heading_deg>0.0</heading_deg>
+    </spherical_coordinates>
+
+    <!-- Ljus etc -->
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>0 0 -1</direction>
+    </light>
+
+    <!-- Inkludera Sonoma-banan -->
+    <include>
+      <name>sonoma_raceway</name>
+      <uri>model://sonoma_raceway</uri>
+      <pose>0 0 0 0 0 0</pose>
+      <!-- <static>true</static>  // lämna gärna statisk -->
+    </include>
+  </world>
+</sdf>

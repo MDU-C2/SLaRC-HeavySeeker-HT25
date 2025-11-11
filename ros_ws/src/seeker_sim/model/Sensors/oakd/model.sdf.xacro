@@ -2,7 +2,7 @@
 <sdf version="1.11" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="$(find seeker_sim)/model/Sensors/oakd/common.sdf.xacro" />
 
-    <xacro:macro name="oakd" params='name:="oakd_pro" parent_link xyz:="0 0 0" rpy:="0 0 0"'>
+    <xacro:macro name="oakd" params='name:=oakd_pro parent_link xyz:="0 0 0" rpy:="0 0 0"'>
 
       <xacro:property name="mass"       value="0.061"/>
       <xacro:property name="baseline"   value="0.075" />
@@ -33,7 +33,7 @@
           </geometry>
         </visual>
         <collision name="${base_frame}_collision">
-          <pose>${collision_offset_x} ${collision_offset_y} ${collision_offset_z} 0 0 0</pose>
+          <pose relative_to="${base_frame}">${collision_offset_x} ${collision_offset_y} ${collision_offset_z} 0 0 0</pose>
           <geometry>
             <box>
               <size>${collision_length_x} ${collision_length_y} ${collision_length_z}</size>
@@ -55,6 +55,7 @@
 
       <!-- RGB Camera -->
       <link name="${name}_rgb_camera_frame">
+        <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
         <xacro:inertial_dummy/>
         <sensor name="${name}_rgbd_sensor" type="rgbd_camera">
           <always_on>1</always_on>
@@ -90,7 +91,7 @@
       <joint name="${name}_rgb_camera_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_rgb_camera_frame</child>
-        <pose>0 0 0 0 0 0</pose>
+        
       </joint>
 
       <link name="${name}_rgb_camera_optical_frame">
@@ -98,7 +99,7 @@
       </link>
       
       <joint name="${name}_rgb_camera_optical_joint" type="fixed">
-        <pose>0 0 0 -${M_PI/2} 0.0 -${M_PI/2}</pose>
+        
         <parent>${name}_rgb_camera_frame</parent>
         <child>${name}_rgb_camera_optical_frame</child>
       </joint>
@@ -107,7 +108,6 @@
       <joint name="${name}_rgb_camera_sensor_mount_joint" type="fixed">
         <parent>${name}_rgb_camera_optical_frame</parent>
         <child>${name}_rgb_camera_sensor_mount</child>
-        <pose>0 0 0 0 0 0</pose>
       </joint>
 
       <!-- Left Camera -->
@@ -136,7 +136,7 @@
       <joint name="${name}_left_camera_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_left_camera_frame</child>
-        <pose>0 ${baseline/2} 0 0 0 0</pose>
+        <pose relative_to="${base_frame}">0 ${baseline/2} 0 0 0 0</pose>
       </joint>
 
       <link name="${name}_left_camera_optical_frame">
@@ -144,7 +144,7 @@
       </link>
       
       <joint name="${name}_left_camera_optical_joint" type="fixed">
-        <pose>0 0 0 -${M_PI/2} 0.0 -${M_PI/2}</pose>
+        <pose relative_to="${base_frame}">0 0 0 -${M_PI/2} 0.0 -${M_PI/2}</pose>
         <parent>${name}_left_camera_frame</parent>
         <child>${name}_left_camera_optical_frame</child>
       </joint>
@@ -175,7 +175,7 @@
       <joint name="${name}_right_camera_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_right_camera_frame</child>
-        <pose>0 -${baseline/2} 0 0 0 0</pose>
+        <pose relative_to="${base_frame}">0 -${baseline/2} 0 0 0 0</pose>
       </joint>
 
       <link name="${name}_right_camera_optical_frame">
@@ -183,7 +183,7 @@
       </link>
       
       <joint name="${name}_right_camera_optical_joint" type="fixed">
-        <pose>0 0 0 -${M_PI/2} 0.0 -${M_PI/2}</pose>
+        <pose relative_to="${base_frame}">0 0 0 -${M_PI/2} 0.0 -${M_PI/2}</pose>
         <parent>${name}_right_camera_frame</parent>
         <child>${name}_right_camera_optical_frame</child>
       </joint>
@@ -225,7 +225,7 @@
       <joint name="${name}_imu_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_imu_frame</child>
-        <pose>0 0 0 -${M_PI/2} 0 -${M_PI/2}</pose>
+        <pose relative_to="${base_frame}">0 0 0 -${M_PI/2} 0 -${M_PI/2}</pose>
       </joint>
 
       <joint name="oakd_mount" type="fixed">

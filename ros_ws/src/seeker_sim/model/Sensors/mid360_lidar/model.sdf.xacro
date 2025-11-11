@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.10" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="mid360_lidar" params='name:="mid360_lidar" parent_link xyz:="0 0 0" rpy:="0 0 0"'>
+  <xacro:macro name="mid360_lidar" params='name:=mid360_lidar parent_link xyz:="0 0 0" rpy:="0 0 0"'>
     
     <xacro:property name="base_frame" value="${name}_link"/>
     
@@ -105,7 +105,7 @@
                     <stddev>0.02</stddev>
                   </noise>
                 </lidar>
-                <topic>/lidar/mid360/points</topic>  <!-- Gazebo Transport topic -->
+                <topic>/lidar_points</topic>  <!-- Gazebo Transport topic -->
                 <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
           </sensor>
       </link>
