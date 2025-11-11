@@ -130,6 +130,8 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(Robot_description_launch),
         launch_arguments={
             'model':       LaunchConfiguration('model'),
+            'rviz_use':   'true',
+            'rviz_config': rviz_config_root,
         }.items()
     )
 
@@ -148,10 +150,10 @@ def generate_launch_description():
     )
 
     # Start RViz2 with the given .rviz configuration.
-    start_rviz = ExecuteProcess(
-        cmd=["rviz2", "-d", rviz_config_root],
-        output="screen",
-    )
+    # start_rviz = ExecuteProcess(
+    #     cmd=["rviz2", "-d", rviz_config_root],
+    #     output="screen",
+    # )
 
     spawn_x = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[0]"])
     spawn_y = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[1]"])
@@ -227,10 +229,7 @@ def generate_launch_description():
     )
 
 
-    # Delays the start of Rviz to ensure all previous nodes are up and running before.
-    delay_start_rviz = TimerAction(
-        period=3.0, actions=[start_rviz],
-    )
+
 
 
     delay_spawn = TimerAction(
@@ -258,7 +257,7 @@ def generate_launch_description():
     ld.add_action(relay_bridge)
 
     ld.add_action(delay_spawn)
-    ld.add_action(delay_start_rviz)
+    
 
     return ld
 

@@ -2,10 +2,12 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 import subprocess
+from launch.conditions import IfCondition
 from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
     SetLaunchConfiguration,
+    ExecuteProcess,
 )
 from launch.substitutions import (
     PathJoinSubstitution,
@@ -69,18 +71,42 @@ def generate_launch_description():
         description="name of model FOLDER located under one of the subfolders of this packages model/Assemblies directory.\n",
     )
 
+    rviz_config_arg = DeclareLaunchArgument(
+        "rviz_config",
+        default_value="seeker_sim_config.rviz",
+        description="Config filename located under this packages config/ directory.",
+    )
+
+    rviz_use = DeclareLaunchArgument(
+        "rviz_use",
+        default_value="false",
+        description="set to true to launch rviz on startup",
+    )
+
     model_root = PathJoinSubstitution(
         [get_package_share_directory("seeker_sim"), "model","Assemblies", LaunchConfiguration("model")]
     )
 
+    rviz_config_root = PathJoinSubstitution(
+        [get_package_share_directory("seeker_sim"), "config", LaunchConfiguration("rviz_config")]
+    )
+
+    start_rviz = ExecuteProcess(
+        cmd=["rviz2", "-d", rviz_config_root],
+        output="screen",
+        condition=IfCondition(LaunchConfiguration("rviz_use")),
+    )
 
     ld = LaunchDescription() 
 
     ld.add_action(model_arg)
+    ld.add_action(rviz_config_arg)
+    ld.add_action(rviz_use)
 
     ld.add_action(OpaqueFunction(function=convert_model,kwargs={"model_dir": model_root}))
 
     ld.add_action(OpaqueFunction(function=robot_state_generator))
+    ld.add_action(start_rviz)
 
 
     return ld
