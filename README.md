@@ -19,7 +19,7 @@ _Don't worry about the warnings, just ignore them_
 **To start the lidars, they need to first be powered and connected.**
 
 > [!NOTE]
-> You need to set the wired IPv4 address to _192.168.1.50_ and the netmask to _255.255.255.0_ in order to be able to have a connection with the lidars.
+> You need to set the wired IPv4 address to _192.168.10.222_ and the netmask to _255.255.255.0_ in order to be able to have a connection with the lidars.
 
 Afterwards, source and start the publishers:
 
