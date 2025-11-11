@@ -15,9 +15,10 @@ from launch.substitutions import (
 )
 from ament_index_python.packages import get_package_share_directory
 
-import os, subprocess
+import os
 from launch.utilities import perform_substitutions
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PythonExpression
 
 
 
@@ -26,7 +27,7 @@ def generate_launch_description():
     # --- Launch arguments ---
     world_arg = DeclareLaunchArgument(
         "world",
-        default_value="example_2",
+        default_value="sonoma_raceway",
         description="World filename located under this packages worlds/ directory.",
     )
 
@@ -45,6 +46,16 @@ def generate_launch_description():
         default_value="seeker_sim_config.rviz",
         description="Config filename located under this packages config/ directory.",
     )
+
+    spawn_coordinates = DeclareLaunchArgument(
+        "Spawn_XYZ_RPY",
+        default_value="0.0 0.0 0.0 0.0 0.0 0.0",
+        description="The X Y Z coordinates and RPY to spawn the robot at. Sepreated by spaces.\n" \
+        "Recommendations:\n" \
+        "   sonoma_raceway: 280 -138 7.75 0 0 2.49",
+    )
+
+    #280 -138 7.75
 
 
 
@@ -119,8 +130,6 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(Robot_description_launch),
         launch_arguments={
             'model':       LaunchConfiguration('model'),
-            'simulation':  "true",
-            'world':       LaunchConfiguration('world'),
         }.items()
     )
 
@@ -144,6 +153,12 @@ def generate_launch_description():
         output="screen",
     )
 
+    spawn_x = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[0]"])
+    spawn_y = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[1]"])
+    spawn_z = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[2]"])
+    spawn_roll = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[3]"])
+    spawn_pitch = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[4]"])
+    spawn_yaw = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[5]"])
 
 
 
@@ -154,22 +169,21 @@ def generate_launch_description():
             "ros_gz_sim",
             "create",
             "-world",
-            #"example_2",
             LaunchConfiguration("world"), #should be this
             "-file",
             LaunchConfiguration("model"),
             "-x",
-            "100.0",
+            spawn_x,
             "-y",
-            "100.0",
+            spawn_y,
             "-z",
-            "11.8",
+            spawn_z,
             "-R",
-            "0.0",
+            spawn_roll,
             "-P",
-            "0.0",
+            spawn_pitch,
             "-Y",
-            "0.0",
+            spawn_yaw,
             "--allow_renaming",
             "0",
         ],
@@ -230,6 +244,7 @@ def generate_launch_description():
     ld.add_action(world_arg)
     ld.add_action(model_arg)
     ld.add_action(rviz_config_arg)
+    ld.add_action(spawn_coordinates)
 
     ld.add_action(set_gz_path)
 

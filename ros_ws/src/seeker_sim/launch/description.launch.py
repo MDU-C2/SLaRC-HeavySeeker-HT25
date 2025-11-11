@@ -2,9 +2,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 import subprocess
-from launch.conditions import IfCondition
 from launch.actions import (
-    ExecuteProcess,
     DeclareLaunchArgument,
     OpaqueFunction,
     SetLaunchConfiguration,
@@ -17,7 +15,6 @@ from launch.substitutions import (
 from ament_index_python.packages import get_package_share_directory
 import os, subprocess
 from launch.utilities import perform_substitutions
-from launch.actions import LogInfo
 
 def convert_model(context,*,model_dir, **kwargs):
 
@@ -46,14 +43,6 @@ def convert_model(context,*,model_dir, **kwargs):
     return [SetLaunchConfiguration("model", sdf_file_path)]
 
 
-    print(f"[INFO] Done. Wrote {sdf_file_path}")
-    # Publish the rendered world file path under a separate launch config so the
-    # original 'world' (folder name) is preserved. The top-level launcher can
-    # use LaunchConfiguration('world_file') if it wants the full path to the
-    # rendered world.sdf.
-    return [SetLaunchConfiguration("world", sdf_file_path)]
-
-
 def robot_state_generator(context, *args, **kwargs):
     with open(LaunchConfiguration("model").perform(context), 'r') as infp:
             robot_desc = infp.read()
@@ -80,48 +69,18 @@ def generate_launch_description():
         description="name of model FOLDER located under one of the subfolders of this packages model/Assemblies directory.\n",
     )
 
-    world_arg = DeclareLaunchArgument(
-        "world",
-        default_value="sonoma_raceway",
-        description="name of world FOLDER located under this package /worlds dir.\n",
-    )
-
-    simulating_arg = DeclareLaunchArgument(
-        "simulation",
-        default_value="false",
-        description="set to true when simulating in ROS-GZ",
-    )
-
-
     model_root = PathJoinSubstitution(
         [get_package_share_directory("seeker_sim"), "model","Assemblies", LaunchConfiguration("model")]
     )
 
-    world_root = PathJoinSubstitution(
-        [
-            get_package_share_directory("seeker_sim"),
-            "worlds",
-            LaunchConfiguration("world")
-        ]
-    )
-
-    start_rviz = ExecuteProcess(
-        cmd=["rviz2"],
-        output="screen",
-    )
-
 
     ld = LaunchDescription() 
+
     ld.add_action(model_arg)
-    ld.add_action(world_arg)
-    ld.add_action(simulating_arg)
 
     ld.add_action(OpaqueFunction(function=convert_model,kwargs={"model_dir": model_root}))
-    ld.add_action(LogInfo(msg=['[HERE] SIMULATING_STATUS=', LaunchConfiguration('simulation')]))
 
     ld.add_action(OpaqueFunction(function=robot_state_generator))
-
-    #ld.add_action(start_rviz)
 
 
     return ld
