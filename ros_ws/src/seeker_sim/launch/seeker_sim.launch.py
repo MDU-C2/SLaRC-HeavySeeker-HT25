@@ -66,6 +66,14 @@ def generate_launch_description():
     )
 
 
+    navigation_launch_file = PathJoinSubstitution(
+        [
+            get_package_share_directory("hs_navigation"),
+            "launch",
+            "hs_navigation.launch.py"
+        ]
+    )
+
 
     config_root = PathJoinSubstitution(
         [get_package_share_directory("seeker_sim"), "config"]
@@ -79,7 +87,7 @@ def generate_launch_description():
         [config_root, LaunchConfiguration("rviz_config")]
     )
 
-    
+
     sdf_roots = [
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Sensors"),
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Rigs"),
@@ -125,7 +133,12 @@ def generate_launch_description():
     )
 
 
-    
+    navigation_launch_description = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([navigation_launch_file]),
+        launch_arguments=[],
+    )
+
+
 
     # --- Processes launched via shell commands (not ROS 2 nodes) ---
 
@@ -240,12 +253,13 @@ def generate_launch_description():
 
     ld.add_action(set_gz_path)
 
-    
     ld.add_action(log_gz_path)
+
     ld.add_action(launch_Robot_description)
-    
+    ld.add_action(navigation_launch_description)
+
     ld.add_action(start_gz)
-    
+
     ld.add_action(bridge)
     ld.add_action(relay_bridge)
 
@@ -253,4 +267,3 @@ def generate_launch_description():
     ld.add_action(delay_start_rviz)
 
     return ld
-
