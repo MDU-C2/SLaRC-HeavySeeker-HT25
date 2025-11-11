@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="navsat_gnss" params="parent_link xyz rpy name:='gnss' rate:='10'">
+    <!-- Länk som bär sensorn -->
+    <link name="${name}_link">
+      <inertial>
+        <mass>0.01</mass>
+        <inertia>
+          <ixx>1e-6</ixx><iyy>1e-6</iyy><izz>1e-6</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+
+      <sensor name="gnss" type="navsat">
+        <always_on>true</always_on>
+        <update_rate>10</update_rate>
+
+        <navsat>
+          <position_sensing>
+            <horizontal_noise>1.5</horizontal_noise>
+            <vertical_noise>2.5</vertical_noise>
+          </position_sensing>
+          <velocity_sensing>
+            <horizontal_noise>0.1</horizontal_noise>
+            <vertical_noise>0.1</vertical_noise>
+          </velocity_sensing>
+        </navsat>
+
+        <plugin name="gz::sim::systems::NavSat" filename="gz-sim-navsat-system">
+          <topic>/gps/fix</topic>
+        </plugin>
+      </sensor>
+    </link>
+
+    <!-- Fäst länken på vår rigg/UGV -->
+    <joint name="${name}_mount" type="fixed">
+      <parent>${parent_link}</parent>
+      <child>${name}_link</child>
+      <pose>${xyz} ${rpy}</pose>
+    </joint>
+  </xacro:macro>
+</sdf>

@@ -26,7 +26,7 @@ def generate_launch_description():
     # --- Launch arguments ---
     world_arg = DeclareLaunchArgument(
         "world",
-        default_value="example_2",
+        default_value="sonoma_raceway.sdf",
         description="World filename located under this packages worlds/ directory.",
     )
 
@@ -154,8 +154,7 @@ def generate_launch_description():
             "ros_gz_sim",
             "create",
             "-world",
-            #"example_2",
-            LaunchConfiguration("world"), #should be this
+            "sonoma_raceway",
             "-file",
             LaunchConfiguration("model"),
             "-x",
@@ -190,6 +189,8 @@ def generate_launch_description():
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
             "/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
+            "/world/example_2/model/Rig5/link/gnss_link/sensor/gnss/navsat@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat",
+            "/oakd/imu/data@sensor_msgs/msg/Imu@gz.msgs.IMU",
             "--ros-args",
             "-r",
             "/lidar_points/points:=/lidar_points",
@@ -197,6 +198,12 @@ def generate_launch_description():
             "/oakd/rgbd/image:=/oakd_image",
             "-r",
             "/oakd/rgbd/points:=/oakd_points",
+            "-r",
+            "/lidar/mid360/points/points:=/lidar/mid360/points",
+            "-r",
+            "/world/example_2/model/Rig5/link/gnss_link/sensor/gnss/navsat:=/gps/fix",
+            "-r",
+            "/oakd/imu:=/oakd/imu/data"
         ],
         output="screen",
     )

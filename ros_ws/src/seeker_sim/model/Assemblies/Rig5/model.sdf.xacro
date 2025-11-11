@@ -4,7 +4,7 @@
   <xacro:include filename="$(find seeker_sim)/model/Sensors/oakd/model.sdf.xacro"/>
   <xacro:include filename="$(find seeker_sim)/model/Sensors/mid360_lidar/model.sdf.xacro"/>
   <xacro:include filename="$(find seeker_sim)/model/UGV/Husky_stripped_xacro/model.sdf.xacro"/>
-  <model name="Rig4" canonical_link='UGV_link'>
+  <model name="Rig5" canonical_link='UGV_link'>
 
     <xacro:property name="oakd_x_offset" value="${4*cm2m}"/>
     <xacro:property name="oakd_y_offset" value="${0*cm2m}"/>
