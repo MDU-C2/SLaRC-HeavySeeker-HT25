@@ -114,5 +114,14 @@
         <parent>${parent_link}</parent>
         <child>${base_frame}</child>
       </joint>
+
+      <link name="livox_frame">
+        <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
+      </link>
+
+      <joint name="livox_frame_joint" type="fixed">
+        <parent>${base_frame}</parent>
+        <child>livox_frame</child>
+      </joint>
   </xacro:macro>
 </sdf>

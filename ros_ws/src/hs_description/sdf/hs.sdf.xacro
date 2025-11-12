@@ -10,15 +10,15 @@
     </link>
 
     <!-- Mechanical properties -->
-    <xacro:property name="oakd_x_offset" value="${0*cm2m}"/>
-    <xacro:property name="oakd_y_offset" value="${0*cm2m}"/>
-    <xacro:property name="oakd_z_offset" value="${0*cm2m}"/>
+    <xacro:property name="oakd_x_offset" value="${15*cm2m}"/>
+    <xacro:property name="oakd_y_offset" value="${15*cm2m}"/>
+    <xacro:property name="oakd_z_offset" value="${15*cm2m}"/>
 
     <!-- Sensor definitions -->
-    <!-- <xacro:oakd parent_link="base_link"> -->
+    <xacro:oakd parent_link="base_link">
       <!-- <origin xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}"/> -->
-      <!-- <pose>${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset} 0 0 0</pose> -->
-    <!-- </xacro:oakd> -->
+      <pose>${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset} 0 0 0</pose>
+    </xacro:oakd>
     <xacro:mid360_lidar parent_link="base_link" xyz="0 0 0" rpy="0 0 0"/>
 
     <link name="base_footprint">

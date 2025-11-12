@@ -228,11 +228,11 @@
         <parent>${base_frame}</parent>
         <child>${name}_imu_frame</child>
         <!-- From oakd description file. Rotation is mirrored around all axes -->
-        <!-- <pose>-0.008 -0.037945 -0.00079 ${M_PI} ${M_PI/2.0} 0.0</pose> -->
+        <pose>-0.008 -0.037945 -0.00079 ${M_PI} ${M_PI/2.0} 0.0</pose>
         <!-- rotation around z-axis is mirrored -->
         <!-- <pose>0 0 0 0.0 ${M_PI/2} 0.0</pose> -->
         <!-- rotation around x-axis is mirrored -->
-        <pose>0 0 0 0.0 -${M_PI/2} 0.0</pose>
+        <!-- <pose>0 0 0 0.0 -${M_PI/2} 0.0</pose> -->
         <!-- rotation around y-axis mirrored -->
         <!-- <pose>0 0 0 ${M_PI/2} -${M_PI/2} ${M_PI/2}</pose> -->
       </joint>
