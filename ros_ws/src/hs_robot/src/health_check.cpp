@@ -27,8 +27,8 @@ class HealthCheckNode : public rclcpp::Node {
         qos_profile.reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
 
         // set initial allowed modes before sensor data can be read
-        allowed_modes.local_telop = false;
-        allowed_modes.remote_telop = false;
+        allowed_modes.local_control = false;
+        allowed_modes.remote_control = false;
         allowed_modes.autonomy_drive = false;
 
         sub_emergency_stop = this->create_subscription<std_msgs::msg::Bool>("/emergency_stop", qos_profile, std::bind(&HealthCheckNode::callback_emergency_stop, this, std::placeholders::_1));
@@ -62,8 +62,8 @@ class HealthCheckNode : public rclcpp::Node {
 
         if(h_emergency_stop) {
             RCLCPP_INFO(this->get_logger(), "Emergency Button Pressed");
-            allowed_modes.local_telop = false;
-            allowed_modes.remote_telop = false;
+            allowed_modes.local_control = false;
+            allowed_modes.remote_control = false;
             allowed_modes.autonomy_drive = false;
         }
         else {
@@ -90,8 +90,8 @@ class HealthCheckNode : public rclcpp::Node {
         if(this->h_emergency_stop)
             return;
         
-        this->allowed_modes.local_telop = true;
-        this->allowed_modes.remote_telop = true;
+        this->allowed_modes.local_control = true;
+        this->allowed_modes.remote_control = true;
         this->allowed_modes.autonomy_drive = true;
 
         return;

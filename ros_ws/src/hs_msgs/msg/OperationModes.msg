@@ -1,3 +1,3 @@
-bool local_telop
-bool remote_telop
+bool local_control
+bool remote_control
 bool autonomy_drive

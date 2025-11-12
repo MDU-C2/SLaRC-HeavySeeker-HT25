@@ -48,8 +48,8 @@ class RobotNode : public rclcpp::Node {
 
         RCLCPP_WARN(this->get_logger(), "Missing heart beat, NO operation allowed");
 
-        this->allow_local_telop = false;
-        this->allow_remote_telop = false;
+        this->allow_local_control = false;
+        this->allow_remote_control = false;
         this->allow_auto = false;
 
         sendZeroVel();
@@ -74,8 +74,8 @@ class RobotNode : public rclcpp::Node {
             RCLCPP_INFO(this->get_logger(), "Heart Beat is back, operation allowed");
 
         restartTimerHeartBeat();
-        this->allow_local_telop = allowed_modes.local_telop;
-        this->allow_remote_telop = allowed_modes.remote_telop;
+        this->allow_local_control = allowed_modes.local_control;
+        this->allow_remote_control = allowed_modes.remote_control;
         this->allow_auto = allowed_modes.autonomy_drive;
     }
 
@@ -85,7 +85,7 @@ class RobotNode : public rclcpp::Node {
         this->m_mode_auto = false;
         
         // check if manual drive is allowed
-        if(!this->allow_remote_telop)
+        if(!this->allow_remote_control)
             return;
         
 
@@ -122,8 +122,8 @@ class RobotNode : public rclcpp::Node {
     bool m_mode_auto = false;
     bool local_telop_active = false;
 
-    bool allow_local_telop;
-    bool allow_remote_telop;
+    bool allow_local_control;
+    bool allow_remote_control;
     bool allow_auto;
 
     rclcpp::Time time_last_cmd_vel;
