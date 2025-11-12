@@ -52,7 +52,8 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration("use_sim_time")
 
     description_base_link_cmd = IncludeLaunchDescription(
-        PathJoinSubstitution([description_dir, "launch", "hs_description.launch.py"]),
+        PathJoinSubstitution(
+            [description_dir, "launch", "hs_description.launch.py"]),
         launch_arguments=[("namespace", namespace)],
     )
 
@@ -65,27 +66,52 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration("use_rviz")),
     )
 
-    # robot_localization_node = Node(
-    #     package="robot_localization",
-    #     executable="ekf_node",
-    #     name="ekf_node",
-    #     output="screen",
-    #     parameters=[ekf_config, {"use_sim_time": use_sim_time}],
-    # )
+    robot_localization_node = Node(
+        package="robot_localization",
+        executable="ekf_node",
+        name="ekf_node",
+        output="screen",
+        parameters=[ekf_config, {"use_sim_time": use_sim_time}],
+    )
+
+    # flip z-axis in oakd/imu/data
+    flipper_node = Node(
+        package="hs_navigation",
+        executable="imu_flipper.py",
+        name="imu_flipper",
+        output="screen",
+        remappings=[("imu/data", "oakd/imu/data")]
+    )
+
+    rtabmap_odom_node = Node(
+        package="rtabmap_odom",
+        executable="rgbd_odometry",
+        name="oakd_odom",
+        output="screen",
+        parameters=[("publish_tf", 'false')],
+        remappings=[("imu", "imu_flipped/data"),
+                    ("rgb/image", "oakd/rgb/image_raw"),
+                    ("rgb/camera_info", "oakd/rgb/camera_info"),
+                    ("depth/image", "oakd/stereo/image_raw"),
+                    ("depth/camera_info","oakd/stereo/camera_info"),
+                    ("odom", "v_odom")],
+    )
 
     # Robot localization node using world and map ekf
-    robot_localization_node = IncludeLaunchDescription(
-        PathJoinSubstitution([nav_dir, "launch", "hs_navsat.launch.py"]),
-        launch_arguments=[("use_sim_time", use_sim_time)],
-    )
+    # robot_localization_node = IncludeLaunchDescription(
+    #     PathJoinSubstitution([nav_dir, "launch", "hs_navsat.launch.py"]),
+    #     launch_arguments=[("use_sim_time", use_sim_time)],
+    # )
 
     slam_toolbox_cmd = IncludeLaunchDescription(
         PathJoinSubstitution([slam_dir, "launch", "online_async_launch.py"]),
-        launch_arguments=[("use_sim_time", use_sim_time), ("namespace", namespace)],
+        launch_arguments=[("use_sim_time", use_sim_time),
+                          ("namespace", namespace)],
     )
 
     nav2_bringup_cmd = IncludeLaunchDescription(
-        PathJoinSubstitution([nav2_bringup_cmd, "launch", "navigation_launch.py"]),
+        PathJoinSubstitution(
+            [nav2_bringup_cmd, "launch", "navigation_launch.py"]),
         launch_arguments=[
             ("use_sim_time", use_sim_time),
             ("namespace", namespace),
@@ -95,7 +121,9 @@ def generate_launch_description():
 
     actions = [
         PushROSNamespace(namespace),
-        description_base_link_cmd,
+        # description_base_link_cmd,
+        flipper_node,
+        # rtabmap_odom_node,
         robot_localization_node,
         rviz_node,
         # TimerAction(period=10.0, actions=[slam_toolbox_cmd]),

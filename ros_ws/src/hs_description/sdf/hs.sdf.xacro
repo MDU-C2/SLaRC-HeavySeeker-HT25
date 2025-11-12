@@ -20,7 +20,7 @@
     </xacro:oakd>
 
     <link name="base_footprint">
-      <pose relative_to="base_joint"/>
+      <!-- <pose relative_to="base_joint"/> -->
     </link>
     <joint name="base_joint" type="fixed">
       <!-- <origin xyz=" 0 0 0" rpy="0 0 0" /> -->

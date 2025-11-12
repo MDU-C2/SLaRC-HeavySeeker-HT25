@@ -32,11 +32,21 @@ ekf_node:
         base_link_frame: base_link  # Defaults to "base_link" if unspecified
         world_frame: odom           # Defaults to the value of odom_frame if unspecified
 
-        imu0: oakd/imu/data
+        imu0: imu_flipped/data # flipped OAK-D Pro's IMU data
+        # flipping the z-axis resulting in correct rotation tracking
+        # however, r_l still can't account for gravitational acceleration
         imu0_config: [false, false, false, # X, Y, Z
-                      true, true, false,   # roll, pitch, yaw
+                      true, true, true,   # roll, pitch, yaw
                       false, false, false, # linear velocities (X, Y, Z)
-                      true, true, false,   # angular velocities (roll, pitch, yaw)
+                      true, true, true,   # angular velocities (roll, pitch, yaw)
                       false, false, false] # linear accelearations (X, Y, Z)
 
-        imu0_remove_gravitational_acceleration: true
+        # imu0_remove_gravitational_acceleration: true
+        # gravitational_acceleration: -9.0
+
+        # odom0: v_odom
+        # odom0_config: [true, true, true,
+        #                false, false, false,
+        #                true, true, true,
+        #                false, false, false,
+        #                true, true, true]
