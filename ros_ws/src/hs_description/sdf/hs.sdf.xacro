@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.11" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="$(find hs_description)/sdf/oakd.sdf.xacro" />
+  <xacro:include filename="$(find hs_description)/sdf/livox.sdf.xacro"/>
 
   <model name="heavy_seeker" canonical_link='base_link'>
 
@@ -14,10 +15,11 @@
     <xacro:property name="oakd_z_offset" value="${0*cm2m}"/>
 
     <!-- Sensor definitions -->
-    <xacro:oakd parent_link="base_link">
+    <!-- <xacro:oakd parent_link="base_link"> -->
       <!-- <origin xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}"/> -->
-      <pose>${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset} 0 0 0</pose>
-    </xacro:oakd>
+      <!-- <pose>${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset} 0 0 0</pose> -->
+    <!-- </xacro:oakd> -->
+    <xacro:mid360_lidar parent_link="base_link" xyz="0 0 0" rpy="0 0 0"/>
 
     <link name="base_footprint">
       <!-- <pose relative_to="base_joint"/> -->
