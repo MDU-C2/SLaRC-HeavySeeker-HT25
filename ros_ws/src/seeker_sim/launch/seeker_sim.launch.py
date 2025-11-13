@@ -210,13 +210,13 @@ def generate_launch_description():
         executable="parameter_bridge",
         arguments=[
             "/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist",
-            "/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry",
+            "/odometry/wheel@nav_msgs/msg/Odometry@gz.msgs.Odometry",
             "/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
             "/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
-            "/world/example_2/model/Rig5/link/gnss_link/sensor/gnss/navsat@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat",
-            "/oakd/imu/data@sensor_msgs/msg/Imu@gz.msgs.IMU",
+            "/gps/fix@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat",
+            "/oakd/imu@sensor_msgs/msg/Imu@gz.msgs.IMU",
             "--ros-args",
             "-r",
             "/lidar_points/points:=/lidar_points",
@@ -224,12 +224,8 @@ def generate_launch_description():
             "/oakd/rgbd/image:=/oakd_image",
             "-r",
             "/oakd/rgbd/points:=/oakd_points",
-            "-r",
-            "/lidar/mid360/points/points:=/lidar/mid360/points",
-            "-r",
-            "/world/example_2/model/Rig5/link/gnss_link/sensor/gnss/navsat:=/gps/fix",
-            "-r",
-            "/oakd/imu:=/oakd/imu/data"
+            # "-r",
+            # "/oakd/imu:=/oakd_imu"
         ],
         output="screen",
     )

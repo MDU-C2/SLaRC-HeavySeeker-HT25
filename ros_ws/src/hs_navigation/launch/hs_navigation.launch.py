@@ -76,6 +76,24 @@ def generate_launch_description():
         ],
     )
 
+    UGV_to_map_tf = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        # x  y  z   roll pitch yaw   parent_frame   child_frame
+        arguments=["0.0","0.0","0.0","0.0","0.0","0.0","map","UGV_link"],
+        output="screen",
+        name="map_to_footprint_static_tf"
+    )
+
+    gnss_to_rig_tf = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        # x  y  z   roll pitch yaw   parent_frame   child_frame
+        arguments=["0.0","0.0","0.0","0.0","0.0","0.0","gnss_link", "Rig5/gnss_link/gnss"],
+        output="screen",
+        name="gnss_to_rig_static_tf"
+    )
+
 
     # Robot localization node using world and map ekf
     robot_localization_node = IncludeLaunchDescription(
@@ -99,7 +117,7 @@ def generate_launch_description():
 
     actions = [
         PushROSNamespace(namespace),
-        description_base_link_cmd,
+        # description_base_link_cmd,
         robot_localization_node,
         waypoint_bridge_node,
         rviz_node,
@@ -110,4 +128,6 @@ def generate_launch_description():
 
     ld = LaunchDescription(ARGUMENTS)
     ld.add_action(hs)
+    # ld.add_action(UGV_to_map_tf)
+    ld.add_action(gnss_to_rig_tf)
     return ld

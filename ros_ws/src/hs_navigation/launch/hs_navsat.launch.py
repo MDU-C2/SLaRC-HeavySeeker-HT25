@@ -36,23 +36,26 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     use_sim_time = LaunchConfiguration("use_sim_time")
 
-    rl_ekf_odom_node = Node(
+    rl_ekf_local_node = Node(
         package="robot_localization",
         executable="ekf_node",
-        name="ekf_filter_node_odom",
+        name="ekf_filter_node_odom_local",
         output="screen",
         parameters=[dual_ekf_navsat_config, {"use_sim_time": use_sim_time}],
-        remappings=[("odometry/filtered", "odometry/filtered")],
+        remappings=[("odometry/filtered", "odometry/local")],
     )
 
-    rl_ekf_map_node = Node(
+    rl_ekf_global_node = Node(
         package="robot_localization",
         executable="ekf_node",
-        name="ekf_filter_node_map",
+        name="ekf_filter_node_map_global",
         output="screen",
         parameters=[dual_ekf_navsat_config, {"use_sim_time": use_sim_time}],
         remappings=[("odometry/filtered", "odometry/global")],
     )
+
+    
+
 
     navsat_transform_node = Node(
         package="robot_localization",
@@ -61,7 +64,7 @@ def generate_launch_description():
         output="screen",
         parameters=[dual_ekf_navsat_config, {"use_sim_time": use_sim_time}],
         remappings=[
-            ("imu/data", "imu/data"),
+            ("oakd/imu", "imu/data"),
             ("gps/fix", "gps/fix"),
             ("gps/filtered", "gps/filtered"),
             ("odometry/gps", "odometry/gps"),
@@ -73,8 +76,8 @@ def generate_launch_description():
 
     actions = [
         PushROSNamespace(namespace),
-        rl_ekf_odom_node,
-        rl_ekf_map_node,
+        rl_ekf_local_node,
+        rl_ekf_global_node,
         navsat_transform_node,
     ]
     hs = GroupAction(actions)
