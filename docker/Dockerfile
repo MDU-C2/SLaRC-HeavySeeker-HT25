@@ -36,6 +36,7 @@ RUN apt update && apt install -y \
     ros-jazzy-mapviz-plugins \
     ros-jazzy-tile-map
 
+
 # Install gazebo harmonic and gz-sensors
 RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' && \
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add - && \

@@ -91,7 +91,7 @@
       <joint name="${name}_rgb_camera_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_rgb_camera_frame</child>
-        <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
+        
       </joint>
 
       <link name="${name}_rgb_camera_optical_frame">
@@ -99,7 +99,7 @@
       </link>
       
       <joint name="${name}_rgb_camera_optical_joint" type="fixed">
-        <pose relative_to="${base_frame}">0 0 0 0.0 0.0 0.0</pose>
+        
         <parent>${name}_rgb_camera_frame</parent>
         <child>${name}_rgb_camera_optical_frame</child>
       </joint>
@@ -108,7 +108,6 @@
       <joint name="${name}_rgb_camera_sensor_mount_joint" type="fixed">
         <parent>${name}_rgb_camera_optical_frame</parent>
         <child>${name}_rgb_camera_sensor_mount</child>
-        <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
       </joint>
 
       <!-- Left Camera -->

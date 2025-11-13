@@ -15,9 +15,10 @@ from launch.substitutions import (
 )
 from ament_index_python.packages import get_package_share_directory
 
-import os, subprocess
+import os
 from launch.utilities import perform_substitutions
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PythonExpression
 
 
 
@@ -26,7 +27,7 @@ def generate_launch_description():
     # --- Launch arguments ---
     world_arg = DeclareLaunchArgument(
         "world",
-        default_value="sonoma_raceway.sdf",
+        default_value="sonoma_raceway",
         description="World filename located under this packages worlds/ directory.",
     )
 
@@ -45,6 +46,16 @@ def generate_launch_description():
         default_value="seeker_sim_config.rviz",
         description="Config filename located under this packages config/ directory.",
     )
+
+    spawn_coordinates = DeclareLaunchArgument(
+        "Spawn_XYZ_RPY",
+        default_value="0.0 0.0 0.0 0.0 0.0 0.0",
+        description="The X Y Z coordinates and RPY to spawn the robot at. Sepreated by spaces.\n" \
+        "Recommendations:\n" \
+        "   sonoma_raceway: 280 -138 7.75 0 0 2.49",
+    )
+
+    #280 -138 7.75
 
 
 
@@ -65,22 +76,6 @@ def generate_launch_description():
         ]
     )
 
-
-    navigation_launch_file = PathJoinSubstitution(
-        [
-            get_package_share_directory("hs_navigation"),
-            "launch",
-            "hs_navigation.launch.py"
-        ]
-    )
-
-    mapviz_launch_file = PathJoinSubstitution(
-        [
-            get_package_share_directory("hs_navigation"),
-            "launch",
-            "hs_navigation_mapviz.launch.py"
-        ]
-    )
 
 
     config_root = PathJoinSubstitution(
@@ -135,22 +130,13 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(Robot_description_launch),
         launch_arguments={
             'model':       LaunchConfiguration('model'),
-            'simulation':  "true",
-            'world':       LaunchConfiguration('world'),
+            'rviz_use':   'true',
+            'rviz_config': rviz_config_root,
         }.items()
     )
 
 
-    navigation_launch_description = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([navigation_launch_file]),
-        launch_arguments=[],
-    )
-
-
-    mapviz_launch_description = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([mapviz_launch_file]),
-        launch_arguments=[],
-    )
+    
 
 
     # --- Processes launched via shell commands (not ROS 2 nodes) ---
@@ -165,11 +151,17 @@ def generate_launch_description():
     )
 
     # Start RViz2 with the given .rviz configuration.
-    start_rviz = ExecuteProcess(
-        cmd=["rviz2", "-d", rviz_config_root],
-        output="screen",
-    )
+    # start_rviz = ExecuteProcess(
+    #     cmd=["rviz2", "-d", rviz_config_root],
+    #     output="screen",
+    # )
 
+    spawn_x = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[0]"])
+    spawn_y = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[1]"])
+    spawn_z = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[2]"])
+    spawn_roll = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[3]"])
+    spawn_pitch = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[4]"])
+    spawn_yaw = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[5]"])
 
 
 
@@ -180,21 +172,21 @@ def generate_launch_description():
             "ros_gz_sim",
             "create",
             "-world",
-            "sonoma_raceway",
+            LaunchConfiguration("world"), #should be this
             "-file",
             LaunchConfiguration("model"),
             "-x",
-            "100.0",
+            spawn_x,
             "-y",
-            "100.0",
+            spawn_y,
             "-z",
-            "11.8",
+            spawn_z,
             "-R",
-            "0.0",
+            spawn_roll,
             "-P",
-            "0.0",
+            spawn_pitch,
             "-Y",
-            "0.0",
+            spawn_yaw,
             "--allow_renaming",
             "0",
         ],
@@ -209,8 +201,9 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
+            #"/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist", #Use this if using teleoptwist_keyboard pkg
             "/cmd_vel@geometry_msgs/msg/TwistStamped@gz.msgs.Twist",
-            "/odometry/wheel@nav_msgs/msg/Odometry@gz.msgs.Odometry",
+            "/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry",
             "/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
@@ -224,8 +217,6 @@ def generate_launch_description():
             "/oakd/rgbd/image:=/oakd_image",
             "-r",
             "/oakd/rgbd/points:=/oakd_points",
-            # "-r",
-            # "/oakd/imu:=/oakd_imu"
         ],
         output="screen",
     )
@@ -242,10 +233,7 @@ def generate_launch_description():
     )
 
 
-    # Delays the start of Rviz to ensure all previous nodes are up and running before.
-    delay_start_rviz = TimerAction(
-        period=3.0, actions=[start_rviz],
-    )
+
 
 
     delay_spawn = TimerAction(
@@ -269,13 +257,17 @@ def generate_launch_description():
     # Navigation related
     ld.add_action(mapviz_launch_description)
     ld.add_action(navigation_launch_description)
+    ld.add_action(spawn_coordinates)
 
+    ld.add_action(launch_Robot_description)
+    
     ld.add_action(start_gz)
 
     ld.add_action(bridge)
     ld.add_action(relay_bridge)
 
     ld.add_action(delay_spawn)
-    ld.add_action(delay_start_rviz)
+    
 
     return ld
+
