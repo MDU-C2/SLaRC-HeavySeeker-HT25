@@ -30,7 +30,11 @@ RUN apt update && apt install -y \
     ros-jazzy-teleop-twist-keyboard \
     ros-jazzy-teleop-twist-joy \
     ros-jazzy-usb-cam \
-    ros-jazzy-pointcloud-to-laserscan
+    ros-jazzy-pointcloud-to-laserscan \
+    ros-jazzy-robot-localization \
+    ros-jazzy-mapviz \
+    ros-jazzy-mapviz-plugins \
+    ros-jazzy-tile-map
 
 
 # Install gazebo harmonic and gz-sensors
@@ -38,7 +42,7 @@ RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add - && \
     sudo apt-get update && \
     sudo apt-get install -y libgz-sensors10-navsat libgz-sensors10-navsat-dev gz-harmonic
-     
+
 
 
 # Install DepthAI (Python SDK)

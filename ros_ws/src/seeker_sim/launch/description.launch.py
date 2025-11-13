@@ -17,6 +17,7 @@ from launch.substitutions import (
 from ament_index_python.packages import get_package_share_directory
 import os, subprocess
 from launch.utilities import perform_substitutions
+from launch.actions import LogInfo
 
 def convert_model(context,*,model_dir, **kwargs):
 
