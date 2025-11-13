@@ -76,8 +76,6 @@ RUN echo "source /usr/share/colcon_cd/function/colcon_cd.sh" >> /home/${USER_NAM
 RUN echo "export _colcon_cd_root=/opt/ros/jazzy/" >> /home/${USER_NAME}/.bashrc
 RUN echo "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> /home/${USER_NAME}/.bashrc
 
-
-
 ARG ROS_DOMAIN_ID=0
 RUN echo "export ROS_DOMAIN_ID=${ROS_DOMAIN_ID}" >> /home/${USER_NAME}/.bashrc
 
