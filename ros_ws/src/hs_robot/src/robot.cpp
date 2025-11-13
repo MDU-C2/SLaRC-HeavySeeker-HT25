@@ -14,9 +14,10 @@
  * publish the correct control input to /cmd_vel
  * 
  * Subscribers:
- *  - /allowed_operation_modes - hs_msgs/msg/operation_modes - information about allowed operation modes, this is the heartbeat
+ *  - /allowed_operation_modes - hs_msgs/msg/OperationModes - information about allowed operation modes, this is the heartbeat
  *  - /telop_cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel for manual control
  *  - /auto_cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel for autonomous control
+ *  - /activate_autonomous_drive - std_msgs/msg/Bool - signal for robot node to activate autonomous drive
  * 
  * Publishers:
  *  - /cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel
@@ -33,6 +34,7 @@ class RobotNode : public rclcpp::Node {
 
         sub_remote_telop_cmd_vel = this->create_subscription<geometry_msgs::msg::TwistStamped>("/telop_cmd_vel", 10,  std::bind(&RobotNode::callback_remote_telop_cmd, this, _1));
         sub_auto_cmd_vel = this->create_subscription<geometry_msgs::msg::TwistStamped>("/auto_cmd_vel", 10,  std::bind(&RobotNode::callback_auto_cmd, this, _1));
+        sub_activate_autonomous_drive = this->create_subscription<std_msgs::msg::Bool>("/activate_autonomous_drive", 10, std::bind(&RobotNode::callback_activate_autonomous_drive, this, _1));
         
         pub_cmd_vel = this->create_publisher<geometry_msgs::msg::TwistStamped>("/cmd_vel", 10);
 
@@ -77,12 +79,18 @@ class RobotNode : public rclcpp::Node {
         this->allow_local_control = allowed_modes.local_control;
         this->allow_remote_control = allowed_modes.remote_control;
         this->allow_auto = allowed_modes.autonomy_drive;
+
+        if (!this->allow_auto)
+            this->autonomous_drive = false;
     }
 
+    void callback_activate_autonomous_drive(std_msgs::msg::Bool activate_autonomous_drive) {
+        this->autonomous_drive = activate_autonomous_drive.data;
+    }
 
     void callback_remote_telop_cmd(geometry_msgs::msg::TwistStamped cmd_vel) {
         // deactivate auto mode
-        this->m_mode_auto = false;
+        this->autonomous_drive = false;
         
         // check if manual drive is allowed
         if(!this->allow_remote_control)
@@ -96,7 +104,7 @@ class RobotNode : public rclcpp::Node {
     void callback_auto_cmd(geometry_msgs::msg::TwistStamped cmd_vel) {
         
         // check if mode auto is True
-        if(!this->m_mode_auto)
+        if(!this->autonomous_drive)
             return;
         
         // check if autonomous drive is allowed
@@ -113,14 +121,15 @@ class RobotNode : public rclcpp::Node {
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr sub_op_mode;
     
     rclcpp::Subscription<hs_msgs::msg::OperationModes>::SharedPtr sub_allowed_operation_modes;
+    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr sub_activate_autonomous_drive;
 
     rclcpp::TimerBase::SharedPtr timer_soft_stop;
     rclcpp::TimerBase::SharedPtr timer_heart_beat;
 
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pub_cmd_vel;
 
-    bool m_mode_auto = false;
-    bool local_telop_active = false;
+    bool autonomous_drive = false;
+    bool local_control_active = false; // currently not used
 
     bool allow_local_control;
     bool allow_remote_control;
