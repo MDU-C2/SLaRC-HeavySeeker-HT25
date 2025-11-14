@@ -46,17 +46,17 @@ class USBCamera(BaseCamera):
 
     @staticmethod
     def detect_all():
-        """Detects all USB cameras available on the system."""
+        """Detects all USB cameras available on the system (deduplicated per USB port)."""
         logger.debug("Scanning for USB cameras...")
         devices = sorted(glob.glob("/dev/video*"))
-        cameras = []
+        raw_cameras = []
 
         for dev in devices:
             if "loop" in dev or "v4l-subdev" in dev or not os.path.exists(dev):
                 continue
 
             try:
-                # Validate device supports capture
+                # Check if device supports capture
                 result = subprocess.run(
                     ["v4l2-ctl", "--list-formats-ext", "-d", dev],
                     capture_output=True, text=True, timeout=3
@@ -88,15 +88,65 @@ class USBCamera(BaseCamera):
                 except Exception:
                     port_path = "unknown"
 
-                cameras.append(USBCamera(name, serial, port_path, dev))
+                raw_cameras.append({
+                    "name": name,
+                    "serial": serial,
+                    "port_path": port_path,
+                    "device": dev,
+                })
 
             except subprocess.TimeoutExpired:
                 logger.warning("Timeout while querying %s", dev)
             except Exception as e:
                 logger.error("Error checking %s: %s", dev, e)
 
-        logger.info("Detected %d USB cameras.", len(cameras))
-        return cameras
+        # ---------------------------------------------------------------------
+        # Deduplicate cameras per USB port (pick best /dev/video* per device)
+        # ---------------------------------------------------------------------
+        grouped = {}
+        for cam in raw_cameras:
+            port = cam["port_path"]
+            grouped.setdefault(port, []).append(cam)
+
+        unique_cameras = []
+        for port, cams in grouped.items():
+            if len(cams) == 1:
+                chosen = cams[0]
+            else:
+                # Pick device with best (highest) resolution, preferring MJPG
+                best_pixels = 0
+                chosen = cams[0]
+                for c in cams:
+                    try:
+                        res_out = subprocess.run(
+                            ["v4l2-ctl", "--list-formats-ext", "-d", c["device"]],
+                            capture_output=True, text=True, timeout=2
+                        ).stdout
+
+                        # Find highest resolution in output
+                        matches = re.findall(r"Size: Discrete (\d+)x(\d+)", res_out)
+                        if matches:
+                            w, h = map(int, matches[0])
+                            pixels = w * h
+                            if "MJPG" in res_out or "MJPEG" in res_out:
+                                pixels *= 1.5  # prefer MJPG
+                            if pixels > best_pixels:
+                                best_pixels = pixels
+                                chosen = c
+                    except Exception:
+                        continue
+
+            unique_cameras.append(
+                USBCamera(
+                    name=chosen["name"],
+                    camera_id=chosen["serial"],
+                    port_path=chosen["port_path"],
+                    device=chosen["device"],
+                )
+            )
+
+        logger.info("Detected %d USB cameras (deduplicated).", len(unique_cameras))
+        return unique_cameras
 
 
 class DepthAICamera(BaseCamera):

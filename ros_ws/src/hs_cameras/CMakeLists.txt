@@ -23,17 +23,23 @@ ament_export_dependencies(rosidl_default_runtime)
 # --------------------------------------------------------------------
 # Install Python packages
 # --------------------------------------------------------------------
+
 ament_python_install_package(fpv_server)
+ament_python_install_package(fpv_client)
 ament_python_install_package(cameras)
+ament_python_install_package(utils)
 
 # --------------------------------------------------------------------
-# Install Executables (ROS 2 Nodes)
+# Install Executables (entry points)
 # --------------------------------------------------------------------
+
 install(PROGRAMS
-  fpv_server/fpv_server.py
+  fpv_server/server_node.py
   DESTINATION lib/${PROJECT_NAME}
-  RENAME fpv_server
+  RENAME server_node
 )
+
+
 
 install(PROGRAMS
   fpv_client/fpv_client.py
@@ -47,16 +53,19 @@ install(PROGRAMS
   RENAME decoder
 )
 
+
+install(
+  FILES fpv_client/decoder_cfg.dat
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 # --------------------------------------------------------------------
-#  Install Launch and Config Directories
+# Install Launch & Config
 # --------------------------------------------------------------------
 install(
-  DIRECTORY launch cameras/config
+  DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME}
 )
 
 # --------------------------------------------------------------------
-# Make sure messages are generated before Python code uses them
-# --------------------------------------------------------------------
-ament_export_dependencies(rosidl_default_runtime)
 ament_package()

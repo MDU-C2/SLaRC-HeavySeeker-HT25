@@ -19,13 +19,17 @@ from rclpy.executors import MultiThreadedExecutor
 from hs_cameras.srv import GetCameras                  # type: ignore
 from hs_cameras.action import StartCamera, StopCamera  # type: ignore
 
+print("[DEBUG] Loaded fpv_client from:", __file__)
 
+# ================================================================
+# Logging helper
+# ================================================================
 def log(msg: str):
     print(f"[Viewer] {msg}", flush=True)
 
 
 # ================================================================
-# Camera Monitor (topic subscriber)
+# Camera Monitor
 # ================================================================
 class CameraMonitor:
     def __init__(self, node: Node):
@@ -34,7 +38,7 @@ class CameraMonitor:
         self.subscription = node.create_subscription(
             String, "/available_cameras", self._on_camera_list, 10
         )
-        self._last_available: List[str] = []  # track changes
+        self._last_available: List[str] = []
 
     def _on_camera_list(self, msg: String):
         try:
@@ -43,7 +47,6 @@ class CameraMonitor:
             if available != self.available_cameras:
                 self.available_cameras = available
 
-                # If any cameras that are currently active encoders disappear, stop them.
                 if hasattr(self.node, "actions"):
                     # Cameras that are encoding but no longer in available list
                     lost_cams = [
@@ -51,7 +54,7 @@ class CameraMonitor:
                         if cam not in available
                     ]
                     if lost_cams:
-                        log(f"🛑 Lost cameras detected: {', '.join(lost_cams)} — stopping encoders.")
+                        log(f"Lost cameras detected: {', '.join(lost_cams)} — stopping encoders.")
                         self.node.actions.stop_cameras(lost_cams)
                         # Update decoder view right after stop
                         self.node.actions.update_decoder()
@@ -60,7 +63,7 @@ class CameraMonitor:
                     self.node.actions.list_cameras(silent=True)
 
         except Exception as e:
-            log(f"❌ Failed to parse camera list: {e}")
+            log(f"Failed to parse camera list: {e}")
 
 
 # ================================================================
@@ -73,7 +76,7 @@ class CameraServiceClient:
 
     def request_once(self, callback):
         if not self.client.wait_for_service(timeout_sec=5.0):
-            log("❌ Service /get_available_cameras not available.")
+            log("Service /get_available_cameras not available.")
             return
         future = self.client.call_async(GetCameras.Request())
         future.add_done_callback(lambda fut: self._on_response(fut, callback))
@@ -84,11 +87,11 @@ class CameraServiceClient:
             if result:
                 callback(list(result.cameras))
         except Exception as e:
-            log(f"❌ Failed service call: {e}")
+            log(f"Failed service call: {e}")
 
 
 # ================================================================
-# Decoder Process Manager
+# Decoder Process
 # ================================================================
 class DecoderProcess:
     def __init__(self):
@@ -99,7 +102,7 @@ class DecoderProcess:
         """Stop the decoder subprocess if running."""
         if not self.proc or self.proc.poll() is not None:
             return
-        log("🛑 Stopping decoder window")
+        log("Stopping decoder window")
         try:
             os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
         except Exception:
@@ -125,14 +128,14 @@ class DecoderProcess:
 
         # Stop any old process first
         if process_alive:
-            log("🔁 Updating decoder view")
+            log("Updating decoder view")
             self.stop()
         else:
-            log("▶️ Launching decoder window")
+            log("Launching decoder window")
 
         # Launch new decoder process
         cmd = ["ros2", "run", "hs_cameras", "decoder"] + topics
-        log(f"🧠 Decoder command: {' '.join(cmd)}")
+        log(f"Decoder command: {' '.join(cmd)}")
 
         try:
             self.proc = subprocess.Popen(
@@ -143,7 +146,7 @@ class DecoderProcess:
             )
             self.active_topics = topics
         except Exception as e:
-            log(f"❌ Failed to start decoder: {e}")
+            log(f"Failed to start decoder: {e}")
             self.proc = None
             self.active_topics = []
 
@@ -173,7 +176,7 @@ class CameraActionManager:
         available = self.node.monitor.available_cameras
         valid = [c for c in cameras if c in available]
         if not valid:
-            log("⚠️ No valid camera names.")
+            log("No valid camera names.")
             return
 
         # Treat cameras currently being stopped as *not* active
@@ -182,9 +185,9 @@ class CameraActionManager:
 
         if not new_cams:
             if not self.pending_stops.intersection(valid):
-                log("⚠️ All requested cameras are already active.")
+                log("All requested cameras are already active.")
             else:
-                log("⚠️ Cameras are currently stopping; ignoring duplicate start request.")
+                log("Cameras are currently stopping; ignoring duplicate start request.")
             return
 
         # Add cameras to tracking lists
@@ -198,7 +201,7 @@ class CameraActionManager:
         try:
             self.start_client.wait_for_server()
         except Exception as e:
-            log(f"❌ StartCamera action server not available: {e}")
+            log(f"StartCamera action server not available: {e}")
             for cam in new_cams:
                 if cam in self.current_cameras:
                     self.current_cameras.remove(cam)
@@ -214,22 +217,22 @@ class CameraActionManager:
         try:
             goal_handle = future.result()
             if not goal_handle.accepted:
-                log("❌ Start goal rejected.")
+                log("Start goal rejected.")
                 return
-            log("✅ Start goal accepted.")
+            log("Start goal accepted.")
             goal_handle.get_result_async().add_done_callback(self._result)
         except Exception as e:
-            log(f"❌ Start goal failed: {e}")
+            log(f"Start goal failed: {e}")
 
     def _feedback(self, feedback_msg):
         fb = feedback_msg.feedback
-        log(f"📡 Feedback: {fb.status}")
+        log(f"Feedback: {fb.status}")
 
     def _result(self, future):
         try:
             result = future.result().result
             msg, topic = result.message, getattr(result, "topic", "")
-            log(f"🎯 Result: {msg}")
+            log(f"Result: {msg}")
             if topic:
                 log(f"🔗 Encoded topic: {topic}")
 
@@ -239,22 +242,22 @@ class CameraActionManager:
                 self.pending_starts.discard(cam)
 
             if not self.pending_starts:
-                log("✅ All cameras ready — updating decoder view.")
+                log("All cameras ready — updating decoder view.")
                 self._wait_for_topics([self.camera_topics.get(c) for c in self.current_cameras])
                 self.update_decoder()
         except Exception as e:
-            log(f"❌ Result handling failed: {e}")
+            log(f"Result handling failed: {e}")
 
     # ------------------------------------------------------------
     # Stop Cameras
     # ------------------------------------------------------------
     def stop_cameras(self, cameras: List[str]):
         if not cameras:
-            log("⚠️ No camera names provided to stop.")
+            log("No camera names provided to stop.")
             return
 
         if not self.stop_client.wait_for_server(timeout_sec=2.0):
-            log("⚠️ Stop server unavailable — removing locally.")
+            log("Stop server unavailable — removing locally.")
             for cam in cameras:
                 if cam in self.current_cameras:
                     self.current_cameras.remove(cam)
@@ -264,18 +267,17 @@ class CameraActionManager:
 
         self.pending_stops = set(cameras)
         for cam in cameras:
-            log(f"🛑 Sending stop request for '{cam}'...")
+            log(f"Sending stop request for '{cam}'...")
             goal = StopCamera.Goal(camera_name=cam)
             self.stop_client.send_goal_async(goal).add_done_callback(
                 lambda f, c=cam: self._stop_response(f, c)
             )
 
-
     def _stop_response(self, future, cam: str):
         try:
             goal_handle = future.result()
             if not goal_handle.accepted:
-                log(f"⚠️ Stop goal rejected for '{cam}' — removing locally.")
+                log(f"Stop goal rejected for '{cam}' — removing locally.")
                 # Cleanup local tracking immediately
                 if cam in self.current_cameras:
                     self.current_cameras.remove(cam)
@@ -286,18 +288,17 @@ class CameraActionManager:
 
             goal_handle.get_result_async().add_done_callback(lambda f, c=cam: self._stop_result(f, c))
         except Exception as e:
-            log(f"❌ Failed to send stop goal for '{cam}': {e}")
+            log(f"Failed to send stop goal for '{cam}': {e}")
             # Do local cleanup too in case of exception
             if cam in self.current_cameras:
                 self.current_cameras.remove(cam)
                 self.camera_topics.pop(cam, None)
             self.update_decoder()
 
-
     def _stop_result(self, future, cam: str):
         try:
             result = future.result().result
-            status = "✅" if result.success else "❌"
+            status = "OK" if result.success else "FAILED"
             log(f"{status} Stop result for '{cam}': {result.message}")
 
             if result.success:
@@ -307,7 +308,7 @@ class CameraActionManager:
                     self.camera_topics.pop(cam, None)
 
                 if not self.current_cameras:
-                    log("🧹 All encoders stopped — stopping local decoder.")
+                    log("All encoders stopped — stopping local decoder.")
                     self.decoder.stop()
 
                     # Reset local tracking for clean restart
@@ -319,17 +320,14 @@ class CameraActionManager:
                     self.update_decoder()
 
         except Exception as e:
-            log(f"❌ Failed to get stop result for '{cam}': {e}")
-
+            log(f"Failed to get stop result for '{cam}': {e}")
 
     def stop_all(self):
         if not self.current_cameras:
             return
-        log("🛑 Stopping all active cameras...")
+        log("Stopping all active cameras...")
         # Just send stop goals and let the executor handle callbacks
         self.stop_cameras(self.current_cameras.copy())
-        # No extra rclpy.spin_once here!
-
 
     # ------------------------------------------------------------
     # Helpers
@@ -338,7 +336,7 @@ class CameraActionManager:
         def _on_resp(f=None):
             """Unified printout for both startup and list command."""
             self.node.clear_screen()
-            print("=== 📸 Camera Status ===\n")
+            print("=== [o]📸 Camera Status ===\n")
 
             if f is None:
                 # Service not available or not queried yet
@@ -355,7 +353,7 @@ class CameraActionManager:
                         print(f"Available: {', '.join(res.cameras) or '(none)'}")
                         print(f"Active:    {', '.join(res.active_cameras) or '(none)'}\n")
                 except Exception as e:
-                    log(f"❌ Failed to get camera list: {e}")
+                    log(f"Failed to get camera list: {e}")
                     print("Available: (error)")
                     print("Active:    (error)\n")
 
@@ -369,7 +367,7 @@ class CameraActionManager:
         if not self.client.client.wait_for_service(timeout_sec=3.0):
             if not silent:
                 # Only print error when user explicitly asks for "list"
-                log("❌ Service /get_available_cameras not available.")
+                log("Service /get_available_cameras not available.")
             _on_resp(None)
             return
 
@@ -391,7 +389,7 @@ class CameraActionManager:
             if needed.issubset(available):
                 return
             time.sleep(0.2)
-        log("⚠️ Encoded topics not ready after 5 s — continuing anyway.")
+        log("Encoded topics not ready after 5 s — continuing anyway.")
 
     @staticmethod
     def _extract_name(msg: str):
@@ -419,7 +417,6 @@ class FPVViewerClient(Node):
         self.actions = CameraActionManager(self, self.decoder, self.service)
 
         self.timer = self.create_timer(1.0, self._initial_query_once)
-        self.get_logger().info("FPV Viewer Client initialized ✅")
 
     def _initial_query_once(self):
         # Always show the screen first (even if no service yet)
@@ -427,7 +424,6 @@ class FPVViewerClient(Node):
         self.service.request_once(self._on_initial_list)
         if self.timer:
             self.timer.cancel()
-
 
     def _on_initial_list(self, cameras: List[str]):
         self.monitor.available_cameras = cameras
@@ -445,7 +441,7 @@ class FPVViewerClient(Node):
                 break
 
             if cmd in ("exit", "quit"):
-                log("👋 Exiting...")
+                log("Exiting...")
                 self.shutdown()
                 self._stop_event.set()
                 rclpy.shutdown()
@@ -459,7 +455,7 @@ class FPVViewerClient(Node):
                 if parts:
                     self.actions.start_group(parts, self.monitor.available_cameras)
                 else:
-                    log("⚠️ No camera names provided.")
+                    log("No camera names provided.")
 
             elif cmd.startswith("stop"):
                 parts = cmd.split()[1:]
@@ -469,30 +465,32 @@ class FPVViewerClient(Node):
                     if self.actions.current_cameras:
                         self.actions.stop_all()
                     else:
-                        log("⚠️ No active cameras — stopping decoder only.")
+                        log("No active cameras — stopping decoder only.")
                         self.decoder.stop()
+
             else:
-                print("Unknown command. Use: start <camera...> | stop | exit", flush=True)
+                print("Unknown command. Use: start <camera...> | stop | list | exit", flush=True)
 
     def shutdown(self):
         try:
             if self.actions.current_cameras:
-                log("🛑 Stopping all active cameras before shutdown...")
+                log("Stopping all active cameras before shutdown...")
                 self.actions.stop_all()
         except Exception as e:
-            log(f"⚠️ Error during encoder stop: {e}")
+            log(f"Error during encoder stop: {e}")
         finally:
             self.decoder.stop()
 
 
 # ================================================================
-# Signal Handling / Entrypoint
+# Entrypoint
 # ================================================================
 _shutdown_event = threading.Event()
 
+
 def setup_sigint_handler():
     def handler(signum, frame):
-        print("\n[Viewer] 🛑 Ctrl+C detected — shutting down...", flush=True)
+        print("\n[Viewer] Ctrl+C detected — shutting down...", flush=True)
         _shutdown_event.set()
     signal.signal(signal.SIGINT, handler)
 
@@ -514,13 +512,13 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
-        log("🛑 Graceful shutdown requested...")
+        log("Graceful shutdown requested...")
         node.shutdown()
         node.destroy_node()
         rclpy.try_shutdown()
         _shutdown_event.set()
         ui_thread.join(timeout=1.0)
-        log("✅ Shutdown complete.")
+        log("Shutdown complete.")
 
 
 if __name__ == "__main__":

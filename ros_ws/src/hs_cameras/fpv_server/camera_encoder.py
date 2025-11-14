@@ -1,32 +1,36 @@
+#!/usr/bin/env python3
+
 import subprocess
 import threading
+
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, CompressedImage
 
 
 class CameraEncoder:
-    """Encodes raw Image frames using FFmpeg and publishes CompressedImage messages."""
 
-    def __init__(self, node, camera_name, encoder_info, fps=30, output_topic=None):
+    def __init__(self, node, camera_name, encoder_info, fps=30, output_topic=None, input_topic=None):
         self.node = node
         self.camera_name = camera_name
-        self.encoder_info = encoder_info  # provided by the server
+        self.encoder_info = encoder_info
         self.fps = fps
 
-        # Determine output topic based on codec if not provided
         codec = self.encoder_info.get("codec", "h264").lower()
         self.output_topic = output_topic or f"/{camera_name}/encoded/{codec}"
+
+        # ⬇ NEW: support explicit input topic (e.g. /oak1/oak1/rgb/image_raw)
+        self.input_topic = input_topic or f"/{camera_name}/rgb/image_raw"
 
         self.bridge = CvBridge()
         self.running = False
         self.process = None
         self.sub = None
 
-        # Publisher for the encoded stream
+        # Publisher for encoded stream
         self.pub = self.node.create_publisher(CompressedImage, self.output_topic, 10)
 
         self._first_frame_size = None
-        self._last_input_stamp = None  # <-- store last camera timestamp for sync
+        self._last_input_stamp = None
 
         self.node.get_logger().info(
             f"[{self.camera_name}] Using encoder: {self.encoder_info['description']} "
@@ -38,7 +42,7 @@ class CameraEncoder:
 
     # ------------------------------------------------------------------
     def start(self):
-        topic = f"/{self.camera_name}/image_raw"
+        topic = self.input_topic
         self.sub = self.node.create_subscription(Image, topic, self._callback, 10)
         self.node.get_logger().info(
             f"[{self.camera_name}] Waiting for first frame on {topic} to start encoder..."
@@ -46,7 +50,6 @@ class CameraEncoder:
 
     # ------------------------------------------------------------------
     def _callback(self, msg: Image):
-        """Handle incoming raw frames and feed them into FFmpeg."""
         if not self.running:
             self._first_frame_size = (msg.width, msg.height)
             self._launch_ffmpeg()
@@ -88,6 +91,7 @@ class CameraEncoder:
     def _launch_ffmpeg(self):
         width, height = self._first_frame_size
         enc = self.encoder_info
+        name = enc["name"]
 
         cmd = [
             "ffmpeg",
@@ -99,21 +103,30 @@ class CameraEncoder:
             "-r", str(self.fps),
             "-i", "pipe:0",
             "-an",
-            "-c:v", enc["name"],
         ]
+
+        # --- Special handling for VAAPI encoders ---
+        if "vaapi" in name:
+            cmd += [
+                "-vaapi_device", "/dev/dri/renderD128",
+                "-vf", "format=nv12,hwupload",
+            ]
+
+        # Encoder selection
+        cmd += ["-c:v", name]
 
         # Encoder options
         for k, v in enc.get("options", {}).items():
             cmd += [f"-{k}", str(v)]
 
-        # Add extra args (rate control, tuning, etc.)
+        # Extra args (bitrate, tune, etc.)
         cmd += enc.get("extra_args", [])
 
         # Optional bitstream filter (e.g. h264_mp4toannexb)
         if enc.get("bitstream_filter"):
             cmd += ["-bsf:v", enc["bitstream_filter"]]
 
-        # Add mux flags + format
+        # Mux flags + format
         cmd += enc.get("mux_flags", [])
         cmd += ["-f", enc.get("mux", "mpegts"), "pipe:1"]
 
@@ -134,7 +147,6 @@ class CameraEncoder:
 
     # ------------------------------------------------------------------
     def _reader_loop(self):
-        """Reads encoded output from ffmpeg and publishes CompressedImage messages."""
         width, height = self._first_frame_size
         try:
             stdout = self.process.stdout
@@ -162,7 +174,6 @@ class CameraEncoder:
 
     # ------------------------------------------------------------------
     def _stderr_reader_loop(self):
-        """Continuously log ffmpeg stderr for debugging."""
         try:
             while self.process and self.process.poll() is None:
                 line = self.process.stderr.readline()

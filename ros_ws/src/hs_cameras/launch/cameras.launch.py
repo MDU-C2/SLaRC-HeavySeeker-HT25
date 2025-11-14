@@ -46,10 +46,10 @@ def generate_launch_description():
 
         elif cam["type"] == "oak":
             nodes.append(Node(
-                package="depthai_ros_driver",
+                package='depthai_ros_driver',
                 executable="camera_node",
                 name=node_name,
-                namespace=node_name,
+                namespace='',
                 parameters=[params],
                 output="screen",
             ))
@@ -59,10 +59,32 @@ def generate_launch_description():
     # --- Launch FPV Server ---
     nodes.append(Node(
         package="hs_cameras",
-        executable="fpv_server",
+        executable="server_node",
         name="server",
         output="screen",
-        parameters=[{"cameras_json": ParameterValue(json.dumps(cameras), value_type=str)}],
+        parameters=[
+            {"cameras_json": ParameterValue(json.dumps(cameras), value_type=str)},
+
+            # -------------------------------
+            # Encoder defaults (user overrideable)
+            # -------------------------------
+            {"encoder.prefer_hevc": False},
+            {"encoder.quality": 4},
+            {"encoder.latency": "ultra_low"},
+            {"encoder.bitrate_mode": "CRF"},
+            {"encoder.bitrate": "12M"},
+            {"encoder.maxrate": "12M"},
+            {"encoder.bufsize": "24M"},
+            {"encoder.crf": 23},
+            {"encoder.gop": 1},
+            {"encoder.bframes": 0},
+            {"encoder.mux": "mpegts"},
+            {
+                "encoder.mux_flags":
+                "-flush_packets 1 -fflags nobuffer -max_delay 0 "
+                "-muxdelay 0 -muxpreload 0"
+            },
+        ]
         ))
 
     if not nodes:

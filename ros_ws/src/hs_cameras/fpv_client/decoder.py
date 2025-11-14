@@ -6,6 +6,7 @@ import time
 import numpy as np
 import cv2
 import rclpy
+from pathlib import Path
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
 
@@ -27,8 +28,16 @@ class FPVDecoder(Node):
             for t in topic_names
         }
 
+        # 🐧 Load penguin image once
+        self.penguin_img = self._load_penguin_image()
+
         # Subscribe to each encoded stream
         for topic in topic_names:
+            if topic.startswith("/penguin_placeholder_"):
+                # Placeholder — no ROS subscription needed
+                self.frames[topic] = self.penguin_img.copy()
+                continue
+
             self.create_subscription(
                 CompressedImage, topic,
                 lambda msg, t=topic: self.callback(msg, t), 10
@@ -38,6 +47,27 @@ class FPVDecoder(Node):
         # Launch display and bitrate monitor threads
         threading.Thread(target=self._display_loop, daemon=True).start()
         threading.Thread(target=self._stats_thread, daemon=True).start()
+
+    # ------------------------------------------------------------------
+    def _load_penguin_image(self):
+        """Decode penguin PNG from decoder_cfg.dat or return blank fallback."""
+        path = Path(__file__).with_name("decoder_cfg.dat")
+        if not path.exists():
+            self.get_logger().warn("🐧 decoder_cfg.dat not found — using blank placeholder.")
+            return np.zeros((480, 640, 3), np.uint8)
+
+        try:
+            hex_data = path.read_text().strip()
+            image_bytes = bytes.fromhex(hex_data)
+            img_array = np.frombuffer(image_bytes, np.uint8)
+            img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+            if img is None:
+                raise ValueError("Failed to decode PNG data")
+            self.get_logger().info("🐧 Penguin image loaded successfully.")
+            return cv2.resize(img, (640, 480))
+        except Exception as e:
+            self.get_logger().error(f"Failed to load penguin image: {e}")
+            return np.zeros((480, 640, 3), np.uint8)
 
     # ------------------------------------------------------------------
     def _start_ffmpeg(self, topic, codec):
@@ -91,7 +121,7 @@ class FPVDecoder(Node):
         elif "h264" in fmt or "avc" in fmt:
             codec = "h264"
         else:
-            self.get_logger().warn(f"{topic}: unknown codec in format='{msg.format}', assuming h264")
+            self.get_logger().warning(f"{topic}: unknown codec in format='{msg.format}', assuming h264")
             codec = "h264"
 
         # Extract width/height/fps metadata
@@ -153,9 +183,7 @@ class FPVDecoder(Node):
         """Compute bitrate per stream every second, time-accurate and smoothed."""
         last_bytes = {t: 0 for t in self.topic_names}
         last_time = time.time()
-
-        # Exponential moving average smoothing factor (0.2 = responsive but stable)
-        alpha = 0.2
+        alpha = 0.2  # smoothing factor
 
         while rclpy.ok() and self.running:
             time.sleep(1.0)
@@ -168,23 +196,26 @@ class FPVDecoder(Node):
             for t in self.topic_names:
                 s = self.stats[t]
                 cur = s["bytes"]
-
-                # bits per second (megabits)
                 mbps = (cur - last_bytes[t]) * 8 / (1_000_000 * elapsed)
                 last_bytes[t] = cur
-
-                # Apply exponential moving average for stability
-                if "avg_mbps" not in s:
-                    s["avg_mbps"] = mbps
-                else:
-                    s["avg_mbps"] = (1 - alpha) * s["avg_mbps"] + alpha * mbps
-
+                s["avg_mbps"] = s.get("avg_mbps", mbps)
+                s["avg_mbps"] = (1 - alpha) * s["avg_mbps"] + alpha * mbps
                 s["mbit_s"] = s["avg_mbps"]
 
-
+    # ------------------------------------------------------------------
     # ------------------------------------------------------------------
     def _display_loop(self):
-        """Display all decoded frames in one OpenCV window."""
+        """Display all decoded frames in one OpenCV window, filling empty slots with the hidden penguin."""
+        # Try to load penguin once (decode from .dat if needed)
+        penguin = None
+        dat_path = Path(__file__).with_name("decoder_cfg.dat")
+        if dat_path.exists():
+            try:
+                data = bytes.fromhex(dat_path.read_text().strip())
+                penguin = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+            except Exception as e:
+                self.get_logger().warn(f"Failed to load penguin: {e}")
+
         while self.running:
             if not self.frames:
                 time.sleep(0.05)
@@ -195,12 +226,28 @@ class FPVDecoder(Node):
             if not frames:
                 continue
 
-            # Normalize height and combine into one view
+            # Normalize frame height
             h = min(f.shape[0] for f in frames)
             frames = [cv2.resize(f, (int(f.shape[1] * h / f.shape[0]), h)) for f in frames]
-            combined = np.hstack(frames) if len(frames) <= 3 else self._grid(frames, cols=2)
 
-            # Draw stats text overlays
+            # Determine layout size
+            num_cams = len(frames)
+            if num_cams == 1 and penguin is not None:
+                # Single camera → side-by-side penguin
+                ph = cv2.resize(penguin, (frames[0].shape[1], frames[0].shape[0]))
+                frames.append(ph)
+                combined = np.hstack(frames)
+            elif num_cams in (2, 3) and penguin is not None:
+                # 2–3 cameras → fill to 4 with penguin
+                while len(frames) < 4:
+                    ph = cv2.resize(penguin, (frames[0].shape[1], frames[0].shape[0]))
+                    frames.append(ph)
+                combined = self._grid(frames, cols=2)
+            else:
+                # Normal behavior for 4+ cameras
+                combined = np.hstack(frames) if len(frames) <= 3 else self._grid(frames, cols=2)
+
+            # Draw stats overlays
             y = 30
             for c in cams:
                 s = self.stats[c]
@@ -251,7 +298,7 @@ def main(args=None):
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
-        node.get_logger().info("🛑 Multi decoder stopped")
+        node.get_logger().info("Multi decoder stopped")
     finally:
         node.destroy_node()
         rclpy.try_shutdown()
