@@ -14,7 +14,7 @@ find_package(ament_cmake REQUIRED)
 ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
-  ${PROJECT_NAME}/imu_flipper.py
+  ${PROJECT_NAME}/imu_g_to_ms2.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -40,12 +40,12 @@ ekf_node:
                       true, true, true,   # roll, pitch, yaw
                       false, false, false, # linear velocities (X, Y, Z)
                       true, true, true,   # angular velocities (roll, pitch, yaw)
-                      true, true, true] # linear accelearations (X, Y, Z)
+                      false, false, false] # linear accelearations (X, Y, Z)
 
-        imu0_remove_gravitational_acceleration: true
-        gravitational_acceleration: -9.82
+        imu0_remove_gravitational_acceleration: false
+        gravitational_acceleration: 9.81
 
-        imu1: livox/imu_192_168_10_93
+        imu1: livox/imu/data
         imu1_config: [false, false, false,
                       false, false, false,
                       false, false, false,
@@ -53,7 +53,6 @@ ekf_node:
                       true, true, true]
 
         imu1_remove_gravitational_acceleration: true
-        gravitational_acceleration: 1.0
 
         # odom0: v_odom
         # odom0_config: [true, true, true,

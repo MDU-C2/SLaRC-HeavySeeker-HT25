@@ -74,13 +74,13 @@ def generate_launch_description():
         parameters=[ekf_config, {"use_sim_time": use_sim_time}],
     )
 
-    # flip z-axis in oakd/imu/data
-    flipper_node = Node(
+    # convert livox's imu linear acceleration from gs to m/s^2
+    imu_acc_node = Node(
         package="hs_navigation",
-        executable="imu_flipper.py",
-        name="imu_flipper",
+        executable="imu_g_to_ms2.py",
+        name="imu_acc_conv",
         output="screen",
-        remappings=[("imu/data", "oakd/imu/data")]
+        remappings=[("imu/data", "livox/imu_192_168_10_93"), ("imu_conv/data", "livox/imu/data")]
     )
 
     rtabmap_odom_node = Node(
@@ -122,7 +122,7 @@ def generate_launch_description():
     actions = [
         PushROSNamespace(namespace),
         # description_base_link_cmd,
-        flipper_node,
+        imu_acc_node,
         # rtabmap_odom_node,
         robot_localization_node,
         rviz_node,
