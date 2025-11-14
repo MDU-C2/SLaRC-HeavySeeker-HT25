@@ -14,46 +14,123 @@
 # limitations under the License.
 #
 # @author Roni Kreinin (rkreinin@clearpathrobotics.com)
-# @author Vladislav Saburov (slarc25@proton.me)
+# @author Mattias Tidström (slarc25@proton.me)
+
+import os
+import subprocess
 
 from ament_index_python import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, SetLaunchConfiguration, OpaqueFunction, GroupAction
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
-from launch_ros.actions import Node
+from launch_ros.actions import Node, PushROSNamespace
+from launch_ros.parameter_descriptions import ParameterValue
+from launch.utilities import perform_substitutions
+from launch.conditions import IfCondition
 
 
-def generate_launch_description():
-    description_dir = get_package_share_directory('hs_description')
-    xacro_file = PathJoinSubstitution(
-        [description_dir, 'sdf', 'hs.sdf.xacro'])
+def convert_model(context, *, model_dir, **kwargs):
+    model_dir_str = perform_substitutions(context, [model_dir])
+    print(f'[INFO] string {model_dir_str}')
 
-    ARGUMENTS = [DeclareLaunchArgument(
-        'namespace', default_value='hs', description='Robot namespace')]
+    sdf_file_path = PathJoinSubstitution(
+        [model_dir_str, 'model.sdf']).perform(context=context)
+    model_xacro_file = PathJoinSubstitution(
+        [model_dir_str, 'model.sdf.xacro']).perform(context=context)
 
-    namespace = LaunchConfiguration('namespace')
+    if not os.path.isfile(model_xacro_file):
+        print(
+            f'[WARN] No xacro file found at {model_xacro_file}, skipping conversion.')
+        return [SetLaunchConfiguration("model", sdf_file_path)]
+
+    print(f"[INFO] Converting {model_xacro_file} → {sdf_file_path}")
+    # Run xacro directly on the SDF.xacro and write result to model.sdf
+    # This is basically: xacro model.sdf.xacro -o model.sdf
+    with open(sdf_file_path, 'w') as sdf_out:
+        subprocess.run(
+            ['xacro', model_xacro_file],
+            check=True,
+            stdout=sdf_out
+        )
+
+    print(f'[INFO] Done. Wrote {sdf_file_path}')
+    return [SetLaunchConfiguration('model', sdf_file_path)]
+
+
+def robot_state_generator(context, *args, **kwargs):
+    with open(LaunchConfiguration('model').perform(context), 'r') as infp:
+        robot_desc = infp.read()
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        name='robot_state_publisher',
+        parameters=[{
+            'use_sim_time': LaunchConfiguration('use_sim_time'),
+            'robot_description': ParameterValue(robot_desc, value_type=str),
+        }],
         output='screen',
-        parameters=[{'robot_description': Command(
-            # ['xacro ', ' ', xacro_file, ' ', 'namespace:=', namespace])}]
-            ['xacro', ' ', xacro_file])}]
     )
 
-    joint_state_publisher_node = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        name='joint_state_publisher',
-        output='screen',
-        parameters=[{'robot_description': Command(
-            ['xacro ', ' ', xacro_file, ' ', 'namespace:=', namespace])}]
+    # joint_state_publisher_node = Node(
+    #     package='joint_state_publisher',
+    #     executable='joint_state_publisher',
+    #     name='joint_state_publisher',
+    #     output='screen',
+    #     parameters=[{
+    #         'use_sim_time': LaunchConfiguration('use_sim_time'),
+    #         'robot_description': ParameterValue(robot_desc, value_type=str)}]
+    # )
+
+    # return [robot_state_publisher_node, joint_state_publisher_node]
+    return [robot_state_publisher_node]
+
+
+def generate_launch_description():
+    description_dir = get_package_share_directory('hs_description')
+
+    ARGUMENTS = [DeclareLaunchArgument('namespace', default_value='', description='Robot namespace'),
+                 DeclareLaunchArgument('use_rviz', default_value='False',
+                                       description='Turn on visualization in rviz', choices=['True', 'False']),
+                 DeclareLaunchArgument('rviz_params', default_value=PathJoinSubstitution(
+                     [description_dir, 'rviz', 'seeker_sim_config.rviz']), description='Full path to the rviz parameters file'),
+                 DeclareLaunchArgument(
+                     'model', default_value='Rig5', description='Name of model FOLDER located under one of the subfolders of this packages model/Assemblies directory'),
+                 DeclareLaunchArgument('use_sim_time', default_value='False', description='Use clock from simulation', choices=['True', 'False'])]
+
+    namespace = LaunchConfiguration('namespace')
+
+    model_root = PathJoinSubstitution(
+        [description_dir, 'model', 'Assemblies', LaunchConfiguration('model')]
     )
+
+    generate_model = OpaqueFunction(
+        function=convert_model,
+        kwargs={'model_dir': model_root}
+    )
+
+    generate_description = OpaqueFunction(
+        function=robot_state_generator
+    )
+
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        output='screen',
+        arguments=['-d', LaunchConfiguration('rviz_params')],
+        condition=IfCondition(LaunchConfiguration('use_rviz'))
+    )
+
+    actions = [
+        PushROSNamespace(namespace=namespace),
+        generate_model,
+        generate_description,
+        rviz_node
+    ]
+
+    hs = GroupAction(actions)
 
     ld = LaunchDescription(ARGUMENTS)
-    ld.add_action(robot_state_publisher_node)
-    # ld.add_action(joint_state_publisher_node)
+    ld.add_action(hs)
     return ld

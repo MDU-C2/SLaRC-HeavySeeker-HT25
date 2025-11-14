@@ -44,7 +44,7 @@ def generate_launch_description():
     rviz_config_arg = DeclareLaunchArgument(
         "rviz_config",
         default_value="seeker_sim_config.rviz",
-        description="Config filename located under this packages config/ directory.",
+        description="Config filename located under description packages rviz/ directory.",
     )
 
     spawn_coordinates = DeclareLaunchArgument(
@@ -61,8 +61,8 @@ def generate_launch_description():
 
     # --- Paths to package resources (world, models, configs) ---
     Robot_description_launch = PathJoinSubstitution([
-        FindPackageShare('seeker_sim'),
-        'launch', 'description.launch.py'
+        FindPackageShare('hs_description'),
+        'launch', 'hs_description.launch.py'
     ])
 
 
@@ -87,15 +87,15 @@ def generate_launch_description():
     # RViz2 configuration file (which views/panels to load)
     # make sure the file is located in src/seeker_sim/config folder
     rviz_config_root = PathJoinSubstitution(
-        [config_root, LaunchConfiguration("rviz_config")]
+        [get_package_share_directory("hs_description"), "rviz", LaunchConfiguration("rviz_config")]
     )
 
 
     sdf_roots = [
-        os.path.join(get_package_share_directory("seeker_sim"), "model", "Sensors"),
-        os.path.join(get_package_share_directory("seeker_sim"), "model", "Rigs"),
-        os.path.join(get_package_share_directory("seeker_sim"), "model", "Assemblies"),
-        os.path.join(get_package_share_directory("seeker_sim"), "model", "UGV"),
+        os.path.join(get_package_share_directory("hs_description"), "model", "Sensors"),
+        os.path.join(get_package_share_directory("hs_description"), "model", "Rigs"),
+        os.path.join(get_package_share_directory("hs_description"), "model", "Assemblies"),
+        os.path.join(get_package_share_directory("hs_description"), "model", "UGV"),
         os.path.join(get_package_share_directory("seeker_sim"), "model", "world_models")    ]
 
     new_paths = [p for p in sdf_roots if os.path.isdir(p)]
@@ -130,8 +130,8 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(Robot_description_launch),
         launch_arguments={
             'model':       LaunchConfiguration('model'),
-            'rviz_use':   'true',
-            'rviz_config': rviz_config_root,
+            'use_rviz':   'True',
+            'rviz_params': rviz_config_root,
         }.items()
     )
 
@@ -252,11 +252,11 @@ def generate_launch_description():
 
     ld.add_action(log_gz_path)
 
-    ld.add_action(launch_Robot_description)
+    # ld.add_action(launch_Robot_description)
 
     # Navigation related
-    ld.add_action(mapviz_launch_description)
-    ld.add_action(navigation_launch_description)
+    # ld.add_action(mapviz_launch_description)
+    # ld.add_action(navigation_launch_description)
     ld.add_action(spawn_coordinates)
 
     ld.add_action(launch_Robot_description)
