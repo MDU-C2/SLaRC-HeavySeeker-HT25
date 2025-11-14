@@ -152,6 +152,7 @@ def generate_launch_description():
           launch_arguments={
               'use_map':   'True',
               'rviz_config': rviz_config_root,
+              'use_sim_time': 'True'
           }.items()
       )
 
@@ -219,7 +220,7 @@ def generate_launch_description():
             #"/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist", #Use this if using teleoptwist_keyboard pkg
             "/cmd_vel@geometry_msgs/msg/TwistStamped@gz.msgs.Twist",
             "/odometry/wheel@nav_msgs/msg/Odometry@gz.msgs.Odometry",
-            "/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
+            "/world/sonoma_raceway/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
             "/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
@@ -232,6 +233,8 @@ def generate_launch_description():
             "/oakd/rgbd/image:=/oakd_image",
             "-r",
             "/oakd/rgbd/points:=/oakd_points",
+            "-r",
+            "/world/sonoma_raceway/clock:=/clock"
         ],
         output="screen",
     )

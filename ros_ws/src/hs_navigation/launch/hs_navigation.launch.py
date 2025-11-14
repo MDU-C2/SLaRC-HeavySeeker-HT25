@@ -19,7 +19,7 @@ def generate_launch_description():
     description_dir = get_package_share_directory("hs_description")
     nav_dir = get_package_share_directory("hs_navigation")
     slam_dir = get_package_share_directory("slam_toolbox")
-    nav2_bringup_cmd = get_package_share_directory("nav2_bringup")
+    nav2_bringup_dir = get_package_share_directory("nav2_bringup")
 
     rviz_config = PathJoinSubstitution([nav_dir, "rviz", "config.rviz"])
     nav2_config = PathJoinSubstitution([nav_dir, "config", "nav2_params.yaml"])
@@ -51,10 +51,10 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     use_sim_time = LaunchConfiguration("use_sim_time")
 
-    description_base_link_cmd = IncludeLaunchDescription(
-        PathJoinSubstitution([description_dir, "launch", "hs_description.launch.py"]),
-        launch_arguments=[("namespace", namespace)],
-    )
+    # description_base_link_cmd = IncludeLaunchDescription(
+    #     PathJoinSubstitution([description_dir, "launch", "hs_description.launch.py"]),
+    #     launch_arguments=[("namespace", namespace)],
+    # )
 
 
     mapviz_launch = PathJoinSubstitution(
@@ -115,7 +115,7 @@ def generate_launch_description():
     )
 
     nav2_bringup_cmd = IncludeLaunchDescription(
-        PathJoinSubstitution([nav2_bringup_cmd, "launch", "navigation_launch.py"]),
+        PathJoinSubstitution([nav2_bringup_dir, "launch", "navigation_launch.py"]),
         launch_arguments=[
             ("use_sim_time", use_sim_time),
             ("namespace", namespace),

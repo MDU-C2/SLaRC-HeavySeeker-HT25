@@ -210,8 +210,8 @@ local_costmap:
       global_frame: odom
       robot_base_frame: UGV_link
       rolling_window: true
-      width: 3
-      height: 3
+      width: 5
+      height: 5
       resolution: 0.05
       footprint: "[ [0.21, 0.195], [0.21, -0.195], [-0.21, -0.195], [-0.21, 0.195] ]"
       plugins: ["voxel_layer", "inflation_layer"]
@@ -236,11 +236,13 @@ local_costmap:
           #   * User chosen topic is `scan`.
           #   * Topic will be remapped to `/tb4/scan` without `local_costmap`.
           #   * Use global topic `/scan` if you do not wish the node namespace to apply
-          topic: scan
+          topic: /lidar_points_fixed
+          # topic: scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
-          data_type: "PointCloud2" #"LaserScan"
+          data_type: "PointCloud2"
+          # data_type: "LaserScan"
           raytrace_max_range: 3.0
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
@@ -258,9 +260,12 @@ global_costmap:
       global_frame: map
       robot_base_frame: UGV_link
       robot_radius: 0.3
-      resolution: 0.05
+      resolution: 0.025
       track_unknown_space: true
-      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      rolling_window: true
+      width: 200.0
+      height: 200.0
+      plugins: ["obstacle_layer", "inflation_layer"] # "static_layer",
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
@@ -272,18 +277,20 @@ global_costmap:
           #   * User chosen topic is `scan`.
           #   * Topic will be remapped to `/tb4/scan` without `global_costmap`.
           #   * Use global topic `/scan` if you do not wish the node namespace to apply
-          topic: scan
+          topic: /lidar_points_fixed
+          # topic: scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
-          data_type: "PointCloud2" # "LaserScan"
+          data_type: "PointCloud2"
+          # data_type: scan
           raytrace_max_range: 3.0
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
+      # static_layer:
+      #   plugin: "nav2_costmap_2d::StaticLayer"
+      #   map_subscribe_transient_local: True
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
