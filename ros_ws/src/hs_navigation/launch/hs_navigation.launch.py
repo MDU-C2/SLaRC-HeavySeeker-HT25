@@ -10,6 +10,7 @@ from launch.actions import (
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition
 from launch_ros.actions import Node, PushROSNamespace
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -55,6 +56,16 @@ def generate_launch_description():
         launch_arguments=[("namespace", namespace)],
     )
 
+
+    mapviz_launch = PathJoinSubstitution(
+          [
+              get_package_share_directory("hs_navigation"),
+              'launch',
+              'hs_navigation_mapviz.launch.py',
+          ]
+      )
+
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -86,6 +97,11 @@ def generate_launch_description():
         name="gnss_to_rig_static_tf"
     )
 
+    mapviz_launch_description = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(mapviz_launch),
+        condition=IfCondition(LaunchConfiguration("use_map")),
+    )
+
 
     # Robot localization node using world and map ekf
     robot_localization_node = IncludeLaunchDescription(
@@ -109,11 +125,12 @@ def generate_launch_description():
 
     actions = [
         PushROSNamespace(namespace),
-        # description_base_link_cmd,
+        #description_base_link_cmd,
         robot_localization_node,
         waypoint_bridge_node,
         rviz_node,
-        # TimerAction(period=10.0, actions=[slam_toolbox_cmd]),
+        mapviz_launch_description,
+        TimerAction(period=10.0, actions=[slam_toolbox_cmd]),
         TimerAction(period=5.0, actions=[nav2_bringup_cmd])
     ]
     hs = GroupAction(actions)

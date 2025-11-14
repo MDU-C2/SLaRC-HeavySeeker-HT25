@@ -91,6 +91,16 @@ def generate_launch_description():
     )
 
 
+
+    hs_navigation_launch = PathJoinSubstitution(
+            [
+                get_package_share_directory("hs_navigation"),
+                'launch',
+                'hs_navigation.launch.py',
+            ]
+        )
+
+
     sdf_roots = [
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Sensors"),
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Rigs"),
@@ -130,13 +140,23 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(Robot_description_launch),
         launch_arguments={
             'model':       LaunchConfiguration('model'),
-            'rviz_use':   'true',
+            # 'rviz_use':   'true',
             'rviz_config': rviz_config_root,
         }.items()
     )
 
 
-    
+
+    navigation_launch_description = IncludeLaunchDescription(
+          PythonLaunchDescriptionSource(hs_navigation_launch),
+          launch_arguments={
+              'use_map':   'True',
+              'rviz_config': rviz_config_root,
+          }.items()
+      )
+
+
+
 
 
     # --- Processes launched via shell commands (not ROS 2 nodes) ---
@@ -150,11 +170,6 @@ def generate_launch_description():
         env=start_env,
     )
 
-    # Start RViz2 with the given .rviz configuration.
-    # start_rviz = ExecuteProcess(
-    #     cmd=["rviz2", "-d", rviz_config_root],
-    #     output="screen",
-    # )
 
     spawn_x = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[0]"])
     spawn_y = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[1]"])
@@ -203,7 +218,7 @@ def generate_launch_description():
         arguments=[
             #"/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist", #Use this if using teleoptwist_keyboard pkg
             "/cmd_vel@geometry_msgs/msg/TwistStamped@gz.msgs.Twist",
-            "/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry",
+            "/odometry/wheel@nav_msgs/msg/Odometry@gz.msgs.Odometry",
             "/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
@@ -255,19 +270,17 @@ def generate_launch_description():
     ld.add_action(launch_Robot_description)
 
     # Navigation related
-    ld.add_action(mapviz_launch_description)
     ld.add_action(navigation_launch_description)
     ld.add_action(spawn_coordinates)
 
-    ld.add_action(launch_Robot_description)
-    
+
+
     ld.add_action(start_gz)
 
     ld.add_action(bridge)
     ld.add_action(relay_bridge)
 
     ld.add_action(delay_spawn)
-    
+
 
     return ld
-

@@ -31,7 +31,7 @@ def convert_model(context,*,model_dir, **kwargs):
     if not os.path.isfile(model_xacro_file):
         print(f"[WARN] No xacro file found at {model_xacro_file}, skipping conversion.")
         return [SetLaunchConfiguration("model", sdf_file_path)]
-    
+
     print(f"[INFO] Converting {model_xacro_file} → {sdf_file_path}")
     # Run xacro directly on the SDF.xacro and write result to model.sdf
     # This is basically: xacro model.sdf.xacro -o model.sdf
@@ -60,7 +60,7 @@ def robot_state_generator(context, *args, **kwargs):
         output='screen',
     )
     return [robot_state_pub]
-    
+
 
 
 def generate_launch_description():
@@ -72,42 +72,20 @@ def generate_launch_description():
         description="name of model FOLDER located under one of the subfolders of this packages model/Assemblies directory.\n",
     )
 
-    rviz_config_arg = DeclareLaunchArgument(
-        "rviz_config",
-        default_value="seeker_sim_config.rviz",
-        description="Config filename located under this packages config/ directory.",
-    )
-
-    rviz_use = DeclareLaunchArgument(
-        "rviz_use",
-        default_value="false",
-        description="set to true to launch rviz on startup",
-    )
 
     model_root = PathJoinSubstitution(
         [get_package_share_directory("seeker_sim"), "model","Assemblies", LaunchConfiguration("model")]
     )
 
-    rviz_config_root = PathJoinSubstitution(
-        [get_package_share_directory("seeker_sim"), "config", LaunchConfiguration("rviz_config")]
-    )
 
-    start_rviz = ExecuteProcess(
-        cmd=["rviz2", "-d", rviz_config_root],
-        output="screen",
-        condition=IfCondition(LaunchConfiguration("rviz_use")),
-    )
-
-    ld = LaunchDescription() 
+    ld = LaunchDescription()
 
     ld.add_action(model_arg)
-    ld.add_action(rviz_config_arg)
-    ld.add_action(rviz_use)
 
     ld.add_action(OpaqueFunction(function=convert_model,kwargs={"model_dir": model_root}))
 
     ld.add_action(OpaqueFunction(function=robot_state_generator))
-    ld.add_action(start_rviz)
+
 
 
     return ld
