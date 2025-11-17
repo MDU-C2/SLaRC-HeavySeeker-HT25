@@ -14,15 +14,27 @@ class FFmpegProbe:
 
         try:
             size = "128x128" if "hevc" in encoder_name else "64x64"
-
-            cmd = [
-                "ffmpeg", "-hide_banner", "-loglevel", "error",
-                "-f", "lavfi", "-i", f"testsrc=size={size}:rate=1",
-                "-frames:v", "1",
-                "-c:v", encoder_name,
-                "-f", "null", "-"
-            ]
-
+            if "vaapi" in encoder_name:
+                # Special handling for VAAPI – this is what made it work before
+                cmd = [
+                    "ffmpeg", "-hide_banner", "-loglevel", "error",
+                    "-vaapi_device", "/dev/dri/renderD128",
+                    "-f", "lavfi", "-i", f"testsrc=size={size}:rate=1",
+                    "-vf", "format=nv12,hwupload",
+                    "-frames:v", "1",
+                    "-c:v", encoder_name,
+                    "-f", "null", "-",
+                ]
+            else:
+                # Default for NVENC, QSV, CPU, etc.
+                cmd = [
+                    "ffmpeg", "-hide_banner", "-loglevel", "error",
+                    "-f", "lavfi", "-i", f"testsrc=size={size}:rate=1",
+                    "-frames:v", "1",
+                    "-c:v", encoder_name,
+                    "-f", "null", "-",
+                ]
+            
             proc = subprocess.run(
                 cmd,
                 stdout=subprocess.PIPE,
