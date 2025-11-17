@@ -100,6 +100,15 @@ def generate_launch_description():
             ]
         )
 
+    hs_scan_launch = PathJoinSubstitution(
+            [
+                get_package_share_directory("hs_bringup"),
+                'launch',
+                'cloud2scan.launch.py',
+            ]
+        )
+
+
 
     sdf_roots = [
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Sensors"),
@@ -155,6 +164,14 @@ def generate_launch_description():
               'use_sim_time': 'True'
           }.items()
       )
+
+    scan_converter_launch_description = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(hs_scan_launch),
+        launch_arguments={
+            'cloud_topic':  '/lidar_points_fixed',
+            'target_frame':   'mid360_lidar_link',
+        }.items()
+    )
 
 
 
@@ -271,6 +288,7 @@ def generate_launch_description():
     ld.add_action(log_gz_path)
 
     ld.add_action(launch_Robot_description)
+    ld.add_action(scan_converter_launch_description)
 
     # Navigation related
     ld.add_action(navigation_launch_description)
