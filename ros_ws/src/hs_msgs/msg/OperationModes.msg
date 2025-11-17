@@ -1,0 +1,3 @@
+bool local_control
+bool remote_control
+bool autonomy_drive

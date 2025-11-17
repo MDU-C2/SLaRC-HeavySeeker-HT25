@@ -90,7 +90,7 @@ def generate_launch_description():
         [config_root, LaunchConfiguration("rviz_config")]
     )
 
-    
+
     sdf_roots = [
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Sensors"),
         os.path.join(get_package_share_directory("seeker_sim"), "model", "Rigs"),
@@ -137,6 +137,7 @@ def generate_launch_description():
 
 
     
+
 
     # --- Processes launched via shell commands (not ROS 2 nodes) ---
 
@@ -200,12 +201,15 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            "/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist",
+            #"/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist", #Use this if using teleoptwist_keyboard pkg
+            "/cmd_vel@geometry_msgs/msg/TwistStamped@gz.msgs.Twist",
             "/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry",
             "/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
             "/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
+            "/gps/fix@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat",
+            "/oakd/imu@sensor_msgs/msg/Imu@gz.msgs.IMU",
             "--ros-args",
             "-r",
             "/lidar_points/points:=/lidar_points",
@@ -243,16 +247,22 @@ def generate_launch_description():
     ld.add_action(world_arg)
     ld.add_action(model_arg)
     ld.add_action(rviz_config_arg)
-    ld.add_action(spawn_coordinates)
 
     ld.add_action(set_gz_path)
 
-    
     ld.add_action(log_gz_path)
+
+    ld.add_action(launch_Robot_description)
+
+    # Navigation related
+    ld.add_action(mapviz_launch_description)
+    ld.add_action(navigation_launch_description)
+    ld.add_action(spawn_coordinates)
+
     ld.add_action(launch_Robot_description)
     
     ld.add_action(start_gz)
-    
+
     ld.add_action(bridge)
     ld.add_action(relay_bridge)
 
