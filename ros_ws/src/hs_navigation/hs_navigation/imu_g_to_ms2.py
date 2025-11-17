@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from sensor_msgs.msg import Imu
 
@@ -27,11 +28,11 @@ def main(args=None):
     node = ImuAccConv()
     try:
         rclpy.spin(node)
-    except KeyboardInterrupt:
-        node.get_logger().info('KeyboardInterrupt caught, allowing rclpy to shutdown.')
+    except (KeyboardInterrupt, ExternalShutdownException):
+        node.get_logger().info('Interrupt caught, allowing rclpy to shutdown.')
     finally:
-        # node.destroy_node()
-        rclpy.shutdown()
+        node.destroy_node()
+        rclpy.try_shutdown()
 
 
 if __name__ == "__main__":

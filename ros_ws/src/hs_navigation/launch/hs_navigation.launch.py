@@ -66,13 +66,13 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration("use_rviz")),
     )
 
-    robot_localization_node = Node(
-        package="robot_localization",
-        executable="ekf_node",
-        name="ekf_node",
-        output="screen",
-        parameters=[ekf_config, {"use_sim_time": use_sim_time}],
-    )
+    # robot_localization_node = Node(
+    #     package="robot_localization",
+    #     executable="ekf_node",
+    #     name="ekf_node",
+    #     output="screen",
+    #     parameters=[ekf_config, {"use_sim_time": use_sim_time}],
+    # )
 
     # convert livox's imu linear acceleration from gs to m/s^2
     imu_acc_node = Node(
@@ -98,10 +98,10 @@ def generate_launch_description():
     )
 
     # Robot localization node using world and map ekf
-    # robot_localization_node = IncludeLaunchDescription(
-    #     PathJoinSubstitution([nav_dir, "launch", "hs_navsat.launch.py"]),
-    #     launch_arguments=[("use_sim_time", use_sim_time)],
-    # )
+    robot_localization_node = IncludeLaunchDescription(
+        PathJoinSubstitution([nav_dir, "launch", "hs_navsat.launch.py"]),
+        launch_arguments=[("use_sim_time", use_sim_time)],
+    )
 
     slam_toolbox_cmd = IncludeLaunchDescription(
         PathJoinSubstitution([slam_dir, "launch", "online_async_launch.py"]),
@@ -122,7 +122,7 @@ def generate_launch_description():
     actions = [
         PushROSNamespace(namespace),
         # description_base_link_cmd,
-        imu_acc_node,
+        # imu_acc_node,
         # rtabmap_odom_node,
         robot_localization_node,
         rviz_node,
