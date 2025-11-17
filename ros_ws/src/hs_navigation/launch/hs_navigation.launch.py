@@ -21,7 +21,6 @@ def generate_launch_description():
     nav2_bringup_cmd = get_package_share_directory("nav2_bringup")
 
     rviz_config = PathJoinSubstitution([nav_dir, "rviz", "config.rviz"])
-    ekf_config = PathJoinSubstitution([nav_dir, "config", "ekf.yaml"])
     nav2_config = PathJoinSubstitution([nav_dir, "config", "nav2_params.yaml"])
 
     ARGUMENTS = [
@@ -64,6 +63,28 @@ def generate_launch_description():
         output="screen",
         arguments=["-d", rviz_config],
         condition=IfCondition(LaunchConfiguration("use_rviz")),
+    )
+
+    waypoint_bridge_node = Node(
+        package="hs_navigation",
+        executable="waypoint_bridge_node.py",
+        name="waypoint_bridge",
+        output="screen",
+        parameters=[],
+        remappings=[
+            ("waypoints", "waypoints"),
+            ("waypoint_status", "waypoint_status"),
+        ],
+    )
+
+
+    gnss_to_rig_tf = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        # x  y  z   roll pitch yaw   parent_frame   child_frame
+        arguments=["0.0","0.0","0.0","0.0","0.0","0.0","gnss_link", "Rig5/gnss_link/gnss"],
+        output="screen",
+        name="gnss_to_rig_static_tf"
     )
 
     # robot_localization_node = Node(
@@ -125,12 +146,14 @@ def generate_launch_description():
         # imu_acc_node,
         # rtabmap_odom_node,
         robot_localization_node,
+        waypoint_bridge_node,
         rviz_node,
         # TimerAction(period=10.0, actions=[slam_toolbox_cmd]),
-        # TimerAction(period=20.0, actions=[nav2_bringup_cmd])
+        TimerAction(period=5.0, actions=[nav2_bringup_cmd])
     ]
     hs = GroupAction(actions)
 
     ld = LaunchDescription(ARGUMENTS)
     ld.add_action(hs)
+    ld.add_action(gnss_to_rig_tf)
     return ld
