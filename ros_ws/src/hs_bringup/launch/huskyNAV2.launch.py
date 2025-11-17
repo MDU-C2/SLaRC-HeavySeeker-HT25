@@ -43,7 +43,7 @@ def generate_launch_description():
         '0.17', '0.0', '0.18',
         '3.1415926', '0.0', '0.0',
         'top_plate_rear_mount', 'livox_frame'],
-        output='screen'),
+        output='screen')
 
     slam_node = Node(
         package='slam_toolbox',
