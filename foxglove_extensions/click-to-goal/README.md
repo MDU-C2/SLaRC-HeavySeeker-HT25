@@ -1,39 +1,69 @@
-# click-to-goal
+# Click-to-goal Foxglove Extension
 
-[Foxglove](https://foxglove.dev) allows developers to create [extensions](https://docs.foxglove.dev/docs/visualization/extensions/introduction), or custom code that is loaded and executed inside the Foxglove application. This can be used to add custom panels. Extensions are authored in TypeScript using the `@foxglove/extension` SDK.
+This extension lets you click waypoints (currently only one point) on a map in Foxglove Desktop and
+publishes them as ROS 2 messages (e.g., `/goal_geo`) for our robot stack
 
-## Develop
+## Requirements
 
-Extension development uses the `npm` package manager to install development dependencies and run build scripts.
+### 1. Foxglove Desktop  
+Download from:  
+https://foxglove.dev/download
 
-To install extension dependencies, run `npm` from the root of the extension package.
+### 2. Node.js + npm  
+This extension requires Node and npm to build.
 
-```sh
-npm install
+Recommended versions (used in development):
+
+node v18.19.1
+npm v9.2.0
+
+```bash
+sudo apt install nodejs npm
 ```
 
-To build and install the extension into your local Foxglove desktop app, run:
+## ROS 2 Foxglove Bridge
 
-```sh
+If you run our standard Docker setup:
+➡️ Already installed inside the container (no action needed).
+
+If running natively on your system:
+
+```bash
+sudo apt install ros-jazzy-foxglove-bridge
+```
+
+## One-time setup (install extension)
+
+```bash
+cd foxglove_extensions/click-to-goal
+./setup_extension.sh
+```
+
+Restart Foxglove Desktop afterwards.
+
+## How to use the extension
+
+Currently only supported in simulation:
+```bash
+ros2 launch seeker_sim seeker_sim.launch.py model:=Rig5 world:=sonoma_raceway use_foxglove:=true
+```
+
+use_foxglove default value is set to true
+
+## Open Foxglove Desktop
+
+Add a new connection using:
+ws://localhost:8765
+
+Open the “Click-to-goal” panel (from the extension)
+
+Click on the map to send waypoints as a ros topic 🎯
+
+## Rebuilding the extension (after updates)
+
+If you pull new changes:
+```bash
+cd foxglove_extensions/click-to-goal
+npm run build
 npm run local-install
 ```
-
-Open the Foxglove desktop (or `ctrl-R` to refresh if it is already open). Your extension is installed and available within the app.
-
-## Package
-
-Extensions are packaged into `.foxe` files. These files contain the metadata (package.json) and the build code for the extension.
-
-Before packaging, make sure to set `name`, `publisher`, `version`, and `description` fields in _package.json_. When ready to distribute the extension, run:
-
-```sh
-npm run package
-```
-
-This command will package the extension into a `.foxe` file in the local directory.
-
-## Publish
-
-You can publish the extension to the public registry or privately for your organization.
-
-See documentation here: https://docs.foxglove.dev/docs/visualization/extensions/publish/#packaging-your-extension
