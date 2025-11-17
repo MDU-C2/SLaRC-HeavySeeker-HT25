@@ -132,6 +132,7 @@ def generate_launch_description():
             'model':       LaunchConfiguration('model'),
             'use_rviz':   'True',
             'rviz_params': rviz_config_root,
+            'use_joint_state_publisher': 'True'
         }.items()
     )
 
@@ -251,8 +252,6 @@ def generate_launch_description():
     ld.add_action(set_gz_path)
 
     ld.add_action(log_gz_path)
-
-    # ld.add_action(launch_Robot_description)
 
     # Navigation related
     # ld.add_action(mapviz_launch_description)

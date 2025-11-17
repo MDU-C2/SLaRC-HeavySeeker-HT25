@@ -72,17 +72,18 @@ def robot_state_generator(context, *args, **kwargs):
         output='screen',
     )
 
-    # joint_state_publisher_node = Node(
-    #     package='joint_state_publisher',
-    #     executable='joint_state_publisher',
-    #     name='joint_state_publisher',
-    #     output='screen',
-    #     parameters=[{
-    #         'use_sim_time': LaunchConfiguration('use_sim_time'),
-    #         'robot_description': ParameterValue(robot_desc, value_type=str)}]
-    # )
+    joint_state_publisher_node = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        name='joint_state_publisher',
+        output='screen',
+        parameters=[{
+            'use_sim_time': LaunchConfiguration('use_sim_time'),
+            'robot_description': ParameterValue(robot_desc, value_type=str)}],
+        condition=IfCondition(LaunchConfiguration('use_joint_state_publisher'))
+    )
 
-    # return [robot_state_publisher_node, joint_state_publisher_node]
+    return [robot_state_publisher_node, joint_state_publisher_node]
     return [robot_state_publisher_node]
 
 
@@ -96,7 +97,9 @@ def generate_launch_description():
                      [description_dir, 'rviz', 'seeker_sim_config.rviz']), description='Full path to the rviz parameters file'),
                  DeclareLaunchArgument(
                      'model', default_value='Rig5', description='Name of model FOLDER located under one of the subfolders of this packages model/Assemblies directory'),
-                 DeclareLaunchArgument('use_sim_time', default_value='False', description='Use clock from simulation', choices=['True', 'False'])]
+                 DeclareLaunchArgument('use_sim_time', default_value='False',
+                                       description='Use clock from simulation', choices=['True', 'False']),
+                 DeclareLaunchArgument('use_joint_state_publisher', default_value='False', description='Run joint state publisher', choices=['True', 'False'])]
 
     namespace = LaunchConfiguration('namespace')
 
