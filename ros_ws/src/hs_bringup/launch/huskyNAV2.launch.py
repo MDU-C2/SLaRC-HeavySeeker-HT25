@@ -29,14 +29,14 @@ def generate_launch_description():
         executable='livox_launch.py',
         name='livox_lidar_publisher',
         output='screen',
-        ),
+        )
     
     cloud2scan = Node(
         package='hs_bringup',
         executable='cloud2scan.launch.py',
         name='cloud2scan_node',
         output='screen',
-        ),
+        )
     
     livox_frame = ExecuteProcess(cmd=[
         'ros2', 'run', 'tf2_ros', 'static_transform_publisher',
@@ -59,7 +59,7 @@ def generate_launch_description():
         name='nav2_bringup',
         output='screen',
         remappings=[('cmd_vel', output_velocity_topic)]
-        ),
+        )
 
     return LaunchDescription([
         livox_lidar,
