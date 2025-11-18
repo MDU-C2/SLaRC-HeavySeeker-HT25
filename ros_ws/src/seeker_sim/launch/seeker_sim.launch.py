@@ -91,6 +91,25 @@ def generate_launch_description():
     )
 
 
+
+    hs_navigation_launch = PathJoinSubstitution(
+            [
+                get_package_share_directory("hs_navigation"),
+                'launch',
+                'hs_navigation.launch.py',
+            ]
+        )
+
+    hs_scan_launch = PathJoinSubstitution(
+            [
+                get_package_share_directory("hs_bringup"),
+                'launch',
+                'cloud2scan.launch.py',
+            ]
+        )
+
+
+
     sdf_roots = [
         os.path.join(get_package_share_directory("hs_description"), "model", "Sensors"),
         os.path.join(get_package_share_directory("hs_description"), "model", "Rigs"),
@@ -137,7 +156,26 @@ def generate_launch_description():
     )
 
 
-    
+
+    navigation_launch_description = IncludeLaunchDescription(
+          PythonLaunchDescriptionSource(hs_navigation_launch),
+          launch_arguments={
+              'use_map':   'True',
+              'rviz_config': rviz_config_root,
+              'use_sim_time': 'True'
+          }.items()
+      )
+
+    scan_converter_launch_description = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(hs_scan_launch),
+        launch_arguments={
+            'cloud_topic':  '/lidar_points_fixed',
+            'target_frame':   'mid360_lidar_link',
+        }.items()
+    )
+
+
+
 
 
     # --- Processes launched via shell commands (not ROS 2 nodes) ---
@@ -151,11 +189,6 @@ def generate_launch_description():
         env=start_env,
     )
 
-    # Start RViz2 with the given .rviz configuration.
-    # start_rviz = ExecuteProcess(
-    #     cmd=["rviz2", "-d", rviz_config_root],
-    #     output="screen",
-    # )
 
     spawn_x = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[0]"])
     spawn_y = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[1]"])
@@ -204,8 +237,8 @@ def generate_launch_description():
         arguments=[
             #"/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist", #Use this if using teleoptwist_keyboard pkg
             "/cmd_vel@geometry_msgs/msg/TwistStamped@gz.msgs.Twist",
-            "/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry",
-            "/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
+            "/odometry/wheel@nav_msgs/msg/Odometry@gz.msgs.Odometry",
+            "/world/sonoma_raceway/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
             "/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
@@ -218,6 +251,8 @@ def generate_launch_description():
             "/oakd/rgbd/image:=/oakd_image",
             "-r",
             "/oakd/rgbd/points:=/oakd_points",
+            "-r",
+            "/world/sonoma_raceway/clock:=/clock"
         ],
         output="screen",
     )
@@ -253,20 +288,21 @@ def generate_launch_description():
 
     ld.add_action(log_gz_path)
 
+    ld.add_action(launch_Robot_description)
+    ld.add_action(scan_converter_launch_description)
+
     # Navigation related
-    # ld.add_action(mapviz_launch_description)
-    # ld.add_action(navigation_launch_description)
+    ld.add_action(navigation_launch_description)
     ld.add_action(spawn_coordinates)
 
-    ld.add_action(launch_Robot_description)
-    
+
+
     ld.add_action(start_gz)
 
     ld.add_action(bridge)
     ld.add_action(relay_bridge)
 
     ld.add_action(delay_spawn)
-    
+
 
     return ld
-
