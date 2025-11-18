@@ -17,7 +17,8 @@ from ament_index_python.packages import get_package_share_directory
 
 import os
 from launch.utilities import perform_substitutions
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.launch_description_sources import PythonLaunchDescriptionSource, AnyLaunchDescriptionSource
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
 
 
@@ -45,6 +46,12 @@ def generate_launch_description():
         "rviz_config",
         default_value="seeker_sim_config.rviz",
         description="Config filename located under description packages rviz/ directory.",
+    )
+
+    use_foxglove = DeclareLaunchArgument(
+        "use_foxglove",
+        default_value="true",
+        description="Start foxglove_bridge",
     )
 
     spawn_coordinates = DeclareLaunchArgument(
@@ -77,9 +84,22 @@ def generate_launch_description():
     )
 
 
+    navigation_launch_file = PathJoinSubstitution(
+        [
+            get_package_share_directory("hs_navigation"),
+            "launch",
+            "hs_navigation.launch.py"
+        ]
+    )
 
     config_root = PathJoinSubstitution(
         [get_package_share_directory("seeker_sim"), "config"]
+    )
+
+    foxglove_xml_path = os.path.join(
+        get_package_share_directory("foxglove_bridge"),
+        "launch",
+        "foxglove_bridge_launch.xml",
     )
 
 
@@ -145,11 +165,17 @@ def generate_launch_description():
     })
 
 
+    foxglove_bridge_launch = IncludeLaunchDescription(
+        AnyLaunchDescriptionSource(foxglove_xml_path),
+        condition=IfCondition(LaunchConfiguration("use_foxglove")),
+    )
+
+
     launch_Robot_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(Robot_description_launch),
         launch_arguments={
             'model':       LaunchConfiguration('model'),
-            'use_rviz':   'True',
+            'use_rviz':   'False',
             'rviz_params': rviz_config_root,
             'use_joint_state_publisher': 'True'
         }.items()
@@ -304,5 +330,7 @@ def generate_launch_description():
 
     ld.add_action(delay_spawn)
 
+    ld.add_action(use_foxglove)
+    ld.add_action(foxglove_bridge_launch)
 
     return ld
