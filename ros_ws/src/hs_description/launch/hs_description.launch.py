@@ -84,7 +84,6 @@ def robot_state_generator(context, *args, **kwargs):
     )
 
     return [robot_state_publisher_node, joint_state_publisher_node]
-    return [robot_state_publisher_node]
 
 
 def generate_launch_description():
