@@ -13,7 +13,7 @@ find_package(ament_cmake REQUIRED)
 find_package(urdf REQUIRED)
 
 install(
-  DIRECTORY launch meshes sdf
+  DIRECTORY launch meshes sdf model rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
