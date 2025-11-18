@@ -11,7 +11,8 @@ RUN apt update && apt install -y \
     cmake \
     libpcl-dev \
     gh \
-    python3-pip
+    python3-pip \
+    pcl-tools
 
 RUN apt update && apt install -y \
     ros-dev-tools \
@@ -24,6 +25,7 @@ RUN apt update && apt install -y \
     ros-jazzy-depthai-ros \
     ros-jazzy-pcl-conversions \
     ros-jazzy-pcl-msgs \
+    ros-jazzy-pcl-ros \
     ros-jazzy-cartographer \
     ros-jazzy-cartographer-ros \
     ros-jazzy-septentrio-gnss-driver \
@@ -37,8 +39,6 @@ RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add - && \
     sudo apt-get update && \
     sudo apt-get install -y libgz-sensors10-navsat libgz-sensors10-navsat-dev gz-harmonic
-     
-
 
 # Install DepthAI (Python SDK)
 RUN pip install depthai --no-deps --force-reinstall --break-system-packages
@@ -70,8 +70,6 @@ RUN echo "source /usr/share/colcon_cd/function/colcon_cd.sh" >> /home/${USER_NAM
 
 RUN echo "export _colcon_cd_root=/opt/ros/jazzy/" >> /home/${USER_NAME}/.bashrc
 RUN echo "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> /home/${USER_NAME}/.bashrc
-
-
 
 ARG ROS_DOMAIN_ID=0
 RUN echo "export ROS_DOMAIN_ID=${ROS_DOMAIN_ID}" >> /home/${USER_NAME}/.bashrc
