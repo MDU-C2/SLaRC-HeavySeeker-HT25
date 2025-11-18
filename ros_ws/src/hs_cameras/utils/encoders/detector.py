@@ -60,7 +60,7 @@ class EncoderDetector:
                     "extra_args": extra,
                 }
             else:
-                logger.warning(f"✖ Encoder unusable: {info.ffmpeg_name}")
+                logger.warning(f"Encoder unusable: {info.ffmpeg_name}")
 
         # fallback
         logger.error("No usable hardware encoder found — falling back to software x264")

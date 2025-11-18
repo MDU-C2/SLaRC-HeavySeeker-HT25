@@ -69,12 +69,12 @@ def generate_launch_description():
             # Encoder defaults (user overrideable)
             # -------------------------------
             {"encoder.prefer_hevc": False},
-            {"encoder.quality": 4},
+            {"encoder.quality": 5},
             {"encoder.latency": "ultra_low"},
             {"encoder.bitrate_mode": "CRF"},
-            {"encoder.bitrate": "12M"},
-            {"encoder.maxrate": "12M"},
-            {"encoder.bufsize": "24M"},
+            {"encoder.bitrate": "8M"},
+            {"encoder.maxrate": "8M"},
+            {"encoder.bufsize": "16M"},
             {"encoder.crf": 23},
             {"encoder.gop": 1},
             {"encoder.bframes": 0},

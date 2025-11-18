@@ -15,7 +15,7 @@ class FFmpegProbe:
         try:
             size = "128x128" if "hevc" in encoder_name else "64x64"
             if "vaapi" in encoder_name:
-                # Special handling for VAAPI – this is what made it work before
+                # Special handling for VAAPI one Ubuntu server (it requiers a display usually)
                 cmd = [
                     "ffmpeg", "-hide_banner", "-loglevel", "error",
                     "-vaapi_device", "/dev/dri/renderD128",
@@ -35,6 +35,7 @@ class FFmpegProbe:
                     "-f", "null", "-",
                 ]
             
+
             proc = subprocess.run(
                 cmd,
                 stdout=subprocess.PIPE,
