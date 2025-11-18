@@ -10,7 +10,7 @@ autostart = 'true'
 use_lifecycle_manager = 'false'
 use_sim_time = 'false'
 slam_params_file = os.path.join(get_package_share_directory("hs_bringup"), "config", "slam_async_config.yaml")
-nav2_params_file = os.path.join(get_package_share_directory("hs_bringup"), "config", "nav2_config.yaml")
+nav2_params_file = os.path.join(get_package_share_directory("hs_bringup"), "config", "nav2_params.yaml")
 output_velocity_topic = "platform/cmd_vel"
 ################### configs end #####################
 
