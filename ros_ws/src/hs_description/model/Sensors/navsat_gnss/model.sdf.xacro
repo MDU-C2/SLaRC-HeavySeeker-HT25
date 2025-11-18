@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:macro name="navsat_gnss" params="parent_link xyz rpy name:='gnss' rate:='10'">
-    <!-- Länk som bär sensorn -->
     <link name="${name}_link">
       <inertial>
         <mass>0.01</mass>
@@ -28,13 +27,10 @@
         </navsat>
 
         <plugin name="gz::sim::systems::NavSat" filename="gz-sim-navsat-system">
-          <!-- <topic>/gps/fix</topic>
-          <frame_id>gnss_link</frame_id> -->
         </plugin>
       </sensor>
     </link>
 
-    <!-- Fäst länken på vår rigg/UGV -->
     <joint name="${name}_mount" type="fixed">
       <parent>${parent_link}</parent>
       <child>${name}_link</child>

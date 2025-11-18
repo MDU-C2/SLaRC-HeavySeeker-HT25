@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(hs_description)
+project(hs_robot)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -7,15 +7,16 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
-find_package(urdf REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(hs_msgs REQUIRED)
 
-install(
-  DIRECTORY launch meshes sdf model rviz
-  DESTINATION share/${PROJECT_NAME}
-)
+add_executable(health_check src/health_check.cpp)
+add_executable(robot_node src/robot.cpp)
+
+ament_target_dependencies(health_check rclcpp std_msgs hs_msgs)
+ament_target_dependencies(robot_node rclcpp std_msgs geometry_msgs hs_msgs)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -28,5 +29,14 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+install(TARGETS 
+  health_check
+  robot_node
+  DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME})
 
 ament_package()
