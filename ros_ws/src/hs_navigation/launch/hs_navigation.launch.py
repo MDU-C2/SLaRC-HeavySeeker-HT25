@@ -76,14 +76,6 @@ def generate_launch_description():
         ],
     )
 
-    UGV_to_map_tf = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        # x  y  z   roll pitch yaw   parent_frame   child_frame
-        arguments=["0.0","0.0","0.0","0.0","0.0","0.0","map","UGV_link"],
-        output="screen",
-        name="map_to_footprint_static_tf"
-    )
 
     gnss_to_rig_tf = Node(
         package="tf2_ros",
@@ -122,12 +114,11 @@ def generate_launch_description():
         waypoint_bridge_node,
         rviz_node,
         # TimerAction(period=10.0, actions=[slam_toolbox_cmd]),
-        # TimerAction(period=20.0, actions=[nav2_bringup_cmd])
+        TimerAction(period=5.0, actions=[nav2_bringup_cmd])
     ]
     hs = GroupAction(actions)
 
     ld = LaunchDescription(ARGUMENTS)
     ld.add_action(hs)
-    # ld.add_action(UGV_to_map_tf)
     ld.add_action(gnss_to_rig_tf)
     return ld

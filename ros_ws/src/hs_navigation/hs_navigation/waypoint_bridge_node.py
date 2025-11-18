@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # Bridge between ROS2 and GPS Waypoint Follower.
 # The node takes in wgs84 coordinates and sends them to nav2 gps waypoint follower.
 # Example code from navigation 2's tutorial

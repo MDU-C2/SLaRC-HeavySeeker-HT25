@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
 <sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:include filename="$(find seeker_sim)/model/Rigs/Rig_simpelBox_xacro/model.sdf.xacro" />
-  <xacro:include filename="$(find seeker_sim)/model/Sensors/oakd/model.sdf.xacro"/>
-  <xacro:include filename="$(find seeker_sim)/model/Sensors/mid360_lidar/model.sdf.xacro"/>
-  <xacro:include filename="$(find seeker_sim)/model/UGV/Husky_stripped_xacro/model.sdf.xacro"/>
-  <xacro:include filename="$(find seeker_sim)/model/Sensors/navsat_gnss/model.sdf.xacro"/>
+  <xacro:include filename="$(find hs_description)/model/Rigs/Rig_simpelBox_xacro/model.sdf.xacro" />
+  <xacro:include filename="$(find hs_description)/model/Sensors/oakd/model.sdf.xacro"/>
+  <xacro:include filename="$(find hs_description)/model/Sensors/mid360_lidar/model.sdf.xacro"/>
+  <xacro:include filename="$(find hs_description)/model/UGV/Husky_stripped_xacro/model.sdf.xacro"/>
+  <xacro:include filename="$(find hs_description)/model/Sensors/navsat_gnss/model.sdf.xacro"/>
 
   <model name="Rig5" canonical_link='UGV_link'>
 
@@ -72,36 +72,30 @@
     <joint name="base_joint" type="fixed">
       <parent>rig_link</parent>
       <child>rig_bottom_link</child>
-      <!-- ingen pose behövs här -->
     </joint>
 
     <joint name="top_joint" type="fixed">
       <parent>rig_link</parent>
       <child>rig_top_link</child>
-      <!-- ingen pose behövs här -->
     </joint>
 
     <joint name="right_side_joint" type="fixed">
       <parent>rig_link</parent>
       <child>rig_right_link</child>
-      <!-- ingen pose behövs här -->
     </joint>
 
     <joint name="left_side_joint" type="fixed">
       <parent>rig_link</parent>
       <child>rig_left_link</child>
-      <!-- ingen pose behövs här -->
     </joint>
 
     <joint name="left_front_joint" type="fixed">
       <parent>rig_link</parent>
       <child>rig_front_link</child>
-      <!-- ingen pose behövs här -->
     </joint>
     <joint name="left_back_joint" type="fixed">
       <parent>rig_link</parent>
       <child>rig_back_link</child>
-      <!-- ingen pose behövs här -->
     </joint>
 
 

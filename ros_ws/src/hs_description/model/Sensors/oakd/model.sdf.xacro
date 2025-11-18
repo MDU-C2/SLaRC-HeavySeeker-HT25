@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <sdf version="1.11" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:include filename="$(find seeker_sim)/model/Sensors/oakd/common.sdf.xacro" />
+  <xacro:include filename="$(find hs_description)/model/Sensors/oakd/common.sdf.xacro" />
 
     <xacro:macro name="oakd" params='name:=oakd_pro parent_link xyz:="0 0 0" rpy:="0 0 0"'>
 
@@ -17,10 +17,6 @@
       <xacro:property name="collision_offset_z"   value="${-0.5*cm2m}" />
 
       <xacro:property name="base_frame" value="${name}_link"/>
-
-    
-
-      
 
       <link name="${base_frame}">
         <pose relative_to="${parent_link}">${xyz} ${rpy}</pose>
@@ -91,7 +87,7 @@
       <joint name="${name}_rgb_camera_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_rgb_camera_frame</child>
-        <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
+        
       </joint>
 
       <link name="${name}_rgb_camera_optical_frame">
@@ -99,7 +95,7 @@
       </link>
       
       <joint name="${name}_rgb_camera_optical_joint" type="fixed">
-        <pose relative_to="${base_frame}">0 0 0 0.0 0.0 0.0</pose>
+        
         <parent>${name}_rgb_camera_frame</parent>
         <child>${name}_rgb_camera_optical_frame</child>
       </joint>
@@ -108,7 +104,6 @@
       <joint name="${name}_rgb_camera_sensor_mount_joint" type="fixed">
         <parent>${name}_rgb_camera_optical_frame</parent>
         <child>${name}_rgb_camera_sensor_mount</child>
-        <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
       </joint>
 
       <!-- Left Camera -->

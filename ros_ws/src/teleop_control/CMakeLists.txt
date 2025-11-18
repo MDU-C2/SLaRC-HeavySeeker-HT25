@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(hs_description)
+project(teleop_control)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -7,15 +7,42 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
-find_package(urdf REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(SDL2 REQUIRED CONFIG)
 
-install(
-  DIRECTORY launch meshes sdf model rviz
+
+# C++ 
+add_executable(teleop_keyboard src/teleop_keyboard.cpp)
+ament_target_dependencies(teleop_keyboard rclcpp geometry_msgs)
+target_link_libraries(teleop_keyboard SDL2::SDL2 SDL2::SDL2main)
+
+
+
+install(TARGETS teleop_keyboard
+  DESTINATION lib/${PROJECT_NAME})
+
+
+
+# Python
+install(PROGRAMS
+  src/teleop_joy.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Launch
+install(DIRECTORY
+  launch
   DESTINATION share/${PROJECT_NAME}
 )
+
+
+
+
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -30,3 +57,5 @@ if(BUILD_TESTING)
 endif()
 
 ament_package()
+
+
