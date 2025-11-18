@@ -227,7 +227,7 @@
       <joint name="${name}_imu_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_imu_frame</child>
-        <pose>0 0 0 -0.5 0.5 -0.5 0.5</pose>
+        <pose rotation_format="quat_xyzw">0 0 0 -0.5 0.5 -0.5 0.5</pose>
       </joint>
 
     </xacro:macro>

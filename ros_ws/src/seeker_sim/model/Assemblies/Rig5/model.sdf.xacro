@@ -4,15 +4,20 @@
   <xacro:include filename="$(find seeker_sim)/model/Sensors/oakd/model.sdf.xacro"/>
   <xacro:include filename="$(find seeker_sim)/model/Sensors/mid360_lidar/model.sdf.xacro"/>
   <xacro:include filename="$(find seeker_sim)/model/UGV/Husky_stripped_xacro/model.sdf.xacro"/>
-  <model name="Rig4" canonical_link='UGV_link'>
+  <xacro:include filename="$(find seeker_sim)/model/Sensors/navsat_gnss/model.sdf.xacro"/>
 
-    <xacro:property name="oakd_x_offset" value="${0*cm2m}"/>
+  <model name="Rig5" canonical_link='UGV_link'>
+
+    <xacro:property name="oakd_x_offset" value="${4*cm2m}"/>
     <xacro:property name="oakd_y_offset" value="${0*cm2m}"/>
     <xacro:property name="oakd_z_offset" value="${0*cm2m}"/>
     <xacro:property name="mid360_lidar_x_offset" value="${0*cm2m}"/>
     <xacro:property name="mid360_lidar_y_offset" value="${0*cm2m}"/>
     <xacro:property name="mid360_lidar_z_offset" value="${0*cm2m}"/>
     <xacro:property name="rig_pos_relative_2_UGV" value="0 0 0.45 0 0 0"/>  
+    <xacro:property name="gnss_x_offset" value="${0*cm2m}"/>
+    <xacro:property name="gnss_y_offset" value="${0*cm2m}"/>
+    <xacro:property name="gnss_z_offset" value="${15*cm2m}"/>
 
 
 
@@ -35,11 +40,11 @@
     <!-- <origin xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}"/> -->
 
     <link name="rig_bottom_link">
-    <pose relative_to="rig_link">0 0 ${-0.5*box_size_z} 0 ${pi/2} 0</pose>
+    <pose relative_to="rig_link">0 0 ${-0.5*box_size_z} 0 0 0</pose>
     </link>
 
     <link name="rig_top_link">
-    <pose relative_to="rig_link">0 0 ${0.5*box_size_z} 0 ${-pi/2} 0</pose>
+    <pose relative_to="rig_link">0 0 ${0.5*box_size_z} 0 0 0</pose>
     </link>
 
     <link name="rig_front_link">
@@ -47,19 +52,20 @@
     </link>
 
     <link name="rig_back_link">
-    <pose relative_to="rig_link">${-0.5*box_size_x} 0 0 0 0 ${pi}</pose>
+    <pose relative_to="rig_link">${-0.5*box_size_x} 0 0 0 0 0</pose>
     </link>
 
     <link name="rig_left_link">
-    <pose relative_to="rig_link">0 ${0.5*box_size_y} 0 0 0 ${pi/2}</pose>
+    <pose relative_to="rig_link">0 ${0.5*box_size_y} 0 0 0 0</pose>
     </link>
 
     <link name="rig_right_link">
-    <pose relative_to="rig_link">0 ${-0.5*box_size_y} 0 0 0 ${-pi/2}</pose>
+    <pose relative_to="rig_link">0 ${-0.5*box_size_y} 0 0 0 0</pose>
     </link>
 
-    <xacro:oakd parent_link="rig_left_link" xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}" rpy="0 0 0"/>
-    <xacro:mid360_lidar parent_link="rig_top_link" xyz="${mid360_lidar_x_offset} ${mid360_lidar_x_offset} ${mid360_lidar_x_offset}" rpy="0 ${pi/2} 0"/>
+    <xacro:navsat_gnss parent_link="rig_top_link" xyz="${gnss_x_offset} ${gnss_y_offset} ${gnss_z_offset}" rpy="0 0 0"/>
+    <xacro:oakd parent_link="rig_front_link" xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}" rpy="0 0 0"/>
+    <xacro:mid360_lidar parent_link="rig_top_link" xyz="${mid360_lidar_x_offset} ${mid360_lidar_y_offset} ${mid360_lidar_z_offset}" rpy="0 0 0"/>
     <xacro:Husky_stripped_xacro base_link="UGV_link"/>
 
 

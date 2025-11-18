@@ -131,6 +131,33 @@
         </material>
       </visual>
     </link>
+
+    <link name="base_footprint">
+      <visual name="base_footprint_visual">
+        <geometry>
+          <box>
+            <size>0.80 0.5709 0.095</size>
+          </box>
+        </geometry>
+
+        <material>
+          <ambient>0.1 0.1 0.1 1.0</ambient>
+          <diffuse>0.0 0.6 0.8 1.0</diffuse> 
+          <specular>0.2 0.2 0.2 1.0</specular>
+          <emissive>0 0 0 1.0</emissive>
+        </material>
+
+        <transparency>0.65</transparency>
+      </visual>
+    </link> 
+
+  <joint name="base_footprint_to_base_link" type="fixed">
+    <parent>${base_link}</parent>
+    <child>base_footprint</child>
+    <pose relative_to="${base_link}">0 0 0.046 0 0 0</pose>
+  </joint>
+
+
     <link name="front_left_wheel_link">
       <pose frame="">0.256 0.2854 0.03282 0 -0 0</pose>
       <inertial>
@@ -443,12 +470,15 @@
       <wheel_radius>0.165</wheel_radius>
 
       <!-- Topics / frames -->
-      <topic>/model/husky/cmd_vel</topic>
-      <odom_topic>/model/husky/odometry</odom_topic>
+      <topic>/cmd_vel</topic>
+      <odom_topic>/odometry/wheel</odom_topic>
       <odom_frame>odom</odom_frame>
-      <robot_base_frame>base_link</robot_base_frame>
+      <frame_id>odom</frame_id>
+      <child_frame_id>${base_link}</child_frame_id>
+      <robot_base_frame>${base_link}</robot_base_frame>
       <publish_odom>true</publish_odom>
       <publish_tf>false</publish_tf>
     </plugin>
   </xacro:macro>
 </sdf>
+  
