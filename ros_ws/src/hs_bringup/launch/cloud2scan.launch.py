@@ -2,8 +2,8 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 ################### user configure parameters for ros2 ###################
-min_height=-0.3
-max_height=0.2
+min_height=-0.4
+max_height=0.1
 angle_min=-3.1416
 angle_max=3.1416
 angle_increment=0.005
