@@ -42,7 +42,7 @@ bt_navigator:
   ros__parameters:
     global_frame: map
     robot_base_frame: UGV_link
-    odom_topic: /odometry/wheel
+    odom_topic: /odometry/local # /odometry/wheel
     bt_loop_duration: 10
     default_server_timeout: 20
     wait_for_service_timeout: 1000
@@ -86,9 +86,9 @@ controller_server:
     current_goal_checker: "general_goal_checker"
     current_progress_checker: "progress_checker"
     progress_checker_plugins: ["progress_checker"]
-    goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
+    goal_checker_plugins: ["general_goal_checker"]
     controller_plugins: ["FollowPath"]
-    odom_topic: /odometry/wheel
+    odom_topic: /odometry/local # /odometry/wheel
     use_realtime_priority: false
     enable_stamped_cmd_vel: true
 
@@ -117,12 +117,12 @@ controller_server:
       ax_min: -3.0
       ay_max: 3.0
       az_max: 3.5
-      vx_std: 0.2
-      vy_std: 0.2
+      vx_std: 2.0
+      vy_std: 1.0
       wz_std: 0.4
-      vx_max: 0.5
+      vx_max: 2.0
       vx_min: -0.35
-      vy_max: 0.5
+      vy_max: 1.5
       wz_max: 1.9
       iteration_count: 1
       prune_distance: 1.7
@@ -199,10 +199,6 @@ controller_server:
         threshold_to_consider: 0.5
         max_angle_to_furthest: 1.0
         mode: 0
-      # TwirlingCritic:
-      #   enabled: true
-      #   twirling_cost_power: 1
-      #   twirling_cost_weight: 10.0
 
 local_costmap:
   local_costmap:
@@ -238,20 +234,15 @@ local_costmap:
           #   * User chosen topic is `scan`.
           #   * Topic will be remapped to `/tb4/scan` without `local_costmap`.
           #   * Use global topic `/scan` if you do not wish the node namespace to apply
-          topic: "/scan" #/scan
-          # topic: scan
+          topic: "/scan"
           max_obstacle_height: 2.0
           clearing: True
           marking: True
           data_type: "LaserScan"
-          # data_type: "LaserScan"
           raytrace_max_range: 3.0
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
-      # static_layer:
-      #   plugin: "nav2_costmap_2d::StaticLayer"
-      #   map_subscribe_transient_local: True
       always_send_full_costmap: True
 
 global_costmap:
@@ -285,7 +276,7 @@ global_costmap:
         mark_threshold: 0
         observation_sources: scan
         scan:
-          topic: /scan # /scan
+          topic: /scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -376,11 +367,11 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.5, 0.0, 2.0]
+    max_velocity: [2.0, 0.0, 2.0]
     min_velocity: [-0.5, 0.0, -2.0]
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
-    odom_topic: /odometry/local #"odom"
+    odom_topic: /odometry/local
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
@@ -477,6 +468,6 @@ loopback_simulator:
     base_frame_id: "base_footprint"
     odom_frame_id: "odom"
     map_frame_id: "map"
-    scan_frame_id: "base_scan" # tb4_loopback_simulator.launch.py remaps to 'rplidar_link'
+    scan_frame_id: "base_scan"
     update_duration: 0.02
     enable_stamped_cmd_vel: true

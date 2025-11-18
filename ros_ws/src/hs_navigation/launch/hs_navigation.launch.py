@@ -16,7 +16,6 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    description_dir = get_package_share_directory("hs_description")
     nav_dir = get_package_share_directory("hs_navigation")
     slam_dir = get_package_share_directory("slam_toolbox")
     nav2_bringup_dir = get_package_share_directory("nav2_bringup")
@@ -50,11 +49,6 @@ def generate_launch_description():
 
     namespace = LaunchConfiguration("namespace")
     use_sim_time = LaunchConfiguration("use_sim_time")
-
-    # description_base_link_cmd = IncludeLaunchDescription(
-    #     PathJoinSubstitution([description_dir, "launch", "hs_description.launch.py"]),
-    #     launch_arguments=[("namespace", namespace)],
-    # )
 
 
     mapviz_launch = PathJoinSubstitution(
@@ -125,13 +119,12 @@ def generate_launch_description():
 
     actions = [
         PushROSNamespace(namespace),
-        #description_base_link_cmd,
         robot_localization_node,
         waypoint_bridge_node,
         rviz_node,
         mapviz_launch_description,
-        TimerAction(period=10.0, actions=[slam_toolbox_cmd]),
-        TimerAction(period=5.0, actions=[nav2_bringup_cmd])
+        TimerAction(period=5.0, actions=[slam_toolbox_cmd]),
+        TimerAction(period=10.0, actions=[nav2_bringup_cmd])
     ]
     hs = GroupAction(actions)
 
