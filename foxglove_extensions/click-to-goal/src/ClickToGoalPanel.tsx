@@ -4,9 +4,9 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { PanelExtensionContext } from "@foxglove/studio";
 
-type GeoPointStamped = {
+type PointStamped = {
   header: { frame_id: string; stamp: { sec: number; nsec: number } };
-  position: { latitude: number; longitude: number; altitude: number };
+  position: { x: number; y: number; z: number };
 };
 
 function nowStamp() {
@@ -39,10 +39,10 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       void renderState
       if (!pubReady) {
         try {
-          context?.advertise?.("/goal_geo", "geographic_msgs/msg/GeoPointStamped");
+          context?.advertise?.("/clicked_point", "geometry_msgs/msg/PointStamped");
           setPubReady(true);
         } catch (e) {
-          console.log("advertise /goal_geo failed:", e);
+          console.log("advertise /clicked_point failed:", e);
         }
       }
       
@@ -83,7 +83,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   }, [context, pubReady, initialCenter]);
 
   useEffect(() => {
-    // We need a container-element, no map-object, AND an initialCenter to run the map where the robot is
+    // vi behöver ett container-element, inget befintligt map-objekt, OCH en initialCenter för att starta upp kartan på robotens position
     if (!containerRef.current || mapRef.current || !initialCenter) {
       return;
     }
@@ -133,11 +133,11 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
 
 
       if (pubReady && context.publish) {
-        const msg: GeoPointStamped = {
+        const msg: PointStamped = {
           header: { frame_id: "wgs84", stamp: nowStamp() },
-          position: { latitude: lat, longitude: lng, altitude: 0.0 },
+          position: { x: lat, y: lng, z: 0.0 },
         };
-        context.publish("/goal_geo", msg);
+        context.publish("/clicked_point", msg);
         console.log(msg)
       }
     });
