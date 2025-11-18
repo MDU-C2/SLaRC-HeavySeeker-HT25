@@ -372,6 +372,7 @@ velocity_smoother:
 
 collision_monitor:
   ros__parameters:
+    enable_stamped_cmd_vel: True
     base_frame_id: "base_footprint"
     odom_frame_id: "odom"
     cmd_vel_in_topic: "cmd_vel_smoothed"
