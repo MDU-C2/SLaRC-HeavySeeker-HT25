@@ -2,7 +2,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import ExecuteProcess, IncludeLaunchDescription, GroupAction
+from launch.actions import IncludeLaunchDescription, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 ################### configs start ###################
@@ -42,7 +42,7 @@ def generate_launch_description():
             os.path.join(slam_toolbox_dir, 'launch', 'online_sync_launch.py')
         ),
         launch_arguments={
-            'use_sim_time': autostart,
+            'autostart': autostart,
             'use_lifecycle_manager': use_lifecycle_manager,
             'use_sim_time': use_sim_time,
             'slam_params_file': slam_params_file,
@@ -55,7 +55,7 @@ def generate_launch_description():
             os.path.join(nav2_bringup_dir, 'launch', 'bringup_launch.py')
         ),
         launch_arguments={
-            'use_sim_time': autostart,
+            'autostart': autostart,
             'use_sim_time': use_sim_time,
             'params_file': nav2_params_file,
         }.items(),
