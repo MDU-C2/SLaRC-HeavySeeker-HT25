@@ -2,69 +2,83 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import ExecuteProcess
+from launch.actions import ExecuteProcess, IncludeLaunchDescription, GroupAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 ################### configs start ###################
-#SLAM:
-autostart = True
-use_lifecycle_manager = False
-use_sim_time = True
-slam_params_file = os.path.join(get_package_share_directory("hs_bringup"), "config", "slam_sync_config.yaml")
-
-#NAV2:
+autostart = 'true'
+use_lifecycle_manager = 'false'
+use_sim_time = 'false'
+slam_params_file = os.path.join(get_package_share_directory("hs_bringup"), "config", "slam_async_config.yaml")
+nav2_params_file = os.path.join(get_package_share_directory("hs_bringup"), "config", "nav2_config.yaml")
 output_velocity_topic = "platform/cmd_vel"
 ################### configs end #####################
 
-slam_params = [
-    {"autostart": autostart},
-    {"use_lifecycle_manager": use_lifecycle_manager},
-    {"use_sim_time": use_sim_time},
-    {"slam_params_file": slam_params_file},
-]
-
 
 def generate_launch_description():
-    livox_lidar = Node(
-        package='hs_bringup',
-        executable='livox_launch.py',
-        name='livox_lidar_publisher',
-        output='screen',
-        )
-    
-    cloud2scan = Node(
-        package='hs_bringup',
-        executable='cloud2scan.launch.py',
-        name='cloud2scan_node',
-        output='screen',
-        )
-    
-    livox_frame = ExecuteProcess(cmd=[
-        'ros2', 'run', 'tf2_ros', 'static_transform_publisher',
-        '0.17', '0.0', '0.18',
-        '3.1415926', '0.0', '0.0',
-        'top_plate_rear_mount', 'livox_frame'],
-        output='screen')
+    # Directories
+    hs_bringup_dir = get_package_share_directory('hs_bringup')
+    slam_toolbox_dir = get_package_share_directory('slam_toolbox')
+    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
 
-    slam_node = Node(
-        package='slam_toolbox',
-        executable='online_sync_launch.py',
-        name='slam_bringup',
+    # Descriptions
+    # Lidar
+    livox_lidar_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(hs_bringup_dir, 'launch', 'livox_launch.py')
+        ),
+    )
+
+    # Cloud2Scan
+    cloud2scan_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(hs_bringup_dir, 'launch', 'cloud2scan.launch.py')
+        ),
+    )
+
+    # SLAM
+    slam_toolbox_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(slam_toolbox_dir, 'launch', 'online_sync_launch.py')
+        ),
+        launch_arguments={
+            'use_sim_time': autostart,
+            'use_lifecycle_manager': use_lifecycle_manager,
+            'use_sim_time': use_sim_time,
+            'slam_params_file': slam_params_file,
+        }.items(),
+    )
+
+    # NAV2
+    nav2_bringup_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(nav2_bringup_dir, 'launch', 'bringup_launch.py')
+        ),
+        launch_arguments={
+            'use_sim_time': autostart,
+            'use_sim_time': use_sim_time,
+            'params_file': nav2_params_file,
+        }.items(),
+    )
+
+    # Group
+    group = GroupAction([
+        livox_lidar_launch,
+        cloud2scan_launch,
+        slam_toolbox_launch,
+        nav2_bringup_launch,
+    ])
+
+    # Frame
+    livox_frame = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='livox_frame_static_broadcaster',
         output='screen',
-        parameters=slam_params,
-        )
-    
-    nav2_node = Node(
-        package='nav2_bringup',
-        executable='bringup_launch.py',
-        name='nav2_bringup',
-        output='screen',
-        remappings=[('cmd_vel', output_velocity_topic)]
-        )
+        arguments=['0.17', '0.0', '0.18', '3.1415926', '0.0', '0.0', 'top_plate_rear_mount', 'livox_frame'],
+    )
 
     return LaunchDescription([
-        livox_lidar,
-        cloud2scan,
+        group,
         livox_frame,
-        slam_node,
-        nav2_node,
     ])
