@@ -50,10 +50,7 @@ DEFAULT_USB_PARAMS = {
 logger = logging.getLogger("CameraManager")
 logging.basicConfig(level=logging.INFO, format="[%(name)s] %(levelname)s: %(message)s")
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+#===================== Load camera configs =====================
 
 def load_camera_config(yaml_path: str):
     logger = logging.getLogger("CameraConfig")
@@ -79,7 +76,7 @@ def load_camera_config(yaml_path: str):
     )
     return oak_cameras, usb_cameras
 
-
+#===================== Choose best pixelformat from the camera (used for unkown usb cameras) =====================
 def choose_pixel_format(device: str) -> str:
     logger = logging.getLogger("PixelFormat")
 
@@ -102,7 +99,7 @@ def choose_pixel_format(device: str) -> str:
         logger.warning("%s: could not determine pixel format (%s) — defaulting to YUYV", device, e)
         return "yuyv"
 
-
+#===================== Assing names for topics (camera0 camera1 etc.) Unknown will be sorted by port number =====================
 def assign_names(cameras, config, prefix, id_attr="id", port_attr="port_path"):
 
     configured = config or {}

@@ -24,9 +24,9 @@ ament_export_dependencies(rosidl_default_runtime)
 # Install Python packages
 # --------------------------------------------------------------------
 
-ament_python_install_package(fpv_server)
+ament_python_install_package(camera_server)
 ament_python_install_package(fpv_client)
-ament_python_install_package(cameras)
+ament_python_install_package(init_cameras)
 ament_python_install_package(utils)
 
 # --------------------------------------------------------------------
@@ -34,7 +34,7 @@ ament_python_install_package(utils)
 # --------------------------------------------------------------------
 
 install(PROGRAMS
-  fpv_server/server_node.py
+  camera_server/server_node.py
   DESTINATION lib/${PROJECT_NAME}
   RENAME server_node
 )

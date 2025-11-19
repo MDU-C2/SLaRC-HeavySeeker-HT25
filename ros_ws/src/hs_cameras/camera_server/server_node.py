@@ -4,7 +4,7 @@
 import rclpy
 from rclpy.node import Node
 
-from fpv_server.camera_server import CameraServer
+from camera_server.camera_server import CameraServer
 
 
 def main(args=None):

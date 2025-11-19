@@ -7,7 +7,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch_ros.descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_directory
-from cameras.manage_cameras import CameraManager
+from init_cameras.manage_cameras import CameraManager
 
 #-----------------Setup logging--------------------------
 logger = logging.getLogger("hs_camera_launch")
@@ -66,7 +66,7 @@ def generate_launch_description():
             {"cameras_json": ParameterValue(json.dumps(cameras), value_type=str)},
 
             # -------------------------------
-            # Encoder defaults (user overrideable)
+            # Encoder use defaults unless changed here. 
             # -------------------------------
             {"encoder.prefer_hevc": False},
             {"encoder.quality": 5},

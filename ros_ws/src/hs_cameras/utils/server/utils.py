@@ -1,9 +1,7 @@
 import json
-import re
-import json
 
 def load_camera_configs(node):
-    """Load camera configuration JSON from ROS parameter 'cameras_json'."""
+    
     node.declare_parameter("cameras_json", "")
     raw = node.get_parameter("cameras_json").value
 
@@ -20,7 +18,7 @@ def load_camera_configs(node):
 
 
 def find_camera_topics(topics):
-    """Return a mapping of camera_name -> best /image_raw topic."""
+    
     candidates = {}
     for name, types in topics:
         if not name.endswith("/image_raw"):

@@ -58,7 +58,7 @@ class CameraActionManager:
                 self.current_cameras.append(cam)
         self.pending_starts |= set(new_cams)
 
-        log(f"🚀 Starting encoders for: {', '.join(new_cams)}")
+        log(f"Starting encoders for: {', '.join(new_cams)}")
 
         try:
             self.start_client.wait_for_server()
@@ -96,7 +96,7 @@ class CameraActionManager:
             msg, topic = result.message, getattr(result, "topic", "")
             log(f"Result: {msg}")
             if topic:
-                log(f"🔗 Encoded topic: {topic}")
+                log(f"Encoded topic: {topic}")
 
             cam = self._extract_name(msg)
             if cam and cam in self.pending_starts:
@@ -198,7 +198,7 @@ class CameraActionManager:
         def _on_resp(f=None):
             """Unified printout for both startup and list command."""
             self.node.clear_screen()
-            print("=== [o]📸 Camera Status ===\n")
+            print("=== [o] Camera Status ===\n")
 
             if f is None:
                 # Service not available or not queried yet

@@ -3,9 +3,9 @@ from rclpy.node import Node
 
 from hs_cameras.srv import GetCameras
 
-from fpv_server.encoder_manager import EncoderManager
-from fpv_server.camera_registry import CameraRegistry
-from fpv_server.action_handler import CameraActionHandler
+from camera_server.encoder_manager import EncoderManager
+from camera_server.camera_registry import CameraRegistry
+from camera_server.action_handler import CameraActionHandler
 
 from utils.server import load_camera_configs
 

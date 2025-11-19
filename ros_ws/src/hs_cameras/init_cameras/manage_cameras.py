@@ -4,14 +4,14 @@ import logging
 
 try:
     # --- Works when built and launched via ROS 2 ---
-    from cameras.utils import (
+    from init_cameras.utils import (
         load_camera_config,
         choose_pixel_format,
         assign_names,
         DEFAULT_OAK_PARAMS,
         DEFAULT_USB_PARAMS,
     )
-    from cameras.detect_cameras import DetectCameras, USBCamera, DepthAICamera
+    from init_cameras.detect_cameras import DetectCameras, USBCamera, DepthAICamera
 except ModuleNotFoundError:
     # --- Works when running directly from VS Code or src/ ---
     from utils import (
