@@ -6,7 +6,7 @@ import type { PanelExtensionContext } from "@foxglove/studio";
 
 type PointStamped = {
   header: { frame_id: string; stamp: { sec: number; nsec: number } };
-  position: { x: number; y: number; z: number };
+  point: { x: number; y: number; z: number };
 };
 
 function nowStamp() {
@@ -134,8 +134,15 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
 
       if (pubReady && context.publish) {
         const msg: PointStamped = {
-          header: { frame_id: "wgs84", stamp: nowStamp() },
-          position: { x: lat, y: lng, z: 0.0 },
+          header: { 
+            frame_id: "map",       
+            stamp: nowStamp(),
+          },
+          point: {
+            x: lng,                 
+            y: lat,           
+            z: 0.0,
+          },
         };
         context.publish("/clicked_point", msg);
         console.log(msg)
