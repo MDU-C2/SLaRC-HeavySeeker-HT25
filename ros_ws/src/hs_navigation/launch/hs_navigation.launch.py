@@ -10,15 +10,15 @@ from launch.actions import (
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition
 from launch_ros.actions import Node, PushROSNamespace
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    description_dir = get_package_share_directory("hs_description")
     nav_dir = get_package_share_directory("hs_navigation")
     slam_dir = get_package_share_directory("slam_toolbox")
-    nav2_bringup_cmd = get_package_share_directory("nav2_bringup")
+    nav2_bringup_dir = get_package_share_directory("nav2_bringup")
 
     rviz_config = PathJoinSubstitution([nav_dir, "rviz", "config.rviz"])
     nav2_config = PathJoinSubstitution([nav_dir, "config", "nav2_params.yaml"])
@@ -50,10 +50,15 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     use_sim_time = LaunchConfiguration("use_sim_time")
 
-    description_base_link_cmd = IncludeLaunchDescription(
-        PathJoinSubstitution([description_dir, "launch", "hs_description.launch.py"]),
-        launch_arguments=[("namespace", namespace)],
-    )
+
+    mapviz_launch = PathJoinSubstitution(
+          [
+              get_package_share_directory("hs_navigation"),
+              'launch',
+              'hs_navigation_mapviz.launch.py',
+          ]
+      )
+
 
     rviz_node = Node(
         package="rviz2",
@@ -86,6 +91,11 @@ def generate_launch_description():
         name="gnss_to_rig_static_tf"
     )
 
+    mapviz_launch_description = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(mapviz_launch),
+        condition=IfCondition(LaunchConfiguration("use_map")),
+    )
+
 
     # Robot localization node using world and map ekf
     robot_localization_node = IncludeLaunchDescription(
@@ -99,7 +109,7 @@ def generate_launch_description():
     )
 
     nav2_bringup_cmd = IncludeLaunchDescription(
-        PathJoinSubstitution([nav2_bringup_cmd, "launch", "navigation_launch.py"]),
+        PathJoinSubstitution([nav2_bringup_dir, "launch", "navigation_launch.py"]),
         launch_arguments=[
             ("use_sim_time", use_sim_time),
             ("namespace", namespace),
@@ -109,12 +119,12 @@ def generate_launch_description():
 
     actions = [
         PushROSNamespace(namespace),
-        # description_base_link_cmd,
         robot_localization_node,
         waypoint_bridge_node,
         rviz_node,
-        # TimerAction(period=10.0, actions=[slam_toolbox_cmd]),
-        TimerAction(period=5.0, actions=[nav2_bringup_cmd])
+        mapviz_launch_description,
+        TimerAction(period=5.0, actions=[slam_toolbox_cmd]),
+        TimerAction(period=10.0, actions=[nav2_bringup_cmd])
     ]
     hs = GroupAction(actions)
 
