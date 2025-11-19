@@ -1,6 +1,5 @@
 from rclpy.action import ActionServer, GoalResponse, CancelResponse
 from hs_cameras.action import StartCamera, StopCamera
-from sensor_msgs.msg import Image
 
 from fpv_server.camera_encoder import CameraEncoder
 
