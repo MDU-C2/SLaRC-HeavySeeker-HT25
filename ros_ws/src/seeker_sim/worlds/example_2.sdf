@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.8">
-  <world name="example">
+  <world name="example_2">
     <physics name="default" type="gz-physics">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -73,12 +73,6 @@
       <direction>0 0 -1</direction>
     </light>
 
-    <!-- Husky model -->
-    <include>
-      <uri>model://Husky</uri>
-      <name>Husky</name>
-      <pose>0 0 0.2 0 0 0</pose>
-    </include>
 
 
     <!-- The staging area -->

@@ -8,11 +8,12 @@ services:
         - USER_ID=$USER_ID
         - GROUP_ID=$GROUP_ID
         - USER_NAME=$USER
+        - ROS_DOMAIN_ID=$ROS_DOMAIN_ID
     environment:
       - DISPLAY=$DISPLAY
-      - ROS_DOMAIN_ID=$ROS_DOMAIN_ID
     volumes:
       - ../ros_ws/:/slarc_ws/:rw
+      - ../third_party_sdk_drivers:/third_party_sdk_drivers:rw
       - /tmp/.X11-unix/:/tmp/.X11-unix/:rw
       - /dev:/dev:rw
     network_mode: host

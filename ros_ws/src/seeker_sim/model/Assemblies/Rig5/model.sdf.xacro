@@ -1,0 +1,124 @@
+<?xml version="1.0" ?>
+<sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="$(find seeker_sim)/model/Rigs/Rig_simpelBox_xacro/model.sdf.xacro" />
+  <xacro:include filename="$(find seeker_sim)/model/Sensors/oakd/model.sdf.xacro"/>
+  <xacro:include filename="$(find seeker_sim)/model/Sensors/mid360_lidar/model.sdf.xacro"/>
+  <xacro:include filename="$(find seeker_sim)/model/UGV/Husky_stripped_xacro/model.sdf.xacro"/>
+  <xacro:include filename="$(find seeker_sim)/model/Sensors/navsat_gnss/model.sdf.xacro"/>
+
+  <model name="Rig5" canonical_link='UGV_link'>
+
+    <xacro:property name="oakd_x_offset" value="${4*cm2m}"/>
+    <xacro:property name="oakd_y_offset" value="${0*cm2m}"/>
+    <xacro:property name="oakd_z_offset" value="${0*cm2m}"/>
+    <xacro:property name="mid360_lidar_x_offset" value="${0*cm2m}"/>
+    <xacro:property name="mid360_lidar_y_offset" value="${0*cm2m}"/>
+    <xacro:property name="mid360_lidar_z_offset" value="${0*cm2m}"/>
+    <xacro:property name="rig_pos_relative_2_UGV" value="0 0 0.45 0 0 0"/>  
+    <xacro:property name="gnss_x_offset" value="${0*cm2m}"/>
+    <xacro:property name="gnss_y_offset" value="${0*cm2m}"/>
+    <xacro:property name="gnss_z_offset" value="${15*cm2m}"/>
+
+
+
+    <link name="rig_link">
+      <inertial>
+      <mass>0.1</mass>
+      <inertia>
+        <ixx>0.001</ixx><iyy>0.001</iyy><izz>0.001</izz>
+        <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+      </inertia>
+      </inertial>
+
+      <pose relative_to="UGV_link">${rig_pos_relative_2_UGV}</pose>
+    </link>
+    
+    
+    <xacro:Rig_simpelBox_xacro UGV_link="UGV_link" offset="${rig_pos_relative_2_UGV}"/>
+    <!--use box_size_x,box_size_y,box_size_z in the offset to allign sensor placement-->
+
+    <!-- <origin xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}"/> -->
+
+    <link name="rig_bottom_link">
+    <pose relative_to="rig_link">0 0 ${-0.5*box_size_z} 0 0 0</pose>
+    </link>
+
+    <link name="rig_top_link">
+    <pose relative_to="rig_link">0 0 ${0.5*box_size_z} 0 0 0</pose>
+    </link>
+
+    <link name="rig_front_link">
+    <pose relative_to="rig_link">${0.5*box_size_x} 0 0 0 0 0</pose>
+    </link>
+
+    <link name="rig_back_link">
+    <pose relative_to="rig_link">${-0.5*box_size_x} 0 0 0 0 0</pose>
+    </link>
+
+    <link name="rig_left_link">
+    <pose relative_to="rig_link">0 ${0.5*box_size_y} 0 0 0 0</pose>
+    </link>
+
+    <link name="rig_right_link">
+    <pose relative_to="rig_link">0 ${-0.5*box_size_y} 0 0 0 0</pose>
+    </link>
+
+    <xacro:navsat_gnss parent_link="rig_top_link" xyz="${gnss_x_offset} ${gnss_y_offset} ${gnss_z_offset}" rpy="0 0 0"/>
+    <xacro:oakd parent_link="rig_front_link" xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}" rpy="0 0 0"/>
+    <xacro:mid360_lidar parent_link="rig_top_link" xyz="${mid360_lidar_x_offset} ${mid360_lidar_y_offset} ${mid360_lidar_z_offset}" rpy="0 0 0"/>
+    <xacro:Husky_stripped_xacro base_link="UGV_link"/>
+
+
+    <joint name="base_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_bottom_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+
+    <joint name="top_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_top_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+
+    <joint name="right_side_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_right_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+
+    <joint name="left_side_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_left_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+
+    <joint name="left_front_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_front_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+    <joint name="left_back_joint" type="fixed">
+      <parent>rig_link</parent>
+      <child>rig_back_link</child>
+      <!-- ingen pose behövs här -->
+    </joint>
+
+
+    <joint name="box_mount" type="fixed">
+      <parent>rig_link</parent>
+      <child>box_link</child>
+    
+    </joint>
+
+
+    <joint name="UGV_rig_mount" type="fixed">
+      <parent>UGV_link</parent>
+      <child>rig_link</child>
+    </joint>
+
+
+
+    <pose>0 0 0 0 0 0</pose>
+  </model>
+</sdf>
