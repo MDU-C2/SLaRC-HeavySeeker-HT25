@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(hs_msgs)
+project(s_msgs)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -16,6 +16,13 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetCameras.srv"
   DEPENDENCIES builtin_interfaces
 )
+
+#rosidl_generate_interfaces(${PROJECT_NAME}
+#  "action/StartCamera.action"
+#  "action/StopCamera.action"
+#  "srv/GetCameras.srv"
+#  DEPENDENCIES builtin_interfaces
+#)
 
 ament_export_dependencies(rosidl_default_runtime)
 
