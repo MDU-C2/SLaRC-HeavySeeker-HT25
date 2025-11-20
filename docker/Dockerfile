@@ -34,7 +34,8 @@ RUN apt update && apt install -y \
     ros-jazzy-robot-localization \
     ros-jazzy-mapviz \
     ros-jazzy-mapviz-plugins \
-    ros-jazzy-tile-map
+    ros-jazzy-tile-map \
+    ros-jazzy-foxglove-bridge
 
 
 # Install gazebo harmonic and gz-sensors

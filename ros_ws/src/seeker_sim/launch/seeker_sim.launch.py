@@ -17,7 +17,8 @@ from ament_index_python.packages import get_package_share_directory
 
 import os
 from launch.utilities import perform_substitutions
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.launch_description_sources import PythonLaunchDescriptionSource, AnyLaunchDescriptionSource
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
 
 
@@ -44,7 +45,13 @@ def generate_launch_description():
     rviz_config_arg = DeclareLaunchArgument(
         "rviz_config",
         default_value="seeker_sim_config.rviz",
-        description="Config filename located under this packages config/ directory.",
+        description="Config filename located under description packages rviz/ directory.",
+    )
+
+    use_foxglove = DeclareLaunchArgument(
+        "use_foxglove",
+        default_value="true",
+        description="Start foxglove_bridge",
     )
 
     spawn_coordinates = DeclareLaunchArgument(
@@ -61,8 +68,8 @@ def generate_launch_description():
 
     # --- Paths to package resources (world, models, configs) ---
     Robot_description_launch = PathJoinSubstitution([
-        FindPackageShare('seeker_sim'),
-        'launch', 'description.launch.py'
+        FindPackageShare('hs_description'),
+        'launch', 'hs_description.launch.py'
     ])
 
 
@@ -77,9 +84,22 @@ def generate_launch_description():
     )
 
 
+    navigation_launch_file = PathJoinSubstitution(
+        [
+            get_package_share_directory("hs_navigation"),
+            "launch",
+            "hs_navigation.launch.py"
+        ]
+    )
 
     config_root = PathJoinSubstitution(
         [get_package_share_directory("seeker_sim"), "config"]
+    )
+
+    foxglove_xml_path = os.path.join(
+        get_package_share_directory("foxglove_bridge"),
+        "launch",
+        "foxglove_bridge_launch.xml",
     )
 
 
@@ -87,15 +107,34 @@ def generate_launch_description():
     # RViz2 configuration file (which views/panels to load)
     # make sure the file is located in src/seeker_sim/config folder
     rviz_config_root = PathJoinSubstitution(
-        [config_root, LaunchConfiguration("rviz_config")]
+        [get_package_share_directory("hs_description"), "rviz", LaunchConfiguration("rviz_config")]
     )
 
 
+
+    hs_navigation_launch = PathJoinSubstitution(
+            [
+                get_package_share_directory("hs_navigation"),
+                'launch',
+                'hs_navigation.launch.py',
+            ]
+        )
+
+    hs_scan_launch = PathJoinSubstitution(
+            [
+                get_package_share_directory("hs_bringup"),
+                'launch',
+                'cloud2scan.launch.py',
+            ]
+        )
+
+
+
     sdf_roots = [
-        os.path.join(get_package_share_directory("seeker_sim"), "model", "Sensors"),
-        os.path.join(get_package_share_directory("seeker_sim"), "model", "Rigs"),
-        os.path.join(get_package_share_directory("seeker_sim"), "model", "Assemblies"),
-        os.path.join(get_package_share_directory("seeker_sim"), "model", "UGV"),
+        os.path.join(get_package_share_directory("hs_description"), "model", "Sensors"),
+        os.path.join(get_package_share_directory("hs_description"), "model", "Rigs"),
+        os.path.join(get_package_share_directory("hs_description"), "model", "Assemblies"),
+        os.path.join(get_package_share_directory("hs_description"), "model", "UGV"),
         os.path.join(get_package_share_directory("seeker_sim"), "model", "world_models")    ]
 
     new_paths = [p for p in sdf_roots if os.path.isdir(p)]
@@ -126,17 +165,43 @@ def generate_launch_description():
     })
 
 
+    foxglove_bridge_launch = IncludeLaunchDescription(
+        AnyLaunchDescriptionSource(foxglove_xml_path),
+        condition=IfCondition(LaunchConfiguration("use_foxglove")),
+    )
+
+
     launch_Robot_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(Robot_description_launch),
         launch_arguments={
             'model':       LaunchConfiguration('model'),
-            'rviz_use':   'true',
-            'rviz_config': rviz_config_root,
+            'use_rviz':   'False',
+            'rviz_params': rviz_config_root,
+            'use_joint_state_publisher': 'True'
         }.items()
     )
 
 
-    
+
+    navigation_launch_description = IncludeLaunchDescription(
+          PythonLaunchDescriptionSource(hs_navigation_launch),
+          launch_arguments={
+              'use_map':   'True',
+              'rviz_config': rviz_config_root,
+              'use_sim_time': 'True'
+          }.items()
+      )
+
+    scan_converter_launch_description = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(hs_scan_launch),
+        launch_arguments={
+            'cloud_topic':  '/lidar_points_fixed',
+            'target_frame':   'mid360_lidar_link',
+        }.items()
+    )
+
+
+
 
 
     # --- Processes launched via shell commands (not ROS 2 nodes) ---
@@ -150,11 +215,6 @@ def generate_launch_description():
         env=start_env,
     )
 
-    # Start RViz2 with the given .rviz configuration.
-    # start_rviz = ExecuteProcess(
-    #     cmd=["rviz2", "-d", rviz_config_root],
-    #     output="screen",
-    # )
 
     spawn_x = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[0]"])
     spawn_y = PythonExpression(["'", LaunchConfiguration("Spawn_XYZ_RPY"), "'.split()[1]"])
@@ -203,8 +263,8 @@ def generate_launch_description():
         arguments=[
             #"/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist", #Use this if using teleoptwist_keyboard pkg
             "/cmd_vel@geometry_msgs/msg/TwistStamped@gz.msgs.Twist",
-            "/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry",
-            "/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
+            "/odometry/wheel@nav_msgs/msg/Odometry@gz.msgs.Odometry",
+            "/world/sonoma_raceway/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
             "/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
@@ -217,6 +277,8 @@ def generate_launch_description():
             "/oakd/rgbd/image:=/oakd_image",
             "-r",
             "/oakd/rgbd/points:=/oakd_points",
+            "-r",
+            "/world/sonoma_raceway/clock:=/clock"
         ],
         output="screen",
     )
@@ -253,21 +315,22 @@ def generate_launch_description():
     ld.add_action(log_gz_path)
 
     ld.add_action(launch_Robot_description)
+    ld.add_action(scan_converter_launch_description)
 
     # Navigation related
-    ld.add_action(mapviz_launch_description)
     ld.add_action(navigation_launch_description)
     ld.add_action(spawn_coordinates)
 
-    ld.add_action(launch_Robot_description)
-    
+
+
     ld.add_action(start_gz)
 
     ld.add_action(bridge)
     ld.add_action(relay_bridge)
 
     ld.add_action(delay_spawn)
-    
+
+    ld.add_action(use_foxglove)
+    ld.add_action(foxglove_bridge_launch)
 
     return ld
-
