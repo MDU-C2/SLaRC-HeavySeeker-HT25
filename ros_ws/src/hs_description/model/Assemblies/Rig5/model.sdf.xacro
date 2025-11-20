@@ -6,7 +6,7 @@
   <xacro:include filename="$(find hs_description)/model/UGV/Husky_stripped_xacro/model.sdf.xacro"/>
   <xacro:include filename="$(find hs_description)/model/Sensors/navsat_gnss/model.sdf.xacro"/>
 
-  <model name="Rig5" canonical_link='UGV_link'>
+  <model name="Rig5" canonical_link='base_link'>
 
     <xacro:property name="oakd_x_offset" value="${4*cm2m}"/>
     <xacro:property name="oakd_y_offset" value="${0*cm2m}"/>
@@ -30,11 +30,11 @@
       </inertia>
       </inertial>
 
-      <pose relative_to="UGV_link">${rig_pos_relative_2_UGV}</pose>
+      <pose relative_to="base_link">${rig_pos_relative_2_UGV}</pose>
     </link>
     
     
-    <xacro:Rig_simpelBox_xacro UGV_link="UGV_link" offset="${rig_pos_relative_2_UGV}"/>
+    <xacro:Rig_simpelBox_xacro UGV_link="base_link" offset="${rig_pos_relative_2_UGV}"/>
     <!--use box_size_x,box_size_y,box_size_z in the offset to allign sensor placement-->
 
     <!-- <origin xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}"/> -->
@@ -65,8 +65,8 @@
 
     <xacro:navsat_gnss parent_link="rig_top_link" xyz="${gnss_x_offset} ${gnss_y_offset} ${gnss_z_offset}" rpy="0 0 0"/>
     <xacro:oakd parent_link="rig_front_link" xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}" rpy="0 0 0"/>
-    <xacro:mid360_lidar parent_link="rig_top_link" xyz="${mid360_lidar_x_offset} ${mid360_lidar_y_offset} ${mid360_lidar_z_offset}" rpy="0 0 0"/>
-    <xacro:Husky_stripped_xacro base_link="UGV_link"/>
+    <xacro:mid360_lidar parent_link="rig_top_link" xyz="${mid360_lidar_x_offset} ${mid360_lidar_y_offset} ${mid360_lidar_z_offset}" rpy="0 0 ${pi}"/>
+    <xacro:Husky_stripped_xacro base_link="base_link"/>
 
 
     <joint name="base_joint" type="fixed">
@@ -107,7 +107,7 @@
 
 
     <joint name="UGV_rig_mount" type="fixed">
-      <parent>UGV_link</parent>
+      <parent>base_link</parent>
       <child>rig_link</child>
     </joint>
 
