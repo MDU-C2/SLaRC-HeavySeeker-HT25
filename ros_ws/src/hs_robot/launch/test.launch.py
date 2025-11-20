@@ -102,7 +102,7 @@ def generate_launch_description():
     #     src='platform/cmd_vel', dst='/a200_0309/platform/cmd_vel'), nav2_bringup_launch])
 
     nav2_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([hs_nav_dir, 'launch', 'hs_navigation.launch.py'])),
-                                           launch_arguments == {
+                                           launch_arguments = {
                                                'use_map': 'False',
                                                'use_sim_time': 'False'
     }.items())
@@ -110,7 +110,8 @@ def generate_launch_description():
     # Group
     group = GroupAction([
         desc_group,
-        ekf_node,
+        # ekf_node,
+        septentrio_launch,
         livox_lidar_launch,
         cloud2scan_launch,
         nav2_launch
