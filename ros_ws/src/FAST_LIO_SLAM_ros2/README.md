@@ -15,16 +15,17 @@ Second: Follow this: [Running the lidars](/SLaRC-HeavySeeker-HT25/README.md).
 
 ## 2. Launch 3D-SLAM with LiDAR 
 ```bash
-    ros2 launch fast_lio mapping.launch.py > /dev/null 2>&1
+    ros2 launch fast_lio mapping.launch.py rviz:=true > /dev/null 2>&1
 ```
 
 ## 2.1 Launch 3D-SLAM with Rosbag
 ```bash
-    ros2 launch fast_lio mapping.launch.py > /dev/null 2>&1
+    ros2 launch fast_lio mapping.launch.py rviz:=true > /dev/null 2>&1
     ros2 bag play <your_bag_dir>
 ```
 > [!NOTE]
 > (> /dev/null 2>&1) is just to silence warnings.
+> (rviz:=true) default is false.
 ## 3. PCD (3D-map) file Save
 ##### Launch step (2 or 2.1) and inside Docker in another Terminal:
 ```bash

@@ -24,5 +24,4 @@ it with our SLaRC HeavySeeker platform, including:
 - Parameter and configuration changes for the Livox MID-360
 - Additional launch files and ROS integration for 3D SLAM experiments
 
-The original project is licensed under GPL-2.0, and our derivative work is
-likewise distributed under GPL-2.0. Please see the [LICENSE](/SLaRC-HeavySeeker-HT25/LICENSE) for license terms.
+Please see the [LICENSE](/SLaRC-HeavySeeker-HT25/LICENSE) for license terms.
