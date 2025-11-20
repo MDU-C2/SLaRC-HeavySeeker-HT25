@@ -382,7 +382,7 @@ collision_monitor:
     base_frame_id: "base_link"
     odom_frame_id: "odom"
     cmd_vel_in_topic: "cmd_vel_smoothed"
-    cmd_vel_out_topic: "/a200_0309/platfrom/cmd_vel"
+    cmd_vel_out_topic: "/a200_0309/platform/cmd_vel"
     enable_stamped_cmd_vel: true
     state_topic: "collision_monitor_state"
     transform_tolerance: 0.2
