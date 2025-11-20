@@ -25,6 +25,7 @@ def generate_launch_description():
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
     hs_description_dir = get_package_share_directory('hs_description')
     hs_robot_dir = get_package_share_directory('hs_robot')
+    hs_nav_dir = get_package_share_directory('hs_navigation')
 
     ekf_conf = PathJoinSubstitution(
         [hs_robot_dir, 'conf', 'localization.yaml'])
@@ -39,19 +40,27 @@ def generate_launch_description():
         src='joint_states', dst='/a200_0309/platform/joint_states'), description_launch])
 
     # EKF
-    ekf_node = Node(
-        package="robot_localization",
-        executable="ekf_node",
-        name="ekf_test_node",
-        output="screen",
-        parameters=[ekf_conf],
-    )
+    # ekf_node = Node(
+    #     package="robot_localization",
+    #     executable="ekf_node",
+    #     name="ekf_test_node",
+    #     output="screen",
+    #     parameters=[ekf_conf],
+    # )
 
     # Lidar
     livox_lidar_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([hs_bringup_dir, 'launch', 'livox_launch.py'])
         ),
+    )
+
+    septentrio_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [hs_bringup_dir, 'launch', 'rover_node.launch.py']
+            )
+        )
     )
 
     # Cloud2Scan
@@ -63,34 +72,40 @@ def generate_launch_description():
     )
 
     # SLAM
-    slam_toolbox_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([slam_toolbox_dir, 'launch',
-                                 'online_sync_launch.py'])
-        ),
-        launch_arguments={
-            'autostart': autostart,
-            'use_lifecycle_manager': use_lifecycle_manager,
-            'use_sim_time': use_sim_time,
-            'slam_params_file': slam_params_file,
-        }.items(),
-    )
+    # slam_toolbox_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         PathJoinSubstitution([slam_toolbox_dir, 'launch',
+    #                              'online_sync_launch.py'])
+    #     ),
+    #     launch_arguments={
+    #         'autostart': autostart,
+    #         'use_lifecycle_manager': use_lifecycle_manager,
+    #         'use_sim_time': use_sim_time,
+    #         'slam_params_file': slam_params_file,
+    #     }.items(),
+    # )
 
     # NAV2
-    nav2_bringup_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [nav2_bringup_dir, 'launch', 'bringup_launch.py'])
-        ),
-        launch_arguments={
-            'autostart': autostart,
-            'use_sim_time': use_sim_time,
-            'params_file': nav2_params_file,
-        }.items(),
-    )
+    # nav2_bringup_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         PathJoinSubstitution(
+    #             [nav2_bringup_dir, 'launch', 'bringup_launch.py'])
+    #     ),
+    #     launch_arguments={
+    #         'autostart': autostart,
+    #         'use_sim_time': use_sim_time,
+    #         'params_file': nav2_params_file,
+    #     }.items(),
+    # )
 
-    nav2_group = GroupAction([SetRemap(
-        src='platform/cmd_vel', dst='/a200_0309/platform/cmd_vel'), nav2_bringup_launch])
+    # nav2_group = GroupAction([SetRemap(
+    #     src='platform/cmd_vel', dst='/a200_0309/platform/cmd_vel'), nav2_bringup_launch])
+
+    nav2_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([hs_nav_dir, 'launch', 'hs_navigation.launch.py'])),
+                                           launch_arguments == {
+                                               'use_map': 'False',
+                                               'use_sim_time': 'False'
+    }.items())
 
     # Group
     group = GroupAction([
@@ -98,21 +113,11 @@ def generate_launch_description():
         ekf_node,
         livox_lidar_launch,
         cloud2scan_launch,
-        slam_toolbox_launch,
-        nav2_group,
+        nav2_launch
+        # slam_toolbox_launch,
+        # nav2_group,
     ])
 
-    # Frame
-    # livox_frame = Node(
-    #     package='tf2_ros',
-    #     executable='static_transform_publisher',
-    #     name='livox_frame_static_broadcaster',
-    #     output='screen',
-    #     arguments=['0.17', '0.0', '0.18', '3.1415926', '0.0',
-    #                '0.0', 'top_plate_rear_mount', 'livox_frame'],
-    # )
-
     return LaunchDescription([
-        group,
-        # livox_frame,
+        group
     ])
