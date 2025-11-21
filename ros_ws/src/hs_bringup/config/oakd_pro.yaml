@@ -3,6 +3,7 @@
     camera:
       i_enable_imu: true
       i_enable_ir: false
+      i_enable_sync: true
       i_floodlight_brightness: 0
       i_laser_dot_brightness: 100
       i_nn_type: none
@@ -18,7 +19,17 @@
       i_enable_preview: true
       i_low_bandwidth: true
       i_keep_preview_aspect_ratio: true
-      i_publish_topic: false
+      i_publish_topic: true
       i_resolution: '1080P'
       i_width: 1280
+      # i_rot_cov: 1.0
+      # i_synced: true
+    stereo:
+      # i_synced: true
+      # i_publish_topic: true
+      # i_align_depth: true
+      # i_board_socket_id: 2
+      i_subpixel: true
+      # i_right_rect_publish_topic: true
+      # i_right_rect_synced: false
     use_sim_time: false

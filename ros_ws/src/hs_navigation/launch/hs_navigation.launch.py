@@ -50,6 +50,11 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     use_sim_time = LaunchConfiguration("use_sim_time")
 
+    description_base_link_cmd = IncludeLaunchDescription(
+        PathJoinSubstitution(
+            [description_dir, "launch", "hs_description.launch.py"]),
+        launch_arguments=[("namespace", namespace)],
+    )
 
     mapviz_launch = PathJoinSubstitution(
           [
@@ -91,6 +96,36 @@ def generate_launch_description():
         name="gnss_to_rig_static_tf"
     )
 
+    # robot_localization_node = Node(
+    #     package="robot_localization",
+    #     executable="ekf_node",
+    #     name="ekf_node",
+    #     output="screen",
+    #     parameters=[ekf_config, {"use_sim_time": use_sim_time}],
+    # )
+
+    # convert livox's imu linear acceleration from gs to m/s^2
+    imu_acc_node = Node(
+        package="hs_navigation",
+        executable="imu_g_to_ms2.py",
+        name="imu_acc_conv",
+        output="screen",
+        remappings=[("imu/data", "livox/imu_192_168_10_93"), ("imu_conv/data", "livox/imu/data")]
+    )
+
+    rtabmap_odom_node = Node(
+        package="rtabmap_odom",
+        executable="rgbd_odometry",
+        name="oakd_odom",
+        output="screen",
+        parameters=[("publish_tf", 'false')],
+        remappings=[("imu", "imu_flipped/data"),
+                    ("rgb/image", "oakd/rgb/image_raw"),
+                    ("rgb/camera_info", "oakd/rgb/camera_info"),
+                    ("depth/image", "oakd/stereo/image_raw"),
+                    ("depth/camera_info","oakd/stereo/camera_info"),
+                    ("odom", "v_odom")],
+    )
     mapviz_launch_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(mapviz_launch),
         condition=IfCondition(LaunchConfiguration("use_map")),
@@ -105,7 +140,8 @@ def generate_launch_description():
 
     slam_toolbox_cmd = IncludeLaunchDescription(
         PathJoinSubstitution([slam_dir, "launch", "online_async_launch.py"]),
-        launch_arguments=[("use_sim_time", use_sim_time), ("namespace", namespace)],
+        launch_arguments=[("use_sim_time", use_sim_time),
+                          ("namespace", namespace)],
     )
 
     nav2_bringup_cmd = IncludeLaunchDescription(
@@ -119,6 +155,9 @@ def generate_launch_description():
 
     actions = [
         PushROSNamespace(namespace),
+        # description_base_link_cmd,
+        # imu_acc_node,
+        # rtabmap_odom_node,
         robot_localization_node,
         waypoint_bridge_node,
         rviz_node,
