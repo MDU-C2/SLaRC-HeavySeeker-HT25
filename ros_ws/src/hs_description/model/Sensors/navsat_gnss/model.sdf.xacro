@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:macro name="navsat_gnss" params="parent_link xyz rpy name:='gnss' rate:='10'">
-    <link name="${name}_link">
+    <link name="${name}_frame">
       <inertial>
         <mass>0.01</mass>
         <inertia>
@@ -33,7 +33,7 @@
 
     <joint name="${name}_mount" type="fixed">
       <parent>${parent_link}</parent>
-      <child>${name}_link</child>
+      <child>${name}_frame</child>
       <pose>${xyz} ${rpy}</pose>
     </joint>
   </xacro:macro>
