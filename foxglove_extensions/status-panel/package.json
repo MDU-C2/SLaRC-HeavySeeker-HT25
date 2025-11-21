@@ -1,6 +1,6 @@
 {
-  "name": "click-to-goal",
-  "displayName": "click-to-goal",
+  "name": "status-panel",
+  "displayName": "status-panel",
   "description": "",
   "publisher": "unknown",
   "homepage": "",
@@ -16,26 +16,18 @@
     "lint:fix": "eslint --fix .",
     "local-install": "foxglove-extension install",
     "package": "foxglove-extension package",
-    "pretest": "foxglove-extension pretest",
-    "dev": "chokidar 'src/**/*.{ts,tsx,css}' -c 'npm run local-install'"
+    "pretest": "foxglove-extension pretest"
   },
   "devDependencies": {
     "@foxglove/eslint-plugin": "2.1.0",
-    "@foxglove/extension": "2.39.2",
-    "@foxglove/studio": "^2.4.0",
-    "@types/react": "18.3.26",
+    "@foxglove/extension": "2.40.1",
+    "@types/react": "18.3.27",
     "@types/react-dom": "18.3.7",
-    "chokidar-cli": "^3.0.0",
     "create-foxglove-extension": "1.1.0",
-    "css-loader": "^7.1.2",
     "eslint": "9.39.1",
     "prettier": "3.6.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "style-loader": "^4.0.0",
     "typescript": "5.9.3"
-  },
-  "dependencies": {
-    "maplibre-gl": "^5.12.0"
   }
 }

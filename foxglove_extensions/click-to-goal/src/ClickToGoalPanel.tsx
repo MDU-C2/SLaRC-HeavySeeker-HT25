@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -7,6 +7,13 @@ import type { PanelExtensionContext } from "@foxglove/studio";
 type PointStamped = {
   header: { frame_id: string; stamp: { sec: number; nsec: number } };
   point: { x: number; y: number; z: number };
+};
+
+type Action = {
+  id: string;
+  label: string;
+  icon?: ReactNode;
+  onClick: () => void;
 };
 
 function nowStamp() {
@@ -24,6 +31,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
 
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
   const [pubReady, setPubReady] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
 
@@ -124,7 +132,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       const lat = e.lngLat.lat;
 
       if (!goalMarkerRef.current) {
-        goalMarkerRef.current = new maplibregl.Marker({ color: "#e53935" })
+        goalMarkerRef.current = new maplibregl.Marker({ color: "#2cdb1cff" })
           .setLngLat([lng, lat])
           .addTo(mapRef.current!);
       } else {
@@ -150,9 +158,101 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
     });
   }, [context, initialCenter]);
 
+
+  const handleStart = () => {
+    console.log("Start clicked");
+    // TODO: start waypoint following here
+    setIsRunning(true);
+  };
+
+  const handlePause = () => {
+    console.log("Pause clicked");
+    // TODO: pause/stop waypoint following here
+    setIsRunning(false);
+  };
+
+
+  const actions: Action[] = [
+    {
+      id: "startPause",
+      label: isRunning ? "Pause" : "Start",
+      icon: isRunning ? "❚❚" : "▶",
+      onClick: () => {
+        if (isRunning) {
+          handlePause();
+        } else {
+          handleStart();
+        }
+      },
+    },
+    {
+      id: "reset",
+      label: "Reset",
+      icon: "⟲",
+      onClick: () => {
+        console.log("Reset clicked");
+        // TODO: reset waypoints etc.
+        setIsRunning(false);
+      },
+    },
+    {
+      id: "undo",
+      label: "Undo",
+      icon: "↺",
+      onClick: () => {
+        console.log("Other clicked");
+      },
+    },
+  ];
+
+
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
+            <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          padding: "12px 16px",
+          background: "rgba(0, 0, 0, 0.55)",
+          display: "flex",
+          borderTopRightRadius:12,
+          borderTopLeftRadius:12,
+          gap: 8,
+          justifyContent: "space-around",
+          alignItems: "center",
+          zIndex: 10,
+        }}
+      >
+        {actions.map((action) => (
+          <button
+            key={action.id}
+            onClick={action.onClick}
+            style={{
+              flex: 1,
+              minWidth: 100,
+              height:40,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "10px 12px",
+              background: "rgba(255,255,255,0.9)",
+              color: "#111",
+              border: "none",
+              borderRadius: 8,
+              cursor: "pointer",
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          >
+            {action.icon && <span>{action.icon}</span>}
+            <span>{action.label}</span>
+          </button>
+        ))}
+      </div>
       {!initialCenter && (
         <div
           style={{
