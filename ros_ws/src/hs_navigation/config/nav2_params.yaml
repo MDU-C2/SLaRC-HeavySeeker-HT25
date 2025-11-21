@@ -211,7 +211,7 @@ local_costmap:
       width: 5
       height: 5
       resolution: 0.05
-      footprint: "[ [0.21, 0.195], [0.21, -0.195], [-0.21, -0.195], [-0.21, 0.195] ]"
+      footprint: "[ [0.431, 0.353], [0.431, -0.353], [-0.431, -0.353], [-0.431, 0.353] ]"
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
@@ -257,7 +257,7 @@ global_costmap:
       width: 200 # big rolling window for Sonoma
       height: 200
       resolution: 0.05 # match local_costmap to keep it simple
-      footprint: "[ [0.21, 0.195], [0.21, -0.195], [-0.21, -0.195], [-0.21, 0.195] ]"
+      footprint: "[ [0.431, 0.353], [0.431, -0.353], [-0.431, -0.353], [-0.431, 0.353] ]"
       plugins: ["voxel_layer", "inflation_layer"]
 
       inflation_layer:
