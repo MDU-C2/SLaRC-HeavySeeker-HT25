@@ -4,3 +4,9 @@ __pycache__/
 build/
 install/
 log/
+
+foxglove_extensions/*/node_modules/
+foxglove_extensions/*/dist/
+foxglove_extensions/*/*.log
+foxglove_extensions/*/*.foxe
+*.log
