@@ -68,8 +68,8 @@ def generate_launch_description():
 
     # --- Paths to package resources (world, models, configs) ---
     Robot_description_launch = PathJoinSubstitution([
-        FindPackageShare('hs_description'),
-        'launch', 'hs_description.launch.py'
+        FindPackageShare('s_description'),
+        'launch', 's_description.launch.py'
     ])
 
 
@@ -131,10 +131,10 @@ def generate_launch_description():
 
 
     sdf_roots = [
-        os.path.join(get_package_share_directory("hs_description"), "model", "Sensors"),
-        os.path.join(get_package_share_directory("hs_description"), "model", "Rigs"),
-        os.path.join(get_package_share_directory("hs_description"), "model", "Assemblies"),
-        os.path.join(get_package_share_directory("hs_description"), "model", "UGV"),
+        os.path.join(get_package_share_directory("s_description"), "model", "Sensors"),
+        os.path.join(get_package_share_directory("s_description"), "model", "Rigs"),
+        os.path.join(get_package_share_directory("s_description"), "model", "Assemblies"),
+        os.path.join(get_package_share_directory("s_description"), "model", "UGV"),
         os.path.join(get_package_share_directory("seeker_sim"), "model", "world_models")    ]
 
     new_paths = [p for p in sdf_roots if os.path.isdir(p)]

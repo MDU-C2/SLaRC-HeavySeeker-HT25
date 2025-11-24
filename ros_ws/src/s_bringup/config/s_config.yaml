@@ -1,0 +1,7 @@
+launch_options:
+  ros__parameters:
+    namespace: "seeker"
+    model: "Rig5"
+    use_JSP: false
+    use_sim_time: false
+    
