@@ -3,11 +3,17 @@
 <package format="3">
   <name>s_description</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="mtm20001@student.mdu.se">rosdev</maintainer>
+  <description>Heavy Seeker description</description>
+  <maintainer email="slarc25@proton.me">Vladislav Saburov</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>joint_state_publisher</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>urdf</depend>
+
+  <exec_depend>xacro</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
