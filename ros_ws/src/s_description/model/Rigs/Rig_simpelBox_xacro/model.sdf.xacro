@@ -5,9 +5,9 @@
   <sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
       <!-- Parameters -->
-  <xacro:property name="box_size_x" value="0.6"/>
-  <xacro:property name="box_size_y" value="0.4"/>
-  <xacro:property name="box_size_z" value="0.5"/>   
+  <xacro:property name="box_size_x" value="0.42"/>
+  <xacro:property name="box_size_y" value="0.38"/>
+  <xacro:property name="box_size_z" value="0.17"/>   
   
     <xacro:macro name="Rig_simpelBox_xacro" params='offset:="0 0 0 0 0 0" UGV_link'>
     <static>false</static>
