@@ -6,3 +6,6 @@
 	path = third_party_sdk_drivers/Livox-SDK2
 	url = https://github.com/Livox-SDK/Livox-SDK2.git
 	ignore = dirty
+[submodule "ros_ws/src/FAST_LIO_MULTI_ROS2"]
+	path = ros_ws/src/FAST_LIO_MULTI_ROS2
+	url = https://github.com/Draxran/FAST_LIO_MULTI_ROS2.git
