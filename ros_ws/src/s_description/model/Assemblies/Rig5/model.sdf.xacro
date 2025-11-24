@@ -13,7 +13,7 @@
     <xacro:property name="oakd_z_offset" value="${0*cm2m}"/>
     <xacro:property name="mid360_lidar_x_offset" value="${0*cm2m}"/>
     <xacro:property name="mid360_lidar_y_offset" value="${0*cm2m}"/>
-    <xacro:property name="mid360_lidar_z_offset" value="${0*cm2m}"/>
+    <xacro:property name="mid360_lidar_z_offset" value="${3*cm2m}"/>
     <xacro:property name="rig_pos_relative_2_UGV" value="0 0 0.45 0 0 0"/>  
     <xacro:property name="gnss_x_offset" value="${0*cm2m}"/>
     <xacro:property name="gnss_y_offset" value="${0*cm2m}"/>
