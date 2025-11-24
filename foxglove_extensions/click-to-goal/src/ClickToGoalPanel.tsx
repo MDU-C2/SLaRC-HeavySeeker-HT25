@@ -4,6 +4,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { PanelExtensionContext } from "@foxglove/studio";
 
+
 type PointStamped = {
   header: { frame_id: string; stamp: { sec: number; nsec: number } };
   point: { x: number; y: number; z: number };
@@ -176,7 +177,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
     {
       id: "startPause",
       label: isRunning ? "Pause" : "Start",
-      icon: isRunning ? "❚❚" : "▶",
+      icon: isRunning ? "⏸️" : "▶️",
       onClick: () => {
         if (isRunning) {
           handlePause();
@@ -186,9 +187,9 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       },
     },
     {
-      id: "reset",
-      label: "Reset",
-      icon: "⟲",
+      id: "clear",
+      label: "Clear all",
+      icon: "🗑️",
       onClick: () => {
         console.log("Reset clicked");
         // TODO: reset waypoints etc.
@@ -198,7 +199,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
     {
       id: "undo",
       label: "Undo",
-      icon: "↺",
+      icon: "↩️",
       onClick: () => {
         console.log("Other clicked");
       },
@@ -220,6 +221,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
           display: "flex",
           borderTopRightRadius:12,
           borderTopLeftRadius:12,
+          flexWrap: "wrap",
           gap: 8,
           justifyContent: "space-around",
           alignItems: "center",
@@ -239,7 +241,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
               justifyContent: "center",
               gap: 8,
               padding: "10px 12px",
-              background: "rgba(255,255,255,0.9)",
+              background: "rgba(255,255,255,0.7)",
               color: "#111",
               border: "none",
               borderRadius: 8,
