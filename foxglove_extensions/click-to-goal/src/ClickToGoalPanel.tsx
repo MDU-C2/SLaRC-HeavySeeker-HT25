@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { PanelExtensionContext } from "@foxglove/studio";
+import "./ClickToGoalPanel.css";
 
 
 type PointStamped = {
@@ -27,12 +28,14 @@ function nowStamp() {
 export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const goalMarkerRef = useRef<maplibregl.Marker | null>(null);
+  //const goalMarkerRef = useRef<maplibregl.Marker | null>(null);
   const robotMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
   const [pubReady, setPubReady] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+
+  const waypointMarkersRef = useRef<maplibregl.Marker[]>([]);
 
   useEffect(() => {
 
@@ -132,13 +135,22 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       const lng = e.lngLat.lng;
       const lat = e.lngLat.lat;
 
-      if (!goalMarkerRef.current) {
-        goalMarkerRef.current = new maplibregl.Marker({ color: "#2cdb1cff" })
-          .setLngLat([lng, lat])
-          .addTo(mapRef.current!);
-      } else {
-        goalMarkerRef.current.setLngLat([lng, lat]);
-      }
+      // if (!goalMarkerRef.current) {
+      //   goalMarkerRef.current = new maplibregl.Marker({ color: "#eb1834ff" })
+      //     .setLngLat([lng, lat])
+      //     .addTo(mapRef.current!);
+      // } else {
+      //   goalMarkerRef.current.setLngLat([lng, lat]);
+      // }
+
+      if (!mapRef.current) return;
+
+      const index = waypointMarkersRef.current.length;
+      const marker = createNumberedMarker(index)
+        .setLngLat([lng, lat])
+        .addTo(mapRef.current);
+
+      waypointMarkersRef.current.push(marker);
 
 
       if (pubReady && context.publish) {
@@ -158,6 +170,26 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       }
     });
   }, [context, initialCenter]);
+
+
+  function createNumberedMarker(index: number) {
+    const el = document.createElement("div");
+    el.className = "goal-marker";
+    el.innerText = String(index + 1); // 1,2,3,...
+
+    return new maplibregl.Marker({ element: el });
+  }
+
+
+  const clearAllMarkers = () => {
+    waypointMarkersRef.current.forEach(m => m.remove());
+    waypointMarkersRef.current = [];
+  };
+
+  const removeLastMarker = () => {
+    const last = waypointMarkersRef.current.pop();
+    last?.remove();
+  };
 
 
   const handleStart = () => {
@@ -192,7 +224,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       icon: "🗑️",
       onClick: () => {
         console.log("Reset clicked");
-        // TODO: reset waypoints etc.
+        clearAllMarkers();
         setIsRunning(false);
       },
     },
@@ -202,6 +234,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       icon: "↩️",
       onClick: () => {
         console.log("Other clicked");
+        removeLastMarker();
       },
     },
   ];

@@ -1,0 +1,14 @@
+.goal-marker {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: rgba(235, 24, 52, 0.5); 
+  border: 2px solid #eb1834;             
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
