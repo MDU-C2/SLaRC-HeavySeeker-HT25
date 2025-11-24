@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:include filename="$(find hs_description)/model/Rigs/Rig_simpelBox_xacro/model.sdf.xacro" />
-  <xacro:include filename="$(find hs_description)/model/Sensors/oakd/model.sdf.xacro"/>
+  <xacro:include filename="$(find s_description)/model/Rigs/Rig_simpelBox_xacro/model.sdf.xacro" />
+  <xacro:include filename="$(find s_description)/model/Sensors/oakd/model.sdf.xacro"/>
   <model name="Rig2" canonical_link='rig_link'>
     <link name="rig_link">
       <must_be_base_link>false</must_be_base_link>
