@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:include filename="$(find hs_description)/model/Rigs/Rig_simpelBox_xacro/model.sdf.xacro" />
-  <xacro:include filename="$(find hs_description)/model/Sensors/oakd/model.sdf.xacro"/>
-  <xacro:include filename="$(find hs_description)/model/Sensors/mid360_lidar/model.sdf.xacro"/>
-  <xacro:include filename="$(find hs_description)/model/UGV/Husky_stripped_xacro/model.sdf.xacro"/>
+  <xacro:include filename="$(find s_description)/model/Rigs/Rig_simpelBox_xacro/model.sdf.xacro" />
+  <xacro:include filename="$(find s_description)/model/Sensors/oakd/model.sdf.xacro"/>
+  <xacro:include filename="$(find s_description)/model/Sensors/mid360_lidar/model.sdf.xacro"/>
+  <xacro:include filename="$(find s_description)/model/UGV/Husky_stripped_xacro/model.sdf.xacro"/>
   <model name="Rig4" canonical_link='UGV_link'>
 
     <xacro:property name="oakd_x_offset" value="${0*cm2m}"/>
