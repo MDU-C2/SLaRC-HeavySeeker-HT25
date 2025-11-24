@@ -21,6 +21,7 @@
  * 
  * Publishers:
  *  - /cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel
+ *  - /autonomous_drive_active - std_msgs/msg/Bool - shows the current status for autonomous drive
  * 
  */
 class RobotNode : public rclcpp::Node {
@@ -37,11 +38,16 @@ class RobotNode : public rclcpp::Node {
         sub_activate_autonomous_drive = this->create_subscription<std_msgs::msg::Bool>("/activate_autonomous_drive", 10, std::bind(&RobotNode::callback_activate_autonomous_drive, this, _1));
         
         pub_cmd_vel = this->create_publisher<geometry_msgs::msg::TwistStamped>("/cmd_vel", 10);
+        pub_autonomous_drive_status = this->create_publisher<std_msgs::msg::Bool>("/autonomous_drive_active", 10);
 
         // timer to check if hearbeat is missing
         restartTimerHeartBeat();
         // timer to stop driving if cmd_vel is missing or old
         restartTimerSoftStop();
+
+        // timer for showing current status
+        using namespace std::chrono_literals;
+        this->timer_autonomous_drive_status = this->create_timer(500ms, std::bind(&RobotNode::callback_autonomous_drive_status, this));
     }
 
     private:
@@ -70,6 +76,14 @@ class RobotNode : public rclcpp::Node {
         stopTimer(this->timer_soft_stop);
     }
 
+    void callback_autonomous_drive_status() {
+        std_msgs::msg::Bool status;
+        status.data = this->autonomous_drive;
+
+        this->pub_autonomous_drive_status->publish(status);
+
+    }
+
     void callback_operation_modes(hs_msgs::msg::OperationModes allowed_modes) {
 
         if(timer_heart_beat == nullptr)
@@ -80,12 +94,21 @@ class RobotNode : public rclcpp::Node {
         this->allow_remote_control = allowed_modes.remote_control;
         this->allow_auto = allowed_modes.autonomy_drive;
 
-        if (!this->allow_auto)
+        if (!this->allow_auto) {
+            if (this->autonomous_drive)
+                RCLCPP_INFO(this->get_logger(), "Autonomous drive is deactivated");
+                
             this->autonomous_drive = false;
+        }
     }
 
     void callback_activate_autonomous_drive(std_msgs::msg::Bool activate_autonomous_drive) {
         this->autonomous_drive = activate_autonomous_drive.data;
+
+        if (this->autonomous_drive)
+            RCLCPP_INFO(this->get_logger(), "Autonomous drive is activated");
+        else
+            RCLCPP_INFO(this->get_logger(), "Autonomous drive is deactivated");
     }
 
     void callback_remote_telop_cmd(geometry_msgs::msg::TwistStamped cmd_vel) {
@@ -125,8 +148,10 @@ class RobotNode : public rclcpp::Node {
 
     rclcpp::TimerBase::SharedPtr timer_soft_stop;
     rclcpp::TimerBase::SharedPtr timer_heart_beat;
+    rclcpp::TimerBase::SharedPtr timer_autonomous_drive_status;
 
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pub_cmd_vel;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub_autonomous_drive_status;
 
     bool autonomous_drive = false;
     bool local_control_active = false; // currently not used

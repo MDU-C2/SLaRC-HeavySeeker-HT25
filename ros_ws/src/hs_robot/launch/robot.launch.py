@@ -26,7 +26,7 @@ def generate_launch_description():
         name='health_checker',
         namespace=namespace,
         remappings=[
-            ('/emergency_stop', '/a200_0309/platform/emergency_stop'),
+            ('/emergency_stop', 'platform/emergency_stop'),
             ('/allowed_operation_modes', 'allowed_operation_modes')
         ]
     )
@@ -37,7 +37,7 @@ def generate_launch_description():
         name='robot_node',
         namespace=namespace,
         remappings=[
-            ('/cmd_vel', '/a200_0309/platform/cmd_vel'),
+            ('/cmd_vel', 'platform/cmd_vel'),
             ('/allowed_operation_modes', 'allowed_operation_modes'),
             ('/telop_cmd_vel', 'telop_cmd_vel'),
             ('/auto_cmd_vel', 'auto_cmd_vel')
