@@ -4,5 +4,4 @@
 	ignore = dirty
 [submodule "third_party_sdk_drivers/Livox-SDK2"]
 	path = third_party_sdk_drivers/Livox-SDK2
-	url = https://github.com/Livox-SDK/Livox-SDK2.git
-	ignore = dirty
+	url = https://github.com/swed91740/Livox-SDK2.git
