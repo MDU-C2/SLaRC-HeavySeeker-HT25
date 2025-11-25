@@ -25,7 +25,7 @@ oak_cameras:
         i_width: 1280
       use_sim_time: false
   "19443010B1627E4800": #deviceId for oak1
-    name: oak1
+    name: oak2
     params:
       camera:
         i_enable_imu: false

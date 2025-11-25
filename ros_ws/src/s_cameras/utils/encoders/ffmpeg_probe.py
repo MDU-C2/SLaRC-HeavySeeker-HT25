@@ -13,17 +13,18 @@ class FFmpegProbe:
     def test(self, encoder_name: str) -> bool:
 
         try:
-            size = "128x128" if "hevc" in encoder_name else "64x64"
+            size = "128x128" if "hevc" in encoder_name else "128x128"
             if "vaapi" in encoder_name:
                 # Special handling for VAAPI one Ubuntu server (it requiers a display usually)
                 cmd = [
                     "ffmpeg", "-hide_banner", "-loglevel", "error",
+                    "-hwaccel", "vaapi",
                     "-vaapi_device", "/dev/dri/renderD128",
                     "-f", "lavfi", "-i", f"testsrc=size={size}:rate=1",
                     "-vf", "format=nv12,hwupload",
                     "-frames:v", "1",
                     "-c:v", encoder_name,
-                    "-f", "null", "-",
+                    "-f", "null", "-"
                 ]
             else:
                 # Default for NVENC, QSV, CPU, etc.

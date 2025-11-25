@@ -12,10 +12,9 @@ from sensor_msgs.msg import CompressedImage
 
 
 class FPVDecoder(Node):
-    """Decode and display multiple FPV streams in one OpenCV window."""
 
     def __init__(self, topic_names):
-        super().__init__("fpv_multi_decoder")
+        super().__init__("fpv_viewer_client")
 
         self.topic_names = topic_names
         self.ffmpegs = {}
@@ -28,46 +27,19 @@ class FPVDecoder(Node):
             for t in topic_names
         }
 
-        # 🐧 Load penguin image once
-        self.penguin_img = self._load_penguin_image()
 
         # Subscribe to each encoded stream
         for topic in topic_names:
-            if topic.startswith("/penguin_placeholder_"):
-                # Placeholder — no ROS subscription needed
-                self.frames[topic] = self.penguin_img.copy()
-                continue
 
             self.create_subscription(
                 CompressedImage, topic,
                 lambda msg, t=topic: self.callback(msg, t), 10
             )
-            self.get_logger().info(f"🎥 Listening on {topic}")
+            self.get_logger().info(f"Listening on {topic}")
 
         # Launch display and bitrate monitor threads
         threading.Thread(target=self._display_loop, daemon=True).start()
         threading.Thread(target=self._stats_thread, daemon=True).start()
-
-    # ------------------------------------------------------------------
-    def _load_penguin_image(self):
-        """Decode penguin PNG from decoder_cfg.dat or return blank fallback."""
-        path = Path(__file__).with_name("decoder_cfg.dat")
-        if not path.exists():
-            self.get_logger().warn("🐧 decoder_cfg.dat not found — using blank placeholder.")
-            return np.zeros((480, 640, 3), np.uint8)
-
-        try:
-            hex_data = path.read_text().strip()
-            image_bytes = bytes.fromhex(hex_data)
-            img_array = np.frombuffer(image_bytes, np.uint8)
-            img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-            if img is None:
-                raise ValueError("Failed to decode PNG data")
-            self.get_logger().info("🐧 Penguin image loaded successfully.")
-            return cv2.resize(img, (640, 480))
-        except Exception as e:
-            self.get_logger().error(f"Failed to load penguin image: {e}")
-            return np.zeros((480, 640, 3), np.uint8)
 
     # ------------------------------------------------------------------
     def _start_ffmpeg(self, topic, codec):
@@ -124,20 +96,28 @@ class FPVDecoder(Node):
             self.get_logger().warning(f"{topic}: unknown codec in format='{msg.format}', assuming h264")
             codec = "h264"
 
-        # Extract width/height/fps metadata
+        # Extract width/height metadata
         parts = dict(p.split("=", 1) for p in fmt.split(";") if "=" in p)
-        w = int(parts.get("width", 1280))
-        h = int(parts.get("height", 720))
+        if "width" not in parts or "height" not in parts:
+            # Do NOT start ffmpeg until real metadata arrives
+            return
 
-        if topic not in self.ffmpegs:
+        w = int(parts["width"])
+        h = int(parts["height"])
+
+        # --- FIX: ensure only ONE ffmpeg per topic ---
+        proc = self.ffmpegs.get(topic)
+        needs_restart = proc is None or proc.poll() is not None
+
+        if needs_restart:
             self.resolutions[topic] = (w, h)
             self._start_ffmpeg(topic, codec)
             self.get_logger().info(
-                f"\n====== New stream detected ======\n"
+                f"\n====== New or restarted stream ======\n"
                 f"   • Topic: {topic}\n"
                 f"   • Codec: {codec.upper()}\n"
                 f"   • Resolution: {w}x{h}\n"
-                f"=================================\n"
+                f"=====================================\n"
             )
 
         # --- Use real camera timestamps for FPS tracking ---
@@ -178,6 +158,7 @@ class FPVDecoder(Node):
         except Exception as e:
             self.get_logger().error(f"{topic}: write error: {e}")
 
+
     # ------------------------------------------------------------------
     def _stats_thread(self):
         """Compute bitrate per stream every second, time-accurate and smoothed."""
@@ -205,16 +186,10 @@ class FPVDecoder(Node):
     # ------------------------------------------------------------------
     # ------------------------------------------------------------------
     def _display_loop(self):
-        """Display all decoded frames in one OpenCV window, filling empty slots with the hidden penguin."""
-        # Try to load penguin once (decode from .dat if needed)
-        penguin = None
-        dat_path = Path(__file__).with_name("decoder_cfg.dat")
-        if dat_path.exists():
-            try:
-                data = bytes.fromhex(dat_path.read_text().strip())
-                penguin = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
-            except Exception as e:
-                self.get_logger().warn(f"Failed to load penguin: {e}")
+        """Display all decoded frames in one OpenCV window."""
+        
+        cv2.namedWindow("FPV MultiView", cv2.WINDOW_NORMAL)
+        cv2.resizeWindow("FPV MultiView", 1280, 720)
 
         while self.running:
             if not self.frames:
@@ -230,22 +205,27 @@ class FPVDecoder(Node):
             h = min(f.shape[0] for f in frames)
             frames = [cv2.resize(f, (int(f.shape[1] * h / f.shape[0]), h)) for f in frames]
 
-            # Determine layout size
-            num_cams = len(frames)
-            if num_cams == 1 and penguin is not None:
-                # Single camera → side-by-side penguin
-                ph = cv2.resize(penguin, (frames[0].shape[1], frames[0].shape[0]))
-                frames.append(ph)
+            num = len(frames)
+
+            if num == 1:
+                combined = frames[0]
+
+            elif num == 2:
                 combined = np.hstack(frames)
-            elif num_cams in (2, 3) and penguin is not None:
-                # 2–3 cameras → fill to 4 with penguin
-                while len(frames) < 4:
-                    ph = cv2.resize(penguin, (frames[0].shape[1], frames[0].shape[0]))
-                    frames.append(ph)
+
+            elif num == 3:
+                # top row: first 2
+                top = np.hstack(frames[:2])
+                # bottom row: single, padded to same width
+                bottom = frames[2]
+                pad_w = top.shape[1] - bottom.shape[1]
+                if pad_w > 0:
+                    pad = np.zeros((bottom.shape[0], pad_w, 3), np.uint8)
+                    bottom = np.hstack((bottom, pad))
+                combined = np.vstack((top, bottom))
+
+            else:  # 4 or more → 2-column grid
                 combined = self._grid(frames, cols=2)
-            else:
-                # Normal behavior for 4+ cameras
-                combined = np.hstack(frames) if len(frames) <= 3 else self._grid(frames, cols=2)
 
             # Draw stats overlays
             y = 30
@@ -261,7 +241,8 @@ class FPVDecoder(Node):
                 self.running = False
                 break
 
-        cv2.destroyAllWindows()
+    cv2.destroyAllWindows()
+
 
     # ------------------------------------------------------------------
     def _grid(self, frames, cols=2):

@@ -57,6 +57,7 @@ def generate_launch_description():
             print(f"Unknown camera type: {cam['type']}")
 
     # --- Launch FPV Server ---
+
     nodes.append(Node(
         package="s_cameras",
         executable="server_node",
@@ -86,7 +87,7 @@ def generate_launch_description():
             },
         ]
         ))
-
+    
     if not nodes:
         print(" No cameras detected or configured — nothing to launch.")
 
