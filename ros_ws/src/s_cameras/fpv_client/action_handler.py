@@ -8,8 +8,8 @@ from typing import List, Dict, Set
 from rclpy.node import Node
 from rclpy.action import ActionClient
 
-from s_msgs.srv import GetCameras                  # type: ignore
-from s_msgs.action import StartCamera, StopCamera  # type: ignore
+from s_msgs.srv import GetCameras                  
+from s_msgs.action import StartCamera, StopCamera  
 from fpv_client.client_service import CameraServiceClient
 from fpv_client.image_decoder import DecoderProcess
 
@@ -191,9 +191,8 @@ class CameraActionManager:
         # Just send stop goals and let the executor handle callbacks
         self.stop_cameras(self.current_cameras.copy())
 
-    # ------------------------------------------------------------
+
     # Helpers
-    # ------------------------------------------------------------
     def list_cameras(self, silent=False):
         def _on_resp(f=None):
             """Unified printout for both startup and list command."""
@@ -233,7 +232,7 @@ class CameraActionManager:
             _on_resp(None)
             return
 
-        # Service available → call and use same print function
+        # Service available call and use same print function
         fut = self.client.client.call_async(GetCameras.Request())
         fut.add_done_callback(_on_resp)
 

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import rclpy
-from rclpy.node import Node
 
 from camera_server.camera_server import CameraServer
 

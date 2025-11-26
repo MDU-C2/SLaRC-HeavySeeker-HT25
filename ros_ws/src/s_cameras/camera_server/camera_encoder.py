@@ -2,7 +2,6 @@
 
 import subprocess
 import threading
-
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, CompressedImage
 from foxglove_msgs.msg import CompressedVideo
@@ -34,7 +33,7 @@ class CameraEncoder:
         # Publisher for MPEG-TS
         self.pub_ts = self.node.create_publisher(CompressedImage, self.output_topic, 10)
 
-        # Oublisher for Foxglove Annex-B
+        # Publisher for Foxglove Annex-B
         self.foxglove_topic = self.output_topic + "/foxglove"
         self.pub_foxglove = self.node.create_publisher(CompressedVideo, self.foxglove_topic, 10)
 
@@ -96,7 +95,7 @@ class CameraEncoder:
             # Save original capture timestamp
             self._last_input_stamp = msg.header.stamp
 
-            # Convert to BGR24 and push raw bytes to both ffmpeg instances
+            # Convert to BGR24 and push raw bytes to both ffmpeg instances (this might be a cpu user)
             frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
             raw_bytes = frame.tobytes()
 
@@ -119,7 +118,7 @@ class CameraEncoder:
             "-hide_banner",
             "-loglevel", "error",
             "-f", "rawvideo",
-            "-pix_fmt", "bgr24",
+            "-pix_fmt", "bgr24",      #This might be a CPU user
             "-s", f"{width}x{height}",
             "-r", str(self.fps),
             "-i", "pipe:0",
