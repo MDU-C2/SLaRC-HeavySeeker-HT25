@@ -65,7 +65,7 @@ def generate_launch_description():
         parameters=[dual_ekf_navsat_config, {"use_sim_time": use_sim_time}],
         remappings=[
             ("oakd/imu", "imu/data"),
-            ("gps/fix", "gps/fix"),
+            ("gps/fix", "navsatfix"),
             ("gps/filtered", "gps/filtered"),
             ("odometry/gps", "odometry/gps"),
             ("odometry/filtered", "odometry/global"),
