@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Some default values that will work as fallback if no other values is defined. Tested with different outcomes, always works but not optimized. 
 DEFAULT_ENCODER_PARAMS = {
     "encoder.prefer_hevc": False,
     "encoder.quality": 4,

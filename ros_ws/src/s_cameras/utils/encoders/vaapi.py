@@ -2,6 +2,7 @@
 import os
 from .base import EncoderBackend, EncoderInfo, normalize_settings, common_extra_args
 
+# Most GPUs allows VAAPI, So unless you really want to use specific encoders this should work on most computers. Have been tested on Intel NUC and AMD.
 class VAAPI(EncoderBackend):
     requires = [
         lambda: os.path.exists("/dev/dri/renderD128")

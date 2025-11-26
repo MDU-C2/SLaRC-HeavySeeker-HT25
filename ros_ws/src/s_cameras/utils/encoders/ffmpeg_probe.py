@@ -1,5 +1,6 @@
 import subprocess
 
+# This class is used to probe the system for existing ffmpeg. If we havent the correct gpu hardware drivers we will fallback to CPU instead.
 class FFmpegProbe:
 
     def supports(self, encoder_name: str) -> bool:
@@ -13,9 +14,11 @@ class FFmpegProbe:
     def test(self, encoder_name: str) -> bool:
 
         try:
-            size = "128x128" if "hevc" in encoder_name else "128x128"
+            # So, some attemptemps didnt support 128x128 for probing and needed 64x64 instead. 
+            # hevc works with 128x128, if not using hevc, the "else" might need to be changed to 64x64.
+            size = "128x128" if "hevc" in encoder_name else "128x128" 
             if "vaapi" in encoder_name:
-                # Special handling for VAAPI one Ubuntu server (it requiers a display usually)
+                # Special handling for VAAPI one Ubuntu server (it requiers a display usually so we test headless instead)
                 cmd = [
                     "ffmpeg", "-hide_banner", "-loglevel", "error",
                     "-hwaccel", "vaapi",
@@ -27,7 +30,7 @@ class FFmpegProbe:
                     "-f", "null", "-"
                 ]
             else:
-                # Default for NVENC, QSV, CPU, etc.
+                # Default for NVENC, QSV, CPU, etc. This worked untill tested on the Ubuntu server, hence the if statements.
                 cmd = [
                     "ffmpeg", "-hide_banner", "-loglevel", "error",
                     "-f", "lavfi", "-i", f"testsrc=size={size}:rate=1",

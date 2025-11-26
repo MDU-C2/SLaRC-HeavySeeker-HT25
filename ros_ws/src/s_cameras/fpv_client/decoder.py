@@ -161,7 +161,7 @@ class FPVDecoder(Node):
 
     # ------------------------------------------------------------------
     def _stats_thread(self):
-        """Compute bitrate per stream every second, time-accurate and smoothed."""
+
         last_bytes = {t: 0 for t in self.topic_names}
         last_time = time.time()
         alpha = 0.2  # smoothing factor
@@ -186,7 +186,6 @@ class FPVDecoder(Node):
     # ------------------------------------------------------------------
     # ------------------------------------------------------------------
     def _display_loop(self):
-        """Display all decoded frames in one OpenCV window."""
         
         cv2.namedWindow("FPV MultiView", cv2.WINDOW_NORMAL)
         cv2.resizeWindow("FPV MultiView", 1280, 720)

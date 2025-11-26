@@ -2,11 +2,11 @@
 import os, shutil
 from .base import EncoderBackend, EncoderInfo, normalize_settings, common_extra_args
 
+# Nividia encoder class
 class NVENC(EncoderBackend):
     requires = [
         lambda: os.path.exists("/dev/nvidia0") or shutil.which("nvidia-smi") is not None
     ]
-
     def encoders(self):
         return [
             EncoderInfo("hevc_nvenc", "NVIDIA NVENC (H.265)", "h265", True),

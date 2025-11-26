@@ -2,6 +2,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+# Abstraction layer, used as a base for all encoders and normalizing settings to work on all encoder.
+
 @dataclass
 class EncoderInfo:
     ffmpeg_name: str
@@ -10,7 +12,6 @@ class EncoderInfo:
     hw_accel: bool
 
 class EncoderBackend(ABC):
-    """Abstract base class for all encoder backends."""
     requires = []     # List of callables returning True/False
 
     @classmethod
@@ -23,10 +24,8 @@ class EncoderBackend(ABC):
 
     @abstractmethod
     def map_settings(self, info: EncoderInfo, settings: dict):
-        """
-        Returns:
-            (options_dict, ffmpeg_extra_args_list)
-        """
+        
+        #Returns: (options_dict, ffmpeg_extra_args_list)
         pass
 
 def normalize_settings(s: dict) -> dict:

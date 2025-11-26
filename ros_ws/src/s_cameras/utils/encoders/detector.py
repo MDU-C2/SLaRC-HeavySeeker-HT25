@@ -46,7 +46,7 @@ class EncoderDetector:
             usable = self.probe.is_usable(info.ffmpeg_name)
 
             if usable:
-                logger.info(f"✔ Selected encoder: {info.ffmpeg_name} (usable)")
+                logger.info(f"Selected encoder: {info.ffmpeg_name} (usable)")
                 opts, extra = backend.map_settings(info, settings)
                 c = CODEC_OUTPUT[info.codec]
                 return {

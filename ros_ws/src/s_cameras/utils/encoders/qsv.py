@@ -2,6 +2,7 @@
 import os
 from .base import EncoderBackend, EncoderInfo, normalize_settings, common_extra_args
 
+# Intel Quick synch encoder class, have not been tested if it is correct or not. Might need some changes.
 class QSV(EncoderBackend):
     requires = [
         lambda: os.path.exists("/dev/dri/renderD128")

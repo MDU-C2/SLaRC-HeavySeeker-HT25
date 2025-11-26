@@ -6,6 +6,9 @@ CPU_PRESETS = {
     4: "medium",  5: "fast",   6: "superfast", 7: "ultrafast"
 }
 
+# This is the fallback section. If we havent installed the GPU hardware drivers we fallback to this. 
+# Hence the program will allways work but encoding will be done on the CPU.
+# CPU endcoding is very heavy and should be avoided (tests showed ~47% CPU usage only for encoding)
 class CPU(EncoderBackend):
 
     def encoders(self):
