@@ -3,29 +3,29 @@ import os
 import sys
 import json
 import logging
+from launch.event_handlers import OnShutdown
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch.actions import LogInfo, RegisterEventHandler, ExecuteProcess
 from launch_ros.descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_directory
 from init_cameras.manage_cameras import CameraManager
 
-#-----------------Setup logging--------------------------
 logger = logging.getLogger("s_camera_launch")
 logging.basicConfig(level=logging.INFO, format="[%(name)s] %(levelname)s: %(message)s")
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
-#=================== Launch description ==================
+
 def generate_launch_description():
-    # Path to camera config file
     config_path = os.path.join(
         get_package_share_directory("s_cameras"),
         "config",
         "cameras.yaml",
     )
 
-    # Run camera manager to detect all cameras and manage them-
     manager = CameraManager(config_path)
     cameras = manager.get_camera_configurations()
+    summary = manager.build_summary_string(cameras)
 
     nodes = []
 
@@ -41,7 +41,7 @@ def generate_launch_description():
                 name=node_name,
                 namespace=node_name,
                 parameters=[params],
-                output="log",
+                output="screen",
             ))
 
         elif cam["type"] == "oak":
@@ -54,10 +54,9 @@ def generate_launch_description():
                 output="screen",
             ))
         else:
-            print(f"Unknown camera type: {cam['type']}")
+            nodes.append(LogInfo(msg=f"Unknown camera type: {cam['type']}"))
 
     # --- Launch FPV Server ---
-
     nodes.append(Node(
         package="s_cameras",
         executable="server_node",
@@ -65,10 +64,6 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {"cameras_json": ParameterValue(json.dumps(cameras), value_type=str)},
-
-            # -------------------------------
-            # Encoder use defaults unless changed here. 
-            # -------------------------------
             {"encoder.prefer_hevc": False},
             {"encoder.quality": 5},
             {"encoder.latency": "ultra_low"},
@@ -86,9 +81,23 @@ def generate_launch_description():
                 "-muxdelay 0 -muxpreload 0"
             },
         ]
-        ))
-    
-    if not nodes:
-        print(" No cameras detected or configured — nothing to launch.")
+    ))
 
-    return LaunchDescription(nodes)
+    if not cameras:
+        nodes.append(LogInfo(msg="No cameras detected or configured — nothing to launch."))
+
+    # Force-kill usb_cam if it misbehaves on shutdown (use -f due to 15-char truncation)
+    kill_process = ExecuteProcess(
+        cmd=["pkill", "-9", "-f", "usb_cam_node_exe"],
+        shell=False
+    )
+
+    cleanup = RegisterEventHandler(
+        OnShutdown(on_shutdown=[kill_process])
+    )
+
+    return LaunchDescription([
+        LogInfo(msg=summary),
+        cleanup,
+        *nodes,
+    ])
