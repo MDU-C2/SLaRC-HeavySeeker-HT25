@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:macro name="Light_seeker" params='base_link:="base_link"'>
-    
+    <xacro:property name="groundz_z_offset" value="${0.1}"/>
 
     <link name="${base_link}">
-      <pose frame="">0 0 0.0 0 -0 0</pose>
+      <pose frame="">0 0 0 0 0 0</pose>
       <inertial>
         <pose frame="">0 0 0.062329 0 -0 0</pose>
         <mass>46.064</mass>
@@ -40,13 +40,14 @@
       
 
     <link name="base_footprint">
-      <pose frame="">0 0 ${-0.165+0.03282} 0 0 0</pose>
+      <pose frame="">0 0 -0.33 0 0 0</pose>
       <visual name="base_footprint_visual">
+        <pose frame="">0 0 0 0 0 0</pose>
         <geometry>
           <box>
             <!-- pos: 0.256 -0.2854 wheel: 0.1143-->
             <!--<size>${(0.2854+0.1143)*2} ${0.256*2} 0.01</size>-->
-            <size>0.88 ${0.44+0.1146*2} 0.01</size>
+            <size>0.94 ${0.345*2 + 0.145} 0.01</size>
           </box>
         </geometry>
 
@@ -64,12 +65,12 @@
   <joint name="base_footprint_to_base_link" type="fixed">
     <parent>${base_link}</parent>
     <child>base_footprint</child>
-    <pose relative_to="${base_link}">0 0 0.046 0 0 0</pose>
+    <pose relative_to="${base_link}">0 0 -0.33 0 0 0</pose> <!--0.046? why?-->
   </joint>
 
 
     <link name="front_left_wheel_link">
-      <pose frame="">0.256 0.2854 0.03282 0 -0 0</pose>
+      <pose frame="">0.295 0.345 -0.155 0 -0 0</pose>
       <inertial>
         <pose frame="">0 0 0 0 -0 0</pose>
         <mass>2.637</mass>
@@ -83,11 +84,11 @@
         </inertia>
       </inertial>
       <collision name="front_left_wheel_link_collision">
-        <pose frame="">0 0 0 1.5707963267948966 -0 0</pose>
+        <pose frame="">0 0 0 0 ${pi/2} ${pi/2}</pose>
         <geometry>
           <cylinder>
-            <length>0.1143</length>
-            <radius>0.1651</radius>
+            <length>0.145</length>
+            <radius>0.175</radius>
           </cylinder>
         </geometry>
         <surface>
@@ -109,12 +110,17 @@
         </surface>
       </collision>
       <visual name="front_left_wheel_link_visual">
-        <pose frame="">0 0 0 0 -0 0</pose>
+        <pose frame="">0 0 0 0 ${pi/2} ${pi/2}</pose>
         <geometry>
-          <mesh>
+          <cylinder>
+            <length>0.145</length>
+            <radius>0.175</radius>
+          </cylinder>
+
+          <!--<mesh>
             <scale>1 1 1</scale>
             <uri>model://Husky_stripped_xacro/meshes/wheel.dae</uri>
-          </mesh>
+          </mesh>-->
         </geometry>
       </visual>
       <gravity>1</gravity>
@@ -141,9 +147,9 @@
       </axis>
     </joint>
     <link name="front_right_wheel_link">
-      <pose frame="">0.256 -0.2854 0.03282 0 -0 0</pose>
+      <pose frame="">0.295 -0.345 -0.155 0 -0 0</pose>
       <inertial>
-        <pose frame="">0 0 0 0 -0 0</pose>
+        <pose frame="">0 0 0 0 0 0</pose>
         <mass>2.637</mass>
         <inertia>
           <ixx>0.02467</ixx>
@@ -155,11 +161,11 @@
         </inertia>
       </inertial>
       <collision name="front_right_wheel_link_collision">
-        <pose frame="">0 0 0 1.5707963267948966 -0 0</pose>
+      <pose frame="">0 0 0 0 ${pi/2} ${pi/2}</pose>
         <geometry>
           <cylinder>
-            <length>0.1143</length>
-            <radius>0.1651</radius>
+            <length>0.145</length>
+            <radius>0.175</radius>
           </cylinder>
         </geometry>
         <surface>
@@ -181,12 +187,17 @@
         </surface>
       </collision>
       <visual name="front_right_wheel_link_visual">
-        <pose frame="">0 0 0 0 -0 0</pose>
+          <pose frame="">0 0 0 0 ${pi/2} ${pi/2}</pose>
         <geometry>
-          <mesh>
+          <cylinder>
+            <length>0.145</length>
+            <radius>0.175</radius>
+          </cylinder>
+
+          <!--<mesh>
             <scale>1 1 1</scale>
             <uri>model://Husky_stripped_xacro/meshes/wheel.dae</uri>
-          </mesh>
+          </mesh>-->
         </geometry>
       </visual>
       <gravity>1</gravity>
@@ -213,9 +224,9 @@
       </axis>
     </joint>
     <link name="rear_left_wheel_link">
-      <pose frame="">-0.256 0.2854 0.03282 0 -0 0</pose>
+      <pose frame="">-0.295 0.345 -0.155 0 -0 0</pose>
       <inertial>
-        <pose frame="">0 0 0 0 -0 0</pose>
+        <pose frame="">0 0 0 0 0 0</pose>
         <mass>2.637</mass>
         <inertia>
           <ixx>0.02467</ixx>
@@ -227,11 +238,11 @@
         </inertia>
       </inertial>
       <collision name="rear_left_wheel_link_collision">
-        <pose frame="">0 0 0 1.5707963267948966 -0 0</pose>
+        <pose frame="">0 0 0 0 ${pi/2} ${pi/2}</pose>
         <geometry>
           <cylinder>
-            <length>0.1143</length>
-            <radius>0.1651</radius>
+            <length>0.145</length>
+            <radius>0.175</radius>
           </cylinder>
         </geometry>
         <surface>
@@ -253,12 +264,17 @@
         </surface>
       </collision>
       <visual name="rear_left_wheel_link_visual">
-        <pose frame="">0 0 0 0 -0 0</pose>
+        <pose frame="">0 0 0 0 ${pi/2} ${pi/2}</pose>
         <geometry>
-          <mesh>
+          <cylinder>
+            <length>0.145</length>
+            <radius>0.175</radius>
+          </cylinder>
+
+          <!--<mesh>
             <scale>1 1 1</scale>
             <uri>model://Husky_stripped_xacro/meshes/wheel.dae</uri>
-          </mesh>
+          </mesh>-->
         </geometry>
       </visual>
       <gravity>1</gravity>
@@ -285,9 +301,9 @@
       </axis>
     </joint>
     <link name="rear_right_wheel_link">
-      <pose frame="">-0.256 -0.2854 0.03282 0 -0 0</pose>
+      <pose frame="">-0.295 -0.345 -0.155 0 -0 0</pose>
       <inertial>
-        <pose frame="">0 0 0 0 -0 0</pose>
+        <pose frame="">0 0 0 0 0 0</pose>
         <mass>2.637</mass>
         <inertia>
           <ixx>0.02467</ixx>
@@ -299,11 +315,11 @@
         </inertia>
       </inertial>
       <collision name="rear_right_wheel_link_collision">
-        <pose frame="">0 0 0 1.5707963267948966 -0 0</pose>
+        <pose frame="">0 0 0 0 ${pi/2} ${pi/2}</pose>
         <geometry>
           <cylinder>
-            <length>0.1143</length>
-            <radius>0.1651</radius>
+            <length>0.145</length>
+            <radius>0.175</radius>
           </cylinder>
         </geometry>
         <surface>
@@ -325,12 +341,17 @@
         </surface>
       </collision>
       <visual name="rear_right_wheel_link_visual">
-        <pose frame="">0 0 0 0 -0 0</pose>
+        <pose frame="">0 0 0 0 ${pi/2} ${pi/2}</pose>
         <geometry>
-          <mesh>
+          <cylinder>
+            <length>0.145</length>
+            <radius>0.175</radius>
+          </cylinder>
+
+          <!--<mesh>
             <scale>1 1 1</scale>
             <uri>model://Husky_stripped_xacro/meshes/wheel.dae</uri>
-          </mesh>
+          </mesh>-->
         </geometry>
       </visual>
       <gravity>1</gravity>
@@ -364,7 +385,7 @@
     <joint name="Top_plate_joint" type="fixed">
       <child>Top_plate_link</child>
       <parent>${base_link}</parent>
-      <pose relative_to ="${base_link}">0.0812 0 0.245 0 -0 0</pose>
+      <pose relative_to ="${base_link}">0 0 0.095 0 0 0</pose>
     </joint>
 
     <static>false</static>
@@ -376,8 +397,8 @@
       <right_joint>rear_right_wheel_joint</right_joint>
 
       <!-- Tune to your model’s geometry -->
-      <wheel_separation>0.555</wheel_separation>
-      <wheel_radius>0.165</wheel_radius>
+      <wheel_separation>0.835</wheel_separation>
+      <wheel_radius>0.145</wheel_radius> 
 
       <!-- Topics / frames -->
       <topic>/cmd_vel</topic>
