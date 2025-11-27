@@ -59,6 +59,7 @@ def generate_launch_description():
         emulate_tty=True,
         sigterm_timeout="20",
         parameters=[rover_node_params],
+        remappings=[("pose", "gps/pose"), ("twist", "gps/twist")]
     )
 
     return launch.LaunchDescription(
