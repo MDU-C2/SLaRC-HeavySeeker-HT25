@@ -36,6 +36,16 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     use_sim_time = LaunchConfiguration("use_sim_time")
 
+    gps_odom_node = Node(
+        package="hs_navigation",
+        executable="gps_odom_node.py",
+        name="gps_extract_odom",
+        output="screen",
+        remappings=[("pose", "gps/pose"),
+                    ("twist", "gps/twsit"),
+                    ("odom", "gps/odom")]
+    )
+
     rl_ekf_local_node = Node(
         package="robot_localization",
         executable="ekf_node",
@@ -76,6 +86,7 @@ def generate_launch_description():
 
     actions = [
         PushROSNamespace(namespace),
+        gps_odom_node,
         rl_ekf_local_node,
         rl_ekf_global_node,
         navsat_transform_node,
