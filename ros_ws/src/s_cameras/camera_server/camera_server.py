@@ -6,7 +6,7 @@ from s_msgs.srv import GetCameras
 from .encoder_manager import EncoderManager
 from .camera_registry import CameraRegistry
 from .action_handler import CameraActionHandler
-from utils.server import load_camera_configs
+from utils.server_utils import load_camera_configs
 
 
 class CameraServer(Node):
