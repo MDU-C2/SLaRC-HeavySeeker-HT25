@@ -116,7 +116,7 @@ septentrio_gnss_driver:
       attcoveuler: true
       pose: true
       twist: true
-      diagnostics: false
+      diagnostics: true
       aimplusstatus: true
       galauthstatus: false
       # For GNSS Rx only
