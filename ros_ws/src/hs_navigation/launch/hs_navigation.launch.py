@@ -50,6 +50,14 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     use_sim_time = LaunchConfiguration("use_sim_time")
 
+    imu_g_to_ms2_node = Node(
+        package="hs_navigation",
+        executable="imu_g_to_ms2.py",
+        name="livox_imu_conv",
+        output="screen",
+        remappings=[("imu/data", "livox/imu_192_168_10_93"),
+                    ("imu_conv/data", "livox/imu/data")]
+    )
 
     mapviz_launch = PathJoinSubstitution(
           [
@@ -119,6 +127,7 @@ def generate_launch_description():
 
     actions = [
         PushROSNamespace(namespace),
+        imu_g_to_ms2_node,
         robot_localization_node,
         waypoint_bridge_node,
         rviz_node,

@@ -42,7 +42,7 @@ def generate_launch_description():
         name="gps_extract_odom",
         output="screen",
         remappings=[("pose", "gps/pose"),
-                    ("twist", "gps/twsit"),
+                    ("twist", "gps/twist"),
                     ("odom", "gps/odom")]
     )
 

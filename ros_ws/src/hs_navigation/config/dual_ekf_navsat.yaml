@@ -33,14 +33,15 @@ ekf_filter_node_odom_local:
 
     # imu0_remove_gravitational_acceleration: true
     
-    # imu1: livox/imu/data
-    # imu1_config: [false, false, false,
-    #               false, false, false,
-    #               false, false, false,
-    #               true, true, true,
-    #               true, true, true]
+    imu0: livox/imu/data
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  true, true, false]
 
-    # imu1_remove_gravitational_acceleration: true
+    imu0_remove_gravitational_acceleration: true
+    gravitational_acceleration: 9.81
 
 
 # World ekf, gnss
@@ -79,7 +80,7 @@ ekf_filter_node_map_global:
 
     odom2: gps/odom
     odom2_config: [false, false, false,
-                   true, true, true,
+                   false, false, true,
                    false, false, false,
                    false, false, false,
                    false, false, false]
@@ -93,14 +94,15 @@ ekf_filter_node_map_global:
 
     # imu0_remove_gravitational_acceleration: true
 
-    # imu1: livox/imu/data
-    # imu1_config: [false, false, false,
-    #               false, false, false,
-    #               false, false, false,
-    #               true, true, true,
-    #               true, true, true]
+    imu0: livox/imu/data
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  true, true, false]
 
-    # imu1_remove_gravitational_acceleration: true
+    imu0_remove_gravitational_acceleration: true
+    gravitational_acceleration: 9.81
 
 
 navsat_transform:
