@@ -3,5 +3,10 @@ launch_options:
     namespace: "seeker"
     model: "Rig5"
     use_JSP: false
-    use_sim_time: false
-    
+    use_simtime: false
+    nav2_config: ""
+    navsat_config: ""
+    livox_config: ""
+    ardu_config: ""
+    camera_config: ""
+    camera_serever_config: ""
