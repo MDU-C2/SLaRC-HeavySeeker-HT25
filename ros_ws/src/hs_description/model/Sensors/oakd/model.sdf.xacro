@@ -221,7 +221,7 @@
       <joint name="${name}_imu_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_imu_frame</child>
-        <pose relative_to="${base_frame}">0 0 0 -${M_PI/2} 0 -${M_PI/2}</pose>
+        <pose relative_to="${base_frame}">-0.008 -0.037945 -0.00079 ${M_PI} ${M_PI/2.0} 0.0</pose>
       </joint>
 
       <joint name="oakd_mount" type="fixed">
