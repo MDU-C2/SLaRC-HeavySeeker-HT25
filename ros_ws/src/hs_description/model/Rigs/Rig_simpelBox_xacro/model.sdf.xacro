@@ -1,18 +1,25 @@
 <?xml version="1.0" ?>
 
 
-  
-  <sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
-    <xacro:macro name="Rig_simpelBox_xacro" params='size:="0.6 0.4 0.5" offset:="0 0 0 0 0 0"'>
+
+<sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="Rig_simpelBox_xacro" params='size:="0.6 0.4 0.5" offset:="0 0 0 0 0 0" base_frame'>
     <static>false</static>
     <link name="box_link">
+      <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
       <gravity>true</gravity> 
       <collision name="c">
         <geometry><box><size>${size}</size></box></geometry>
       </collision>
       <visual name="v">
         <geometry><box><size>${size}</size></box></geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.8 0.1 0.1 1</diffuse>
+          <specular>0.5 0.5 0.5 1</specular>
+          <emissive>0 0 0 1</emissive>
+        </material>
       </visual>
     </link>
-    </xacro:macro> 
-  </sdf>
+  </xacro:macro> 
+</sdf>
