@@ -19,11 +19,12 @@
       </inertial>
       
       <visual name="base_link_visual">
-        <pose frame="">-1.61181 -0.8536 ${-1.01698 - 0.19/2} ${pi/2} 0 ${pi/2}</pose>
+        <pose frame="">-1.57768 -0.78292 ${-1.12211 - 0.19/2} ${pi/2} 0 ${pi/2}</pose>
+        <!-- Z -X -Y-->
         <geometry>
           <mesh>
             <scale>1 1 1</scale>
-            <uri>model://Light_seeker/meshes/Light_seeker_base.dae</uri>
+            <uri>model://Light_seeker/meshes/Light_seeker_base_2.dae</uri>
           </mesh>
         </geometry>
       </visual>
