@@ -120,5 +120,4 @@ def generate_launch_description():
 
     ld = LaunchDescription(ARGUMENTS)
     ld.add_action(hs)
-    ld.add_action(gnss_to_rig_tf)
     return ld
