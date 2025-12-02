@@ -21,4 +21,7 @@
       i_publish_topic: false
       i_resolution: '1080P'
       i_width: 1280
+    imu:
+      i_enable_rotation: true
+      i_rotation_vector_type: GEOMAGNETIC_ROTATION_VECTOR
     use_sim_time: false

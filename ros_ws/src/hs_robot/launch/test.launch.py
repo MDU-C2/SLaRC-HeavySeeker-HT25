@@ -71,6 +71,11 @@ def generate_launch_description():
         ),
     )
 
+    # OAK-D
+    oak_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([hs_bringup_dir, 'launch', 'oakd.launch.py'])))
+
     # SLAM
     # slam_toolbox_launch = IncludeLaunchDescription(
     #     PythonLaunchDescriptionSource(
@@ -114,6 +119,7 @@ def generate_launch_description():
         septentrio_launch,
         livox_lidar_launch,
         cloud2scan_launch,
+        oak_launch,
         nav2_launch
         # slam_toolbox_launch,
         # nav2_group,
