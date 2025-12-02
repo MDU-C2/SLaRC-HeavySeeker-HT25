@@ -75,7 +75,7 @@ def generate_launch_description():
         executable='static_transform_publisher',
         name='livox_frame_static_broadcaster',
         output='screen',
-        arguments=['0.17', '0.0', '0.18', '-1.570795', '0.0', '0.0', 'top_plate_rear_mount', 'livox_frame'],
+        arguments=['0.17', '0.0', '0.18', '0.0', '0.0', '0.0', 'top_plate_rear_mount', 'livox_frame'],
     )
 
     return LaunchDescription([
