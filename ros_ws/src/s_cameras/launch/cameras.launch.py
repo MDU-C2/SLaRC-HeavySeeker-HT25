@@ -5,6 +5,9 @@ import json
 import logging
 from launch.event_handlers import OnShutdown
 from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import LogInfo, RegisterEventHandler, ExecuteProcess
 from launch_ros.descriptions import ParameterValue
@@ -43,16 +46,29 @@ def generate_launch_description():
                 parameters=[params],
                 output="screen",
             ))
-
+            
         elif cam["type"] == "oak":
-            nodes.append(Node(
-                package='depthai_ros_driver',
-                executable="camera_node",
-                name=node_name,
-                namespace='',
-                parameters=[params],
-                output="screen",
-            ))
+
+            depthai_launch = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([
+                    os.path.join(
+                        get_package_share_directory('depthai_ros_driver'),
+                        'launch',
+                        'camera.launch.py'
+                    )
+                ]),
+                launch_arguments={
+                    'name': node_name,
+                    'enable_depth': 'true',
+                    'pointcloud.enable': 'true',
+                    'enable_color': 'true',
+                    'rs_compat': 'false',
+                    'params_file': config_path
+                }.items()
+            )
+
+            nodes.append(depthai_launch)
+
         else:
             nodes.append(LogInfo(msg=f"Unknown camera type: {cam['type']}"))
 
