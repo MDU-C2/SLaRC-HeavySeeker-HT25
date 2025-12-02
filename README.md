@@ -12,6 +12,7 @@ First, [enter the container](docker/README.md), then build by running:
 
 ```
 $ /slarc_ws/livox_build.sh
+cmake .. && make -j$(nproc --ignore=1)
 ```
 
 _Don't worry about the warnings, just ignore them_
