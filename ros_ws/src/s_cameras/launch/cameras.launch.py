@@ -59,6 +59,7 @@ def generate_launch_description():
                 ]),
                 launch_arguments={
                     'name': node_name,
+                    'namespace' : node_name,
                     'enable_depth': 'true',
                     'pointcloud.enable': 'true',
                     'enable_color': 'true',
