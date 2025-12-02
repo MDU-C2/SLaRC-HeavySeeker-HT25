@@ -217,58 +217,35 @@ local_costmap:
       width: 3
       height: 3
       resolution: 0.05
-      footprint: "[ [0.21, 0.195], [0.21, -0.195], [-0.21, -0.195], [-0.21, 0.195] ]"
-
-      plugins: ["stvl_layer", "inflation_layer"]
-
-      stvl_layer:
-        plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
-        enabled: true
-        voxel_decay: 15.0         # seconds (linear if decay_model=0)
-        decay_model: 0            # 0 = linear, 1 = exp, -1 = persistent
-        voxel_size: 0.05
-        track_unknown_space: true
-        mark_threshold: 0
-        update_footprint_enabled: true
-        combination_method: 1     # 1 = max
-        origin_z: 0.0
-        publish_voxel_map: false
-        transform_tolerance: 0.2
-        mapping_mode: false
-        map_save_duration: 60.0
-
-        observation_sources: lidar_mark lidar_clear
-  
-
-        lidar_mark:
-          data_type: PointCloud2
-          topic: "/livox/lidar_192_168_10_93"
-          marking: true
-          clearing: false
-          obstacle_range: 10.0
-          min_obstacle_height: 0.05
-          max_obstacle_height: 0.8
-          expected_update_rate: 0.0
-          observation_persistence: 0.0
-          filter: "voxel"
-          voxel_min_points: 1
-          clear_after_reading: false
-
-        lidar_clear:
-          data_type: PointCloud2
-          topic: "/livox/lidar_192_168_10_93"
-          marking: false
-          clearing: true
-          max_z: 5.0
-          min_z: -1.0
-          model_type: 1           # 1 = 3D LiDAR
-          decay_acceleration: 0.0
-
+      robot_radius: 0.22
+      plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.55
-
+        inflation_radius: 0.70
+      voxel_layer:
+        plugin: "nav2_costmap_2d::VoxelLayer"
+        enabled: True
+        publish_voxel_map: True
+        origin_z: 0.0
+        z_resolution: 0.05
+        z_voxels: 16
+        max_obstacle_height: 2.0
+        mark_threshold: 0
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
       always_send_full_costmap: True
 
 #GLOBAL COSTMAP (STVL)
