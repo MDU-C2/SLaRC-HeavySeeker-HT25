@@ -14,7 +14,7 @@ range_max=100.0
 target_frame="livox_frame"
 transform_tolerance=0.01
 use_inf=True
-cloud_topic="livox/lidar"
+cloud_topic="livox/lidar_192_168_10_93"
 
 cloud2scan_params = [
     {"min_height": min_height},
