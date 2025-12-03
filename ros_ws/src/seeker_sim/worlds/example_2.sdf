@@ -9,6 +9,7 @@
 
     <!-- Required for rendering-based sensors like gpu_lidar -->
     <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system"/>
+    <plugin name="gz::sim::systems::Imu" filename="gz-sim-imu-system"/>
 
     <!-- Usually present; keeps clients in sync -->
     <plugin name="gz::sim::systems::SceneBroadcaster" filename="gz-sim-scene-broadcaster-system"/>
