@@ -283,7 +283,7 @@ global_costmap:
         
         camera:
           data_type: PointCloud2
-          topic: "/s_cameras/depth/points"
+          topic: "/oak0/oak0/points"
           marking: true
           clearing: false
           obstacle_range: 8.0
@@ -297,7 +297,7 @@ global_costmap:
           model_type: 0                 # 0 = depth camera
           vertical_fov_angle: 0.87      # depends on OAK-D model
           horizontal_fov_angle: 1.04
-                 
+
         # lidar_clear:
         #   data_type: PointCloud2
         #   topic: "/livox/lidar_192_168_10_93"
