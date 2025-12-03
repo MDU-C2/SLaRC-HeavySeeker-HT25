@@ -11,3 +11,17 @@ Copyright 2021 Clearpath Robotics, Inc. All Rights Reserved.
 The Initial Developer of xacro_properties which are derived from
 iRobot® Create® 3 Simulator, is iRobot Corporation (https://edu.irobot.com/)
 Copyright 2021 iRobot Corporation. All Rights Reserved.
+
+#### FAST_LIO_SLAM_ros2
+Parts of this repository are based on the
+[FAST_LIO_SLAM_ros2](https://github.com/rohrschacht/FAST_LIO_SLAM_ros2) project
+by rohrschacht, which itself is a ROS 2 port of FAST-LIO developed by the
+HKU-MARS group.
+
+We have copied and modified the original FAST_LIO_SLAM_ros2 code to integrate
+it with our SLaRC HeavySeeker platform, including:
+- Adaptation to our ROS 2 workspace layout and launch structure
+- Parameter and configuration changes for the Livox MID-360
+- Additional launch files and ROS integration for 3D SLAM experiments
+
+Please see the [LICENSE](/SLaRC-HeavySeeker-HT25/LICENSE) for license terms.

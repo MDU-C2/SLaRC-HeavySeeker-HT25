@@ -11,7 +11,8 @@ RUN apt update && apt install -y \
     cmake \
     libpcl-dev \
     gh \
-    python3-pip
+    python3-pip \
+    pcl-tools
 
 RUN apt update && apt install -y \
     ros-dev-tools \
@@ -24,6 +25,7 @@ RUN apt update && apt install -y \
     ros-jazzy-depthai-ros \
     ros-jazzy-pcl-conversions \
     ros-jazzy-pcl-msgs \
+    ros-jazzy-pcl-ros \
     ros-jazzy-cartographer \
     ros-jazzy-cartographer-ros \
     ros-jazzy-septentrio-gnss-driver \
@@ -34,7 +36,8 @@ RUN apt update && apt install -y \
     ros-jazzy-robot-localization \
     ros-jazzy-mapviz \
     ros-jazzy-mapviz-plugins \
-    ros-jazzy-tile-map
+    ros-jazzy-tile-map \
+    ros-jazzy-foxglove-bridge
 
 
 # Install gazebo harmonic and gz-sensors
@@ -42,8 +45,6 @@ RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add - && \
     sudo apt-get update && \
     sudo apt-get install -y libgz-sensors10-navsat libgz-sensors10-navsat-dev gz-harmonic
-
-
 
 # Install DepthAI (Python SDK)
 RUN pip install depthai --no-deps --force-reinstall --break-system-packages

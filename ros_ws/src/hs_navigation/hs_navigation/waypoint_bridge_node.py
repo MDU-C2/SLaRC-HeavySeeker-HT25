@@ -60,7 +60,7 @@ class InteractiveGpsWpCommander(Node):
         """
         clicked point callback, sends received point to nav2 gps waypoint follower if its a geographic point
         """
-        if msg.header.frame_id != "wgs84":
+        if msg.header.frame_id not in ['wgs84', 'map']:
             self.get_logger().warning(
                 "Received point from mapviz that ist not in wgs84 frame. This is not a gps point and wont be followed")
             return
