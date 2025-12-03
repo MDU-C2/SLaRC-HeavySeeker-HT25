@@ -213,6 +213,7 @@
               </noise>
             </orientation>
           </imu>
+          <pose relative_to="${base_frame}">0 0 0 ${M_PI/2} 0 ${M_PI/2}</pose>
           <topic>/oakd/imu</topic>
           <gz_frame_id>${name}_imu_frame</gz_frame_id>
         </sensor>
