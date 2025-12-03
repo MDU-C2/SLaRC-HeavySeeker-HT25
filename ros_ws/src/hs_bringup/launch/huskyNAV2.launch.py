@@ -17,6 +17,7 @@ output_velocity_topic = "platform/cmd_vel"
 
 def generate_launch_description():
     # Directories
+    ws_dir = get_package_share_directory('ros_ws')
     hs_bringup_dir = get_package_share_directory('hs_bringup')
     slam_toolbox_dir = get_package_share_directory('slam_toolbox')
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
@@ -49,6 +50,13 @@ def generate_launch_description():
         }.items(),
     )
 
+    # Fast Lio
+    fast_lio_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(ws_dir, 'FAST_LIO_SLAM_ros2', 'launch', 'mapping.launch.py')
+        ),
+    )
+
     # NAV2
     nav2_bringup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -66,6 +74,7 @@ def generate_launch_description():
         livox_lidar_launch,
         cloud2scan_launch,
         slam_toolbox_launch,
+        fast_lio_launch,
         nav2_bringup_launch,
     ])
 
