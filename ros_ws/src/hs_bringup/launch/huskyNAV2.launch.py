@@ -69,7 +69,7 @@ def generate_launch_description():
         nav2_bringup_launch,
     ])
 
-    # Frame
+    # Lidar Frame
     livox_frame = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
@@ -77,8 +77,18 @@ def generate_launch_description():
         output='screen',
         arguments=['0.17', '0.0', '0.18', '3.1415926', '0.0', '0.0', 'top_plate_rear_mount', 'livox_frame'],
     )
+    
+    # Oak-D Frame
+    oakd_frame = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='oakd_frame_static_broadcaster',
+        output='screen',
+        arguments=['0.17', '0.0', '0.18', '3.1415926', '0.0', '0.0', 'top_plate_front_mount', 'oak0'],
+    )
 
     return LaunchDescription([
         group,
         livox_frame,
+        oakd_frame,
     ])
