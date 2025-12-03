@@ -17,7 +17,7 @@ output_velocity_topic = "platform/cmd_vel"
 
 def generate_launch_description():
     # Directories
-    ws_dir = get_package_share_directory('ros_ws')
+    ws_dir = get_package_share_directory('FAST_LIO_SLAM_ros2')
     hs_bringup_dir = get_package_share_directory('hs_bringup')
     slam_toolbox_dir = get_package_share_directory('slam_toolbox')
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
@@ -53,7 +53,7 @@ def generate_launch_description():
     # Fast Lio
     fast_lio_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(ws_dir, 'FAST_LIO_SLAM_ros2', 'launch', 'mapping.launch.py')
+            os.path.join(ws_dir, 'launch', 'mapping.launch.py')
         ),
     )
 
