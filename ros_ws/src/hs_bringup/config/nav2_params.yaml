@@ -233,9 +233,8 @@ local_costmap:
       always_send_full_costmap: true
 
 
-##############################################
+
 # GLOBAL COSTMAP — STVL ONLY
-##############################################
 global_costmap:
   global_costmap:
     ros__parameters:
@@ -269,18 +268,46 @@ global_costmap:
         mapping_mode: false
         map_save_duration: 60.0
 
-        observation_sources: lidar_mark
+        observation_sources: lidar_mark camera
 
         lidar_mark:
           data_type: PointCloud2
           topic: "/livox/lidar_192_168_10_93"
           marking: true
-          clearing: false
+          clearing: true
           obstacle_range: 20.0
           min_obstacle_height: 0.0
           max_obstacle_height: 0.8
           filter: "voxel"
           voxel_min_points: 1
+        
+        camera:
+          data_type: PointCloud2
+          topic: "/s_cameras/depth/points"
+          marking: true
+          clearing: false
+          obstacle_range: 8.0
+          min_obstacle_height: 0.0
+          max_obstacle_height: 0.8
+          expected_update_rate: 0.0     # accept all rates
+          observation_persistence: 0.0  # only last cloud
+          filter: "voxel"               # downsample to reduce CPU
+          voxel_min_points: 1
+          clear_after_reading: false
+          model_type: 0                 # 0 = depth camera
+          vertical_fov_angle: 0.87      # depends on OAK-D model
+          horizontal_fov_angle: 1.04
+                 
+        # lidar_clear:
+        #   data_type: PointCloud2
+        #   topic: "/livox/lidar_192_168_10_93"
+        #   marking: true
+        #   clearing: false
+        #   obstacle_range: 20.0
+        #   min_obstacle_height: 0.0
+        #   max_obstacle_height: 0.8
+        #   filter: "voxel"
+        #   voxel_min_points: 1
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
