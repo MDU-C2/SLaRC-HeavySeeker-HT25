@@ -17,6 +17,7 @@ output_velocity_topic = "platform/cmd_vel"
 
 def generate_launch_description():
     # Directories
+    s_cameras_dir = get_package_share_directory('s_cameras')
     fast_lio_dir = get_package_share_directory('fast_lio')
     hs_bringup_dir = get_package_share_directory('hs_bringup')
     slam_toolbox_dir = get_package_share_directory('slam_toolbox')
@@ -27,6 +28,13 @@ def generate_launch_description():
     livox_lidar_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(hs_bringup_dir, 'launch', 'livox_launch.py')
+        ),
+    )
+
+    # Camera
+    camera_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(s_cameras_dir, 'launch', 'cameras.launch.py')
         ),
     )
 
@@ -72,6 +80,7 @@ def generate_launch_description():
     # Group
     group = GroupAction([
         livox_lidar_launch,
+        camera_launch,
         cloud2scan_launch,
         slam_toolbox_launch,
         fast_lio_launch,
