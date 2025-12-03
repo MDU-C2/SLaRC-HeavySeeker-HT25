@@ -280,6 +280,7 @@ def generate_launch_description():
             "/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/gps/fix@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat",
             "/oakd/imu@sensor_msgs/msg/Imu@gz.msgs.IMU",
+            "/livox/imu@sensor_msgs/msg/Imu@gz.msgs.IMU",
             "--ros-args",
             "-r",
             "/lidar_points/points:=/lidar_points",
