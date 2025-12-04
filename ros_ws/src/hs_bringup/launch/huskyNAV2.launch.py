@@ -83,7 +83,7 @@ def generate_launch_description():
         camera_launch,
         cloud2scan_launch,
         slam_toolbox_launch,
-        fast_lio_launch,
+        #fast_lio_launch,
         nav2_bringup_launch,
     ])
 
