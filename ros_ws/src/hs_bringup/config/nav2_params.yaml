@@ -299,12 +299,12 @@ global_costmap:
           marking: true
           clearing: false
           obstacle_range: 5.0
-          min_obstacle_height: 1.0
+          min_obstacle_height: 0.02
           max_obstacle_height: 2.0
           expected_update_rate: 0.0
           observation_persistence: 0.0
           inf_is_valid: false
-          filter: "passthrough"
+          filter: "voxel"
           voxel_min_points: 1
           clear_after_reading: false
 
@@ -318,8 +318,8 @@ global_costmap:
           topic: "/oak0/oak0/points"
           marking: false
           clearing: true
-          max_z: 7.0                    # [m] 
-          min_z: 1.05                   # [m] 
+          max_z: 0.0                   # [m] 
+          min_z: 10.0                   # [m] 
 
           vertical_fov_angle: 0.8745
           horizontal_fov_angle: 1.048
