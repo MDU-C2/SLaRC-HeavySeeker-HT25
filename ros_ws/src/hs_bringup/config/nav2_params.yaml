@@ -268,7 +268,7 @@ global_costmap:
         mapping_mode: false
         map_save_duration: 60.0
 
-        observation_sources: camera_mark camre_clear
+        observation_sources: lidar_mark lidar_clear camera_mark camre_clear
 
         lidar_mark:
           data_type: PointCloud2
