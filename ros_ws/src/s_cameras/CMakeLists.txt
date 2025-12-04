@@ -34,6 +34,11 @@ install(PROGRAMS
   RENAME fpv_client
 )
 
+install(PROGRAMS
+  fpv_client/decoder.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME decoder
+)
 
 # --------------------------------------------------------------------
 # Install Launch & Config
