@@ -268,33 +268,34 @@ global_costmap:
         mapping_mode: false
         map_save_duration: 60.0
 
-        observation_sources: lidar_mark lidar_clear camera_mark camre_clear
+        observation_sources: camera_mark camre_clear
 
-        lidar_mark:
-          data_type: PointCloud2
-          topic: "/livox/lidar_192_168_10_93"
-          marking: true
-          clearing: false
-          obstacle_range: 20.0
-          min_obstacle_height: 0.0
-          max_obstacle_height: 0.8
-          filter: "voxel"
-          voxel_min_points: 1
+        # lidar_mark:
+        #   data_type: PointCloud2
+        #   topic: "/livox/lidar_192_168_10_93"
+        #   marking: true
+        #   clearing: false
+        #   obstacle_range: 20.0
+        #   min_obstacle_height: 0.0
+        #   max_obstacle_height: 0.8
+        #   filter: "voxel"
+        #   voxel_min_points: 1
 
-        lidar_clear:
-          data_type: PointCloud2
-          topic: "/livox/lidar_192_168_10_93"
-          marking: false 
-          clearing: true
-          obstacle_range: 20.0
-          min_obstacle_height: 0.0
-          max_obstacle_height: 0.8
-          filter: "voxel"
-          voxel_min_points: 1
+        # lidar_clear:
+        #   data_type: PointCloud2
+        #   topic: "/livox/lidar_192_168_10_93"
+        #   marking: false 
+        #   clearing: true
+        #   obstacle_range: 20.0
+        #   min_obstacle_height: 0.0
+        #   max_obstacle_height: 0.8
+        #   filter: "voxel"
+        #   voxel_min_points: 1
         
         camera_mark:
           data_type: PointCloud2
           topic: "/oak0/oak0/points"
+          transport_type: "raw"
           marking: true
           clearing: false
           obstacle_range: 5.0
