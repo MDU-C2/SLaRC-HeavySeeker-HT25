@@ -13,7 +13,7 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
 
 
-    
+
     config_dir = PathJoinSubstitution(
         [
             get_package_share_directory("s_perception"),
@@ -28,7 +28,7 @@ def generate_launch_description():
 
     ardu_config_arg = DeclareLaunchArgument(
         "ardu_config",
-        default_value="",
+        default_value="ardu_config.yaml",
         description="Name of config file for Ardu, located the the config folder this package",
     )
 
@@ -50,10 +50,10 @@ def generate_launch_description():
         description='Robot namespace'
         )
 
-    
+
 
     ld = LaunchDescription()
 
     return LaunchDescription([
-        
+
     ])

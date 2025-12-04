@@ -44,9 +44,30 @@ def generate_launch_description():
         description='Robot namespace'
         )
 
+    waypoint_bridge_node = Node(
+        package="hs_navigation",
+        executable="waypoint_bridge_node.py",
+        name="waypoint_bridge",
+        output="screen",
+        parameters=[],
+        remappings=[
+            ("waypoints", "waypoints"),
+            ("waypoint_status", "waypoint_status"),
+        ],
+    )
     
 
-    ld = LaunchDescription()
+    actions = [
+        PushROSNamespace(namespace),
+        robot_localization_node,
+        waypoint_bridge_node,
+        TimerAction(period=5.0, actions=[slam_toolbox_cmd]),
+        TimerAction(period=10.0, actions=[nav2_bringup_cmd])
+    ]
+    hs = GroupAction(actions)
+
+    ld = LaunchDescription(ARGUMENTS)
+    ld.add_action(hs)
 
     return LaunchDescription([
         
