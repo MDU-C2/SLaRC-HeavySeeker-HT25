@@ -70,6 +70,7 @@ def generate_launch_description():
                 'pcd_save.interval': -1
             }
         ],
+        remappings=[('tf', 'tf_unused')],
         output='screen'
     )
     rviz_node = Node(
