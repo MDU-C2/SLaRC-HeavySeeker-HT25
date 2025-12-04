@@ -255,7 +255,7 @@ global_costmap:
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         enabled: true
-        voxel_decay: 5.0 #secons if the decay model is 0 (linear)
+        voxel_decay: 1.0 #secons if the decay model is 0 (linear)
         decay_model: 0 
         voxel_size: 0.05
         track_unknown_space: true
@@ -321,8 +321,8 @@ global_costmap:
           max_z: 0.0                   # [m] 
           min_z: 10.0                   # [m] 
 
-          vertical_fov_angle: 0.8745
-          horizontal_fov_angle: 1.048
+          #vertical_fov_angle: 0.8745
+          #horizontal_fov_angle: 1.048
           decay_acceleration: 1.0       # non-zero for RGBD
           model_type: 0                 # 0 = depth camera
 
