@@ -35,7 +35,7 @@ septentrio_gnss_driver:
     vehicle_frame_id: base_link
     local_frame_id: odom
     insert_local_frame: false
-    get_spatial_config_from_tf: true
+    get_spatial_config_from_tf: false #true
     lock_utm_zone: true
     use_ros_axis_orienation: true
     receiver_type: gnss
@@ -48,12 +48,12 @@ septentrio_gnss_driver:
       delta_u: 0.0
 
     att_offset:
-      heading: 0.0
+      heading: 90.0
       pitch: 0.0
 
-    ant_type: "Unknown"
+    ant_type: "AS-ANT2BCAL"
     ant_serial_nr: "Unknown"
-    ant_aux1_type: "Unknown"
+    ant_aux1_type: "AS-ANT2BCAL"
     ant_aux1_serial_nr: "Unknown"
 
     polling_period:
