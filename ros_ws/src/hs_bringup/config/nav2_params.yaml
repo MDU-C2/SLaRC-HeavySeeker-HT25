@@ -299,7 +299,7 @@ global_costmap:
           marking: true
           clearing: false
           obstacle_range: 5.0
-          min_obstacle_height: 0.35
+          min_obstacle_height: 0.10
           max_obstacle_height: 3.0
           expected_update_rate: 0.0
           observation_persistence: 0.0
@@ -318,8 +318,8 @@ global_costmap:
           topic: "/oak0/oak0/points"
           marking: false
           clearing: true
-          max_z: 0.0                   # [m] 
-          min_z: 10.0                   # [m] 
+          max_z: 7.0                   # [m] 
+          min_z: 0.0                   # [m] 
 
           vertical_fov_angle: 0.959931     # 55 degrees
           horizontal_fov_angle: 1.20428    # 69 degrees
