@@ -311,8 +311,8 @@ global_costmap:
 
           # Camera model so STVL knows the frustum
           model_type: 0                 # 0 = depth camera and 1 =lidar
-          vertical_fov_angle: 0.959931     # 55 degrees
-          horizontal_fov_angle: 1.20428    # 69 degrees   
+          # vertical_fov_angle: 0.959931     # 55 degrees
+          # horizontal_fov_angle: 1.20428    # 69 degrees   
       
         camera_clear:
           data_type: PointCloud2
