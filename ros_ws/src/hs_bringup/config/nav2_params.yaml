@@ -255,7 +255,7 @@ global_costmap:
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         enabled: true
-        voxel_decay: 3.5 #secons if the decay model is 0 (linear)
+        voxel_decay: 2.5 #secons if the decay model is 0 (linear)
         decay_model: 0 
         voxel_size: 0.05
         track_unknown_space: true
@@ -299,8 +299,8 @@ global_costmap:
           marking: true
           clearing: false
           obstacle_range: 5.0
-          min_obstacle_height: 0.3
-          max_obstacle_height: 1.5
+          min_obstacle_height: 0.2
+          max_obstacle_height: 2.0
           expected_update_rate: 0.0
           observation_persistence: 0.0
           inf_is_valid: false
