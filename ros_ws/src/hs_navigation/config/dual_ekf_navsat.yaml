@@ -70,7 +70,7 @@ ekf_filter_node_map:
     world_frame: map
 
     odom0: /a200_0309/platform/odom
-    odom0_config: [false, false, false,
+    odom0_config: [true, true, false,
                   false, false, false,
                   true,  true,  true,
                   false, false, true,
@@ -79,15 +79,16 @@ ekf_filter_node_map:
     odom0_differential: false
     odom0_relative: false
 
-    odom1: odometry/gps
-    odom1_config: [true,  true,  false,
-                  false, false, false,
-                  false, false, false,
-                  false, false, false,
-                  false, false, false]
-    odom1_queue_size: 10
-    odom1_differential: false
-    odom1_relative: false
+    # Keep, testing without odom1
+    # odom1: odometry/gps
+    # odom1_config: [true,  true,  false,
+    #               false, false, false,
+    #               false, false, false,
+    #               false, false, false,
+    #               false, false, false]
+    # odom1_queue_size: 10
+    # odom1_differential: false
+    # odom1_relative: false
 
     # imu0: oakd/imu/data
     imu0: livox/imu/data
