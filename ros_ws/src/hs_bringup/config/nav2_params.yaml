@@ -269,7 +269,7 @@ global_costmap:
         mapping_mode: false
         map_save_duration: 30.0
 
-        observation_sources: lidar_mark lidar_clear camera_mark camera_clear
+        observation_sources:  camera_mark camera_clear
 
         lidar_mark:
           data_type: PointCloud2
@@ -320,7 +320,7 @@ global_costmap:
           marking: false
           clearing: true
           max_z: 10.0                   # [m] 
-          min_z: -0.1                   # [m] 
+          min_z: 0.1                   # [m] 
 
           vertical_fov_angle: 0.959931     # 55 degrees
           horizontal_fov_angle: 1.20428    # 69 degrees
