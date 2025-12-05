@@ -268,7 +268,7 @@ global_costmap:
         mapping_mode: false
         map_save_duration: 60.0
 
-        observation_sources: lidar_mark lidar_clear camera_mark camre_clear
+        observation_sources: lidar_mark lidar_clear camera_mark camera_clear
 
         lidar_mark:
           data_type: PointCloud2
@@ -299,8 +299,8 @@ global_costmap:
           marking: true
           clearing: false
           obstacle_range: 5.0
-          min_obstacle_height: 0.05
-          max_obstacle_height: 1.0
+          min_obstacle_height: 0.3
+          max_obstacle_height: 1.5
           expected_update_rate: 0.0
           observation_persistence: 0.0
           inf_is_valid: false
@@ -310,19 +310,20 @@ global_costmap:
 
           # Camera model so STVL knows the frustum
           model_type: 0                 # 0 = depth camera and 1 =lidar
-          vertical_fov_angle: 0.8745    
-          horizontal_fov_angle: 1.048   
+          vertical_fov_angle: 0.959931     # 55 degrees
+          horizontal_fov_angle: 1.20428    # 69 degrees   
       
         camera_clear:
           data_type: PointCloud2
           topic: "/oak0/oak0/points"
           marking: false
           clearing: true
-          max_z: 0.0                   # [m] 
-          min_z: 5.0                   # [m] 
+          max_z: -1.0                   # [m] 
+          min_z: 3.0                   # [m] 
 
-          vertical_fov_angle: 0.8745
-          horizontal_fov_angle: 1.048
+          vertical_fov_angle: 0.959931     # 55 degrees
+          horizontal_fov_angle: 1.20428    # 69 degrees
+
           decay_acceleration: 1.0       # non-zero for RGBD
           model_type: 0                 # 0 = depth camera
 
