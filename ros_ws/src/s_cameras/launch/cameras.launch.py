@@ -54,7 +54,7 @@ def generate_launch_description():
                     os.path.join(
                         get_package_share_directory('depthai_ros_driver'),
                         'launch',
-                        'camera.launch.py'
+                        'rgbd_pcl.launch.py'
                     )
                 ]),
                 launch_arguments={
@@ -64,7 +64,6 @@ def generate_launch_description():
                     'pointcloud.enable': 'true',
                     'enable_color': 'true',
                     'rs_compat': 'false',
-                    'nn_enable': 'false',
                     'params_file': config_path
                 }.items()
             )
