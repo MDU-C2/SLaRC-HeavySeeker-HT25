@@ -318,7 +318,7 @@ global_costmap:
           topic: "/oak0/oak0/points"
           marking: false
           clearing: true
-          max_z: -1.0                   # [m] 
+          max_z: 0.0                   # [m] 
           min_z: 3.0                   # [m] 
 
           vertical_fov_angle: 0.959931     # 55 degrees
