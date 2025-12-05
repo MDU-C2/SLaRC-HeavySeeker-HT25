@@ -255,7 +255,7 @@ global_costmap:
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         enabled: true
-        voxel_decay: 2.5 #secons if the decay model is 0 (linear)
+        voxel_decay: 1.5 #secons if the decay model is 0 (linear)
         decay_model: 0 
         voxel_size: 0.05
         track_unknown_space: true
@@ -269,7 +269,7 @@ global_costmap:
         mapping_mode: false
         map_save_duration: 30.0
 
-        observation_sources: camera_mark camera_clear
+        observation_sources: lidar_mark lidar_clear camera_mark camera_clear
 
         lidar_mark:
           data_type: PointCloud2
