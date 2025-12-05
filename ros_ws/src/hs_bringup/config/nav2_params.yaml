@@ -305,7 +305,7 @@ global_costmap:
           expected_update_rate: 0.0
           observation_persistence: 0.0
           inf_is_valid: false
-          filter: "voxel"
+          filter: "passthrough"
           voxel_min_points: 3
           clear_after_reading: false
 
@@ -319,8 +319,8 @@ global_costmap:
           topic: "/oak0/oak0/points"
           marking: false
           clearing: true
-          max_z: 7.0                   # [m] 
-          min_z: -0.5                   # [m] 
+          max_z: 10.0                   # [m] 
+          min_z: -0.1                   # [m] 
 
           vertical_fov_angle: 0.959931     # 55 degrees
           horizontal_fov_angle: 1.20428    # 69 degrees
