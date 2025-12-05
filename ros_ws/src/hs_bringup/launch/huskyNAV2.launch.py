@@ -102,7 +102,7 @@ def generate_launch_description():
         executable='static_transform_publisher',
         name='oakd_frame_static_broadcaster',
         output='screen',
-        arguments=['0.02', '-0.12', '0.13', '0.0', '0.0', '0.0', 'top_plate_front_mount', 'oak-d-base-frame'],
+        arguments=['0.02', '-0.12', '0.13', '0.0', '22.5', '0.0', 'top_plate_front_mount', 'oak-d-base-frame'],
     )
 
     return LaunchDescription([
