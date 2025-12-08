@@ -78,36 +78,61 @@ class CameraManager:
         # Fix USB params
         for cam in usb_assigned:
             dev_path = getattr(cam, "device", None)
-            params = getattr(cam, "params", {})
+            params = cam.params or {}
+
+            if cam.id in usb_cfg:
+                params = usb_cfg[cam.id]
+            else:
+                merged = {**DEFAULT_USB_PARAMS, **params}
+                params = merged
 
             params.setdefault("video_device", dev_path)
             params.setdefault("pixel_format", choose_pixel_format(dev_path))
-
             cam.params = params
 
-        # Build final unified structure
         cameras = []
-        for cam in oak_assigned + usb_assigned:
-            cam_type = "oak" if isinstance(cam, DepthAICamera) else "usb"
-            config_dict = oak_cfg if cam_type == "oak" else usb_cfg
+
+        # OAK camera merging logic
+        for cam in oak_assigned:
+            cam_type = "oak"
+            config_dict = oak_cfg
+
+            if cam.id in config_dict:
+                # -------------- Known OAK camera use YAML EXACTLY ----------------
+                final_params = config_dict[cam.id]
+            else:
+                # -------------- Unknown OAK merge defaults ------------------------
+                final_params = {**DEFAULT_OAK_PARAMS, **(cam.params or {})}
 
             cameras.append(
                 {
                     "type": cam_type,
                     "name": getattr(cam, "assigned_name", cam.name),
                     "id": cam.id,
-                    "port": getattr(cam, "port_path", getattr(cam, "device", None)),
-                    "params": cam.params,
+                    "port": getattr(cam, "port_path", None),
+                    "params": final_params,
                     "configured": cam.id in config_dict,
                 }
             )
 
+        # USB cameras too
+        for cam in usb_assigned:
+            cameras.append(
+                {
+                    "type": "usb",
+                    "name": getattr(cam, "assigned_name", cam.name),
+                    "id": cam.id,
+                    "port": cam.device,
+                    "params": cam.params,
+                    "configured": cam.id in usb_cfg,
+                }
+            )
+
+        # Logging
         for cam in cameras:
             self.logger.info(f"Assigned {cam['name']} ({cam['type']}) → {cam['port']}")
 
-        # Log summary for standalone usage
         self.logger.info(self.build_summary_string(cameras))
-
         return cameras
 
 
