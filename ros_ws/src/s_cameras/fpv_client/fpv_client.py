@@ -11,8 +11,6 @@ from typing import List
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
 
-#from hs_cameras.srv import GetCameras                  # type: ignore
-#from hs_cameras.action import StartCamera, StopCamera  # type: ignore
 from fpv_client.action_handler import CameraActionManager
 from fpv_client.image_decoder import DecoderProcess
 from fpv_client.client_service import CameraServiceClient
