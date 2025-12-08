@@ -1,5 +1,5 @@
 from rclpy.node import Node
-from utils.encoders import (
+from utils.encoder_utils import (
     DEFAULT_ENCODER_PARAMS,
     load_encoder_settings,
     EncoderDetector,

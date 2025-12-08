@@ -6,7 +6,7 @@ from sensor_msgs.msg import PointCloud2
 
 IN  = '/lidar_points'       # or the name you bridged to
 OUT = '/lidar_points_fixed'
-FRAME = 'mid360_lidar_link'
+FRAME = 'livox_frame'
 
 IN_2  = '/oakd_points'
 OUT_2 = '/oakd_points_fixed'

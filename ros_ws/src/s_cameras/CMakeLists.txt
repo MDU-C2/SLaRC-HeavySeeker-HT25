@@ -6,19 +6,6 @@ project(s_cameras)
 # --------------------------------------------------------------------
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
-#find_package(rosidl_default_generators REQUIRED)
-
-# --------------------------------------------------------------------
-# Generate Actions and Services
-# --------------------------------------------------------------------
-#rosidl_generate_interfaces(${PROJECT_NAME}
-#  "action/StartCamera.action"
-#  "action/StopCamera.action"
-#  "srv/GetCameras.srv"
-#  DEPENDENCIES builtin_interfaces
-#)
-
-#ament_export_dependencies(rosidl_default_runtime)
 
 # --------------------------------------------------------------------
 # Install Python packages
@@ -51,12 +38,6 @@ install(PROGRAMS
   fpv_client/decoder.py
   DESTINATION lib/${PROJECT_NAME}
   RENAME decoder
-)
-
-
-install(
-  FILES fpv_client/decoder_cfg.dat
-  DESTINATION lib/${PROJECT_NAME}
 )
 
 # --------------------------------------------------------------------
