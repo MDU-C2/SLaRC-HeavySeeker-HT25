@@ -21,7 +21,7 @@ oak_cameras:
         i_low_bandwidth: true
         i_keep_preview_aspect_ratio: true
         i_publish_topic: true
-        i_resolution: '720P'
+        i_resolution: '1080'
         i_width: 1280
       use_sim_time: false
   "19443010B1627E4800": #deviceId for oak1
@@ -46,7 +46,7 @@ oak_cameras:
         i_low_bandwidth: true
         i_keep_preview_aspect_ratio: true
         i_publish_topic: true
-        i_resolution: '720P'
+        i_resolution: '1080P'
         i_width: 1280
       use_sim_time: false
 usb_cameras:
