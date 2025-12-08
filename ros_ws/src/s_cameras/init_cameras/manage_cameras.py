@@ -5,7 +5,7 @@ import logging
 
 try:
     # ROS / package execution
-    from utils.camera_utils import (
+    from .camera_utils import (
         load_camera_config,
         choose_pixel_format,
         assign_names,
@@ -21,7 +21,7 @@ except ModuleNotFoundError:
     sys.path.insert(0, project_root)
 
     # Retry imports (to be run as standalone program)
-    from utils.camera_utils import (
+    from .camera_utils import (
         load_camera_config,
         choose_pixel_format,
         assign_names,
