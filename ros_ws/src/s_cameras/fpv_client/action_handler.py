@@ -8,7 +8,7 @@ from typing import List, Dict, Set
 from rclpy.node import Node
 from rclpy.action import ActionClient
 
-from s_msgs.srv import GetCameras                  
+from s_msgs.srv import GetCameras, SetOutputMode                  
 from s_msgs.action import StartCamera, StopCamera  
 from fpv_client.client_service import CameraServiceClient
 from fpv_client.image_decoder import DecoderProcess
@@ -21,9 +21,15 @@ class CameraActionManager:
         self.node = node
         self.decoder = decoder
         self.client = client
+        
 
         self.start_client = ActionClient(node, StartCamera, "start_camera_encoding")
         self.stop_client = ActionClient(node, StopCamera, "stop_camera_encoding")
+
+        # Output mode control
+        self.mode_client = node.create_client(SetOutputMode, "set_output_mode")
+        self.server_mode = "mpegts"   # default mode
+
 
         self.camera_topics: Dict[str, str] = {}
         self.current_cameras: List[str] = []
@@ -191,6 +197,44 @@ class CameraActionManager:
         # Just send stop goals and let the executor handle callbacks
         self.stop_cameras(self.current_cameras.copy())
 
+        # ------------------------------------------------------------
+    # Output Mode Control
+    # ------------------------------------------------------------
+    def set_output_mode(self, mode: str):
+        if not self.mode_client.wait_for_service(timeout_sec=3.0):
+            log("Mode-setting service not available.")
+            return
+
+        req = SetOutputMode.Request()
+        req.mode = mode
+
+        fut = self.mode_client.call_async(req)
+        fut.add_done_callback(lambda f: self._mode_response(f, mode))
+
+    def _mode_response(self, future, mode):
+        try:
+            res = future.result()
+            if not res.success:
+                log(f"Server rejected mode {mode}: {res.message}")
+                return
+
+            log(f"Output mode changed to: {mode}")
+            self.server_mode = mode
+
+            # CLIENT RULES:
+            if mode in ("foxglove", "headless"):
+                log("Decoder disabled due to output mode.")
+                self.decoder.stop()
+
+            elif mode == "mpegts":
+                log("Returning to MPEGTS mode — enabling local decoder.")
+                # Restart decoder only if cameras are already running
+                if self.current_cameras:
+                    self.update_decoder()
+
+        except Exception as e:
+            log(f"Failed to set mode: {e}")
+
 
     # Helpers
     def list_cameras(self, silent=False):
@@ -198,6 +242,9 @@ class CameraActionManager:
             """Unified printout for both startup and list command."""
             self.node.clear_screen()
             print("=== [o] Camera Status ===\n")
+
+            # Show current output mode
+            print(f"Output Mode: {self.server_mode}\n")
 
             if f is None:
                 # Service not available or not queried yet
@@ -219,10 +266,27 @@ class CameraActionManager:
                     print("Active:    (error)\n")
 
             print("Commands:")
-            print("  list                      – refresh camera status")
-            print("  start <cam1> [cam2 ...]   – start encoder(s)")
-            print("  stop [cam1 cam2 ...]      – stop encoder(s) or all")
-            print("  exit                      – stop all + quit\n")
+            print("  list                        – refresh camera status")
+            print("  start <cam1> [cam2 ...]     – start encoder(s)")
+            print("  stop [cam1 cam2 ...]        – stop encoder(s) or stop all")
+            print()
+            print("  use mpegts                  – normal local FPV viewer (decoder opens)")
+            print("  use foxglove                – Foxglove output only (decoder disabled)")
+            print("  use headless                – encoder runs without producing topics")
+            print()
+            print("  exit                        – stop all + quit\n")
+
+        # Try to contact the service
+        if not self.client.client.wait_for_service(timeout_sec=3.0):
+            if not silent:
+                # Only print error when user explicitly asks for "list"
+                log("Service /get_available_cameras not available.")
+            _on_resp(None)
+            return
+
+        # Service available call and use same print function
+        fut = self.client.client.call_async(GetCameras.Request())
+        fut.add_done_callback(_on_resp)
 
         # Try to contact the service
         if not self.client.client.wait_for_service(timeout_sec=3.0):
@@ -237,8 +301,14 @@ class CameraActionManager:
         fut.add_done_callback(_on_resp)
 
     def update_decoder(self):
+        # Do NOT launch decoder in foxglove or headless modes
+        if self.server_mode in ("foxglove", "headless"):
+            self.decoder.stop()
+            return
+
         topics = [self.camera_topics.get(c) for c in self.current_cameras if self.camera_topics.get(c)]
         self.decoder.launch(topics)
+
 
     def _wait_for_topics(self, topics: List[str], timeout=5.0):
         start = time.time()

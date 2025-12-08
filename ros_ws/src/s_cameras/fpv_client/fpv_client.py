@@ -83,6 +83,10 @@ class FPVViewerClient(Node):
                     self.actions.start_group(parts, self.monitor.available_cameras)
                 else:
                     log("No camera names provided.")
+            
+            elif cmd.startswith("use "):
+                mode = cmd.split()[1]
+                self.actions.set_output_mode(mode)
 
             elif cmd.startswith("stop"):
                 parts = cmd.split()[1:]
