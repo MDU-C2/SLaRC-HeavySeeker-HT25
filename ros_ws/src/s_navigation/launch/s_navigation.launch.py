@@ -12,8 +12,10 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
+    slam_dir = get_package_share_directory("slam_toolbox")
+    s_nav_dir = get_package_share_directory("s_navigation")
+    nav2_bringup_dir = get_package_share_directory("nav2_bringup")
 
-    
     config_dir = PathJoinSubstitution(
         [
             get_package_share_directory("s_navigation"),
@@ -22,13 +24,13 @@ def generate_launch_description():
 
     nav2_config_arg = DeclareLaunchArgument(
         "nav2_config",
-        default_value="",
+        default_value="nav2_params.yaml",
         description="Name of config file for Nav2, located the the config folder this package",
     )
 
     navsat_config_arg = DeclareLaunchArgument(
         "navsat_config",
-        default_value="",
+        default_value="dual_ekf_navsat.yaml",
         description="Name of config file for Navsat, located the the config folder this package",
     )
 
@@ -44,10 +46,53 @@ def generate_launch_description():
         description='Robot namespace'
         )
 
-    
+    # Robot localization node using world and map ekf
+    robot_localization_nodes = IncludeLaunchDescription(
+        PathJoinSubstitution([s_nav_dir, "launch", "s_navsat.launch.py"]),
+        launch_arguments=[
+            ("use_sim_time", use_simtime_arg),
+            ("navsat_config", navsat_config_arg)
+        ],
+    )
 
-    ld = LaunchDescription()
+    slam_toolbox_cmd = IncludeLaunchDescription(
+        PathJoinSubstitution([slam_dir, "launch", "online_async_launch.py"]),
+        launch_arguments=[("use_sim_time", use_simtime_arg), ("namespace", namespace)],
+    )
 
-    return LaunchDescription([
-        
-    ])
+    nav2_bringup_cmd = IncludeLaunchDescription(
+        PathJoinSubstitution([nav2_bringup_dir, "launch", "navigation_launch.py"]),
+        launch_arguments=[
+            ("use_sim_time", use_simtime_arg),
+            ("namespace", namespace),
+            ("params_file", PathJoinSubstitution([config_dir, nav2_config_arg])), # nav2 wants abs path
+        ],
+    )
+
+
+    waypoint_bridge_node = Node(
+        package="s_navigation",
+        executable="waypoint_bridge_node.py",
+        name="waypoint_bridge",
+        output="screen",
+        parameters=[],
+        remappings=[
+            ("waypoints", "waypoints"),
+            ("waypoint_status", "waypoint_status"),
+        ],
+    )
+
+
+    actions = [
+        PushROSNamespace(namespace),
+        robot_localization_nodes,
+        waypoint_bridge_node,
+        TimerAction(period=5.0, actions=[slam_toolbox_cmd]),
+        TimerAction(period=10.0, actions=[nav2_bringup_cmd])
+    ]
+    hs = GroupAction(actions)
+
+    ld = LaunchDescription(ARGUMENTS)
+    ld.add_action(hs)
+
+    return ld
