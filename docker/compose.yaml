@@ -14,6 +14,7 @@ services:
     volumes:
       - ../ros_ws/:/slarc_ws/:rw
       - ../third_party_sdk_drivers:/third_party_sdk_drivers:rw
+      - ../foxglove_extensions/:/foxglove_extensions/:rw
       - /tmp/.X11-unix/:/tmp/.X11-unix/:rw
       - /dev:/dev:rw
     network_mode: host

@@ -49,6 +49,9 @@ RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable
 # Install DepthAI (Python SDK)
 RUN pip install depthai --no-deps --force-reinstall --break-system-packages
 
+# Dependencies for building foxglove extensions
+RUN apt install -y nodejs npm
+
 # Create worksapce folder
 RUN mkdir /slarc_ws
 

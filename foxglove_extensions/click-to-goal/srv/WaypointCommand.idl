@@ -1,0 +1,23 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from hs_msgs/srv/WaypointCommand.srv
+// generated code does not contain a copyright notice
+
+
+module hs_msgs {
+  module srv {
+    @verbatim (language="comment", text=
+      "Request")
+    struct WaypointCommand_Request {
+      int32 command;
+
+      int32 waypoint_index;
+    };
+    @verbatim (language="comment", text=
+      "Response")
+    struct WaypointCommand_Response {
+      boolean success;
+
+      string message;
+    };
+  };
+};

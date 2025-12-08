@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { PanelExtensionContext } from "@foxglove/studio";
 import "./ClickToGoalPanel.css";
+import { Command } from "./types/Command";
+import type { PanelExtensionContext } from "@foxglove/studio";
 
 
 type PointStamped = {
@@ -36,6 +37,8 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   const [isRunning, setIsRunning] = useState(false);
 
   const waypointMarkersRef = useRef<maplibregl.Marker[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
 
   useEffect(() => {
 
@@ -135,14 +138,6 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       const lng = e.lngLat.lng;
       const lat = e.lngLat.lat;
 
-      // if (!goalMarkerRef.current) {
-      //   goalMarkerRef.current = new maplibregl.Marker({ color: "#eb1834ff" })
-      //     .setLngLat([lng, lat])
-      //     .addTo(mapRef.current!);
-      // } else {
-      //   goalMarkerRef.current.setLngLat([lng, lat]);
-      // }
-
       if (!mapRef.current) return;
 
       const index = waypointMarkersRef.current.length;
@@ -172,10 +167,26 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   }, [context, initialCenter]);
 
 
+  async function sendWaypointCommand(context: any, command: number, index = -1) {
+    try {
+      const response = await context.callService("waypoint_command", {
+        command,
+        waypoint_index: index
+      });
+
+      console.log("Response:", response);
+      return response
+    } catch (err) {
+      console.error("Service call failed:", err);
+      return { success: false, message: err || "Service call failed" };
+    }
+  }
+
+
   function createNumberedMarker(index: number) {
     const el = document.createElement("div");
     el.className = "goal-marker";
-    el.innerText = String(index + 1); // 1,2,3,...
+    el.innerText = String(index + 1); 
 
     return new maplibregl.Marker({ element: el });
   }
@@ -192,16 +203,58 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   };
 
 
-  const handleStart = () => {
+  function showTemporaryError(message: string, duration = 3000) {
+    setErrorMessage(message);
+    setTimeout(() => setErrorMessage(null), duration);
+  }
+
+
+  const handleStart = async () => {
     console.log("Start clicked");
-    // TODO: start waypoint following here
-    setIsRunning(true);
+    const result = await sendWaypointCommand(context, Command.START);
+    if (result.success){
+        setIsRunning(true);
+        setErrorMessage(null);
+    }
+    else{
+        showTemporaryError(result.message || "Failed to start waypoint navigation.");
+    }
   };
 
-  const handlePause = () => {
+  const handlePause = async () => {
     console.log("Pause clicked");
-    // TODO: pause/stop waypoint following here
-    setIsRunning(false);
+    const result = await sendWaypointCommand(context, Command.STOP);
+    if (result.success){
+        setIsRunning(false);
+        setErrorMessage(null);
+    }
+    else{
+        showTemporaryError(result.message || "Failed to pause waypoint navigation.");
+    }
+  };
+
+  const handleUndo = async () => {
+    console.log("Undo clicked");
+    const result = await sendWaypointCommand(context, Command.UNDO);
+    if (result.success){
+      removeLastMarker();
+      setErrorMessage(null);
+    }
+    else{
+        showTemporaryError(result.message || "Failed to undo last waypoint.");
+    }
+  };
+
+  const handleClear = async () => {
+    console.log("Clear all clicked");
+    const result = await sendWaypointCommand(context, Command.CLEAR_ALL);
+    if (result.success){
+      clearAllMarkers();
+      setErrorMessage(null);
+    }
+    else{
+        showTemporaryError(result.message || "Failed to clear waypoints.");
+    }
   };
 
 
@@ -223,9 +276,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       label: "Clear all",
       icon: "🗑️",
       onClick: () => {
-        console.log("Reset clicked");
-        clearAllMarkers();
-        setIsRunning(false);
+        handleClear();
       },
     },
     {
@@ -233,8 +284,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       label: "Undo",
       icon: "↩️",
       onClick: () => {
-        console.log("Other clicked");
-        removeLastMarker();
+        handleUndo();
       },
     },
   ];
@@ -304,6 +354,23 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
           Waiting for first GPS fix on <code>/gps/filtered</code>...
         </div>
       )}
+      {errorMessage && (
+      <div
+        style={{
+          position: "absolute",
+          bottom: 60,
+          left: 8,
+          padding: "8px 12px",
+          background: "rgba(255,0,0,0.8)",
+          color: "white",
+          borderRadius: 8,
+          fontSize: 12,
+          zIndex: 20,
+        }}
+      >
+        {errorMessage}
+      </div>
+    )}
     </div>
   );
 }

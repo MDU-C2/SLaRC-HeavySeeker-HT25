@@ -330,7 +330,7 @@ def generate_launch_description():
 
     ld.add_action(delay_spawn)
 
-    ld.add_action(use_foxglove)
-    ld.add_action(foxglove_bridge_launch)
+    #ld.add_action(use_foxglove)
+    #ld.add_action(foxglove_bridge_launch)
 
     return ld

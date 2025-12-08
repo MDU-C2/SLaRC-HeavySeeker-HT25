@@ -36,6 +36,7 @@
     "typescript": "5.9.3"
   },
   "dependencies": {
-    "maplibre-gl": "^5.12.0"
+    "maplibre-gl": "^5.12.0",
+    "rclnodejs": "^1.7.0"
   }
 }

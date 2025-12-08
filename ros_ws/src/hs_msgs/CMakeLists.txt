@@ -11,7 +11,11 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/OperationModes.msg"
+  "msg/WaypointCommand.msg"
+  "srv/WaypointCommand.srv"
 )
+
+ament_export_dependencies(rosidl_default_runtime)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
