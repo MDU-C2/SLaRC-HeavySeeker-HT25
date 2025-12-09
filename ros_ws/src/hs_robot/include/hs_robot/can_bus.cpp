@@ -36,6 +36,9 @@ CanBus::CanBus(std::string adapter_ID) {
     get_interface_from_ID(adapter_ID);
 
     std::cout << "Interface to use: " << m_interface << std::endl;
+    bring_up_can();
+    setup_socket();
+ 
 }
 
 CanBus::CanBus(std::string interface_Name, bool use_ifacename) {
@@ -94,6 +97,7 @@ void CanBus::get_interface_from_ID(const std::string &adapter_ID){
         runCmd(buffer, cmd);
 
         buffer.erase(0, buffer.find('=')+1);
+        buffer.erase(buffer.find('\n'));
         if (buffer.compare(adapter_ID) == 0) {
             m_interface = interface_to_check;
             return;
