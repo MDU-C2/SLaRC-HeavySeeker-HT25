@@ -26,20 +26,23 @@ def generate_launch_description():
 
     use_foxglove = DeclareLaunchArgument(
         "use_foxglove",
-        default_value="true",
+        default_value="False",
         description="Start foxglove_bridge",
+        choices=['True', 'False'],
     )
 
     use_map = DeclareLaunchArgument(
         "use_map",
-        default_value="false",
+        default_value="False",
         description="Start Mapviz with HS navigation config",
+        choices=['True', 'False'],
     )
 
     use_rviz = DeclareLaunchArgument(
         "use_rviz",
-        default_value="true",
+        default_value="False",
         description="Start RViz2 with HS description config",
+        choices=['True', 'False'],
     )
 
     # ------------ RViz config path ------------

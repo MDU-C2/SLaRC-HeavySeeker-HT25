@@ -36,7 +36,7 @@ def generate_launch_description():
 
     model_arg = DeclareLaunchArgument(
         "model",
-        default_value="Rig5",
+        default_value="Rig7",
         description="Model FOLDER located under one of the subfolders of this packages model/ directory.\n"
         "   OBS the model files should always be named model.sdf and have a model.config\n"
         "   The folder should also contain a materials and meshes folder even if empty\n"
@@ -96,9 +96,17 @@ def generate_launch_description():
 
     scan_launch_root = PathJoinSubstitution(
             [
-                get_package_share_directory("s_perception"), #Fix this!!!
+                get_package_share_directory("s_perception"), 
                 'launch',
                 'cloud2scan.launch.py',
+            ]
+        )
+    
+    ui_launch_root = PathJoinSubstitution(
+            [
+                get_package_share_directory("s_ui"), 
+                'launch',
+                's_ui.launch.py',
             ]
         )
 
@@ -167,6 +175,16 @@ def generate_launch_description():
         launch_arguments={
             'cloud_topic':  '/lidar_points_fixed',
             'target_frame':   'mid360_lidar_link',
+        }.items()
+    )
+
+    ui_launch_description = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(ui_launch_root),
+        launch_arguments={
+            'rviz_config':  'seeker_sim_config.rviz',
+            'use_rviz':   'True',
+            'use_map':   'True',
+            'use_foxglove':   'False',
         }.items()
     )
 
@@ -298,5 +316,6 @@ def generate_launch_description():
     ld.add_action(scan_converter_launch_description)
     ld.add_action(navigation_launch_description)
     ld.add_action(foxglove_bridge_launch)
+    ld.add_action(ui_launch_description)
 
     return ld
