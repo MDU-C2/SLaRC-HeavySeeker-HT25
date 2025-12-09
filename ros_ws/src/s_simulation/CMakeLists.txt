@@ -7,9 +7,23 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+
+
+install(
+  DIRECTORY
+    launch
+    model
+    worlds
+    python_nodes
+    config
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  PROGRAMS 
+  python_nodes/cloud_frame_relay.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
