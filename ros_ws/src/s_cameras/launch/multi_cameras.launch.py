@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import os
 import sys
+import yaml
 import logging
+import tempfile
 from launch.event_handlers import OnShutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch import LaunchDescription
@@ -13,6 +15,17 @@ from init_cameras.manage_cameras import CameraManager
 logger = logging.getLogger("s_camera_launch")
 logging.basicConfig(level=logging.INFO, format="[%(name)s] %(levelname)s: %(message)s")
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
+
+# ---- FIX: Flatten DepthAI parameter dictionary ----
+def flatten_params(prefix, d):
+    flat = {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            flat.update(flatten_params(f"{prefix}{k}.", v))
+        else:
+            flat[f"{prefix}{k}"] = v
+    return flat
 
 
 def generate_launch_description():
@@ -27,7 +40,15 @@ def generate_launch_description():
     summary = manager.build_summary_string(cameras)
     nodes = []
 
-    # --- Launch all camera drivers ---
+    depthai_pointcloud_launch = os.path.join(
+        get_package_share_directory("depthai_ros_driver"),
+        "launch",
+        "pointcloud.launch.py"
+    )
+
+    generated_yaml_files = []  # prevent GC during launch
+
+    # --- Launch all cameras ---
     for cam in cameras:
         params = cam["params"]
         node_name = cam["name"]
@@ -41,29 +62,40 @@ def generate_launch_description():
                 parameters=[params],
                 output="screen",
             ))
-            
+
         elif cam["type"] == "oak":
 
+            node_full_name = f"{node_name}/{node_name}"
+
+            # ---- FIX: Flatten parameters for DepthAI ----
+            flat_params = flatten_params("", params)
+
+            yaml_dict = {
+                node_full_name: {
+                    "ros__parameters": flat_params
+                }
+            }
+
+            # Write temporary YAML
+            fd, yaml_path = tempfile.mkstemp(suffix=".yaml")
+            with os.fdopen(fd, "w") as f:
+                yaml.dump(yaml_dict, f, default_flow_style=False)
+
+            print(f"[CameraManager] Generated YAML for {node_name}: {yaml_path}")
+            generated_yaml_files.append(yaml_path)
+
+            # Include DepthAI pointcloud launch
             depthai_launch = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([
-                    os.path.join(
-                        get_package_share_directory('depthai_ros_driver'),
-                        'launch',
-                        'pointcloud.launch.py'
-                    )
-                ]),
+                PythonLaunchDescriptionSource([depthai_pointcloud_launch]),
                 launch_arguments={
-                    'name': node_name,
-                    'namespace' : node_name,
-                    'enable_depth': 'true',
-                    'pointcloud.enable': 'true',
-                    'i_enable_imu' : 'false',
-                    'enable_color': 'true',
-                    'rs_compat': 'false',
-                    'nn_enable': 'false',
-                    'i_nn_type': '0',
-                    'spatial_detection.enable': 'false',
-                    'params_file': config_path
+                    "name": node_name,
+                    "namespace": node_name,
+                    "params_file": yaml_path,
+                    "enable_depth": "true",
+                    "pointcloud.enable": "true",
+                    "enable_color": "true",
+                    "rs_compat": "false",
+                    "rectify_rgb": "true",
                 }.items()
             )
 
@@ -72,23 +104,18 @@ def generate_launch_description():
         else:
             nodes.append(LogInfo(msg=f"Unknown camera type: {cam['type']}"))
 
-
     if not cameras:
         nodes.append(LogInfo(msg="No cameras detected or configured — nothing to launch."))
 
-    # Force-kill usb_cam if it misbehaves on shutdown (use -f due to 15-char truncation)
     kill_process = ExecuteProcess(
         cmd=["pkill", "-9", "-f", "usb_cam_node_exe"],
-        shell=False
+        shell=False,
     )
-
-    cleanup = RegisterEventHandler(
-        OnShutdown(on_shutdown=[kill_process])
-    )
+    cleanup = RegisterEventHandler(OnShutdown(on_shutdown=[kill_process]))
 
     return LaunchDescription([
+        LogInfo(msg="Launching camera drivers + camera server."),
         LogInfo(msg=summary),
         cleanup,
         *nodes,
     ])
-

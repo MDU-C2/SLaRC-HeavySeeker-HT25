@@ -98,11 +98,13 @@ class CameraManager:
             config_dict = oak_cfg
 
             if cam.id in config_dict:
-                # -------------- Known OAK camera use YAML EXACTLY ----------------
-                final_params = config_dict[cam.id]
+                yaml_entry = config_dict[cam.id]
+
+                # Extract ONLY the inner "params:" block
+                final_params = yaml_entry.get("params", {})
             else:
-                # -------------- Unknown OAK merge defaults ------------------------
                 final_params = {**DEFAULT_OAK_PARAMS, **(cam.params or {})}
+
 
             cameras.append(
                 {

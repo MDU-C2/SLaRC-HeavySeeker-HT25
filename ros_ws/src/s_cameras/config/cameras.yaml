@@ -12,7 +12,7 @@ oak_cameras:
         i_usb_speed: SUPER_PLUS
       imu:
         i_enable_rotation: true
-        i_rotation_vector_type: ROTATION_VECTOR
+        i_rot_mode: ROTATION_VECTOR
         i_rot_freq: 400
       rgb:
         i_board_socket_id: 0
@@ -32,13 +32,17 @@ oak_cameras:
     name: oak2
     params:
       camera:
-        i_enable_imu: false
+        i_enable_imu: true
         i_enable_ir: false
         i_floodlight_brightness: 0
         i_laser_dot_brightness: 100
         i_nn_type: none
         i_pipeline_type: RGBD
         i_usb_speed: SUPER_PLUS
+      imu:
+        i_enable_rotation: true
+        i_rot_mode: ROTATION_VECTOR
+        i_rot_freq: 400
       rgb:
         i_board_socket_id: 0
         i_fps: 30.0
