@@ -11,7 +11,7 @@ module hs_msgs {
       const int32 UNDO = 2;
       const int32 CLEAR_ALL = 3;
     };
-    struct WaypointCommand {
+    struct WaypointCommandMsgs {
       int32 command;
     };
   };
