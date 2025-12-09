@@ -45,7 +45,6 @@ DEFAULT_USB_PARAMS = {
     "autoexposure": False,
     "auto_focus": False,
     "framerate": 30.0,
-    "image_transport": "raw"
 }
 
 

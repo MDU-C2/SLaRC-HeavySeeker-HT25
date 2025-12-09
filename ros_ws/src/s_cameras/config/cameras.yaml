@@ -6,18 +6,12 @@ oak_cameras:
         i_mx_id: "1944301081DB714800"
         i_enable_imu: true
         i_enable_ir: false
+        i_floodlight_brightness: 0 
+        i_laser_dot_brightness: 100 
         i_pipeline_type: RGBD
         i_usb_speed: SUPER_PLUS
-        i_nn_type: none
-      nn:
-        enable: false
-      spatial_detection:
-        enable: false
+        i_nn_type: none 
 
-      imu:
-        i_enable_rotation: true
-        i_rot_mode: ROTATION_VECTOR
-        i_rot_freq: 400
 
       rgb:
         i_board_socket_id: 0
@@ -26,19 +20,30 @@ oak_cameras:
         i_width: 1280
         i_resolution: "1080P"
         i_publish_topic: true
+        i_enable_nn: false 
 
-      stereo: {}   # required, even if empty
+      left:
+        i_enable_nn: false
+      right:
+        i_enable_nn: false
+
+      imu:
+        i_enable_rotation: true
+        i_rot_mode: ROTATION_VECTOR
+        i_rot_freq: 400
+
+      stereo: {}
 
       oak0:
         rgb:
           image_raw:
-            enable_pub_plugins: 
+            enable_pub_plugins:
               - image_transport/raw
-
         stereo:
           image_raw:
-            enable_pub_plugins: 
+            enable_pub_plugins:
               - image_transport/raw
+
       use_sim_time: false
 
 
@@ -48,19 +53,12 @@ oak_cameras:
       camera:
         i_mx_id: "19443010B1627E4800"
         i_enable_imu: true
-        i_enable_ir: false
+        i_enable_ir: true
+        i_floodlight_brightness: 400 
+        i_laser_dot_brightness: 100 
         i_pipeline_type: RGBD
         i_usb_speed: SUPER_PLUS
-        i_nn_type: none
-      nn:
-        enable: false
-      spatial_detection:
-        enable: false
-
-      imu:
-        i_enable_rotation: true
-        i_rot_mode: ROTATION_VECTOR
-        i_rot_freq: 400
+        i_nn_type: none 
 
       rgb:
         i_board_socket_id: 0
@@ -69,17 +67,28 @@ oak_cameras:
         i_width: 1280
         i_resolution: "1080P"
         i_publish_topic: true
+        i_enable_nn: false
+
+      left:
+        i_enable_nn: false
+      right:
+        i_enable_nn: false
+
+      imu:
+        i_enable_rotation: true
+        i_rot_mode: ROTATION_VECTOR
+        i_rot_freq: 400
 
       stereo: {}
 
       oak2:
         rgb:
           image_raw:
-            enable_pub_plugins: 
+            enable_pub_plugins:
               - image_transport/raw
         stereo:
           image_raw:
-            enable_pub_plugins: 
+            enable_pub_plugins:
               - image_transport/raw
 
 
@@ -88,11 +97,6 @@ usb_cameras:
     name: camera0
     params:
       image_width: 640
-      image_height: 480
+      image_height: 480      
       pixel_format: mjpeg2rgb
       framerate: 24.0
-
-      # disable compressed transports
-      image_transport: raw
-
-
