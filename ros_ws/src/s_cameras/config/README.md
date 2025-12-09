@@ -1,7 +1,7 @@
 # OAK-D ROS2 parameters
 Bellow is a full list of parameters that can be set in the cameras.yamal for OAK-D cameras:
 
-´
+```
 ros__parameters:
     camera:
       i_calibration_dump: false
@@ -322,4 +322,4 @@ ros__parameters:
       sync_attempts: 10
       sync_threshold: 10
     use_sim_time: false
-´
+```
