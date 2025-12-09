@@ -2,7 +2,7 @@
 <sdf version="1.10" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:macro name="mid360_lidar" params='name:=mid360_lidar parent_link xyz:="0 0 0" rpy:="0 0 0"'>
     
-    <xacro:property name="base_frame" value="${name}_link"/>
+    <xacro:property name="base_frame" value="livox_frame"/>
     
     <link name="${base_frame}">
       <pose relative_to="${parent_link}">${xyz} ${rpy}</pose>
@@ -100,7 +100,6 @@
     <joint name="${name}_imu_joint" type="fixed">
       <parent>${base_frame}</parent>
       <child>${name}_imu_frame</child>
-      <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
     </joint>
   </xacro:macro>
 </sdf>
