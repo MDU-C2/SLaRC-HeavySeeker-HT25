@@ -5,9 +5,9 @@ oak_cameras:
       camera:
         i_mx_id: "1944301081DB714800"
         i_enable_imu: true
-        i_enable_ir: false
+        i_enable_ir: true
         i_floodlight_brightness: 0 
-        i_laser_dot_brightness: 100 
+        i_laser_dot_brightness: 800 
         i_pipeline_type: RGBD
         i_usb_speed: SUPER_PLUS
         i_nn_type: none 
@@ -15,7 +15,7 @@ oak_cameras:
 
       rgb:
         i_board_socket_id: 0
-        i_fps: 30.0
+        i_fps: 15.0
         i_height: 720
         i_width: 1280
         i_resolution: "1080P"
@@ -32,8 +32,33 @@ oak_cameras:
         i_rot_mode: ROTATION_VECTOR
         i_rot_freq: 400
 
-      stereo: {}
-
+      stereo: 
+        i_depth_preset: ROBOTICS
+        i_align_depth: true
+        i_subpixel: true
+        i_right_rect_publish_topic: true
+        i_right_rect_synced: false
+        i_fps: 15.0
+        i_enable_temporal_filter: true
+        i_temporal_filter_alpha: 0.4
+        i_temporal_filter_delta: 20
+        i_temporal_filter_persistency: VALID_2_IN_LAST_4
+        i_enable_speckle_filter: true
+        i_speckle_filter_speckle_range: 50
+        i_enable_spatial_filter: true
+        i_spatial_filter_alpha: 0.5
+        i_spatial_filter_delta: 20
+        i_spatial_filter_hole_filling_radius: 2
+        i_spatial_filter_num_iterations: 1
+        i_enable_threshold_filter: true
+        i_lrc_threshold: 10
+        i_stereo_conf_threshold: 150
+        i_threshold_filter_min_range: 300      # mm
+        i_threshold_filter_max_range: 3000     # mm
+        # Decimation
+        # i_enable_decimation_filter: true
+        # i_decimation_filter_decimation_factor: 2
+        # i_decimation_filter_decimation_mode: NON_ZERO_MEAN
       oak0:
         rgb:
           image_raw:
@@ -54,15 +79,15 @@ oak_cameras:
         i_mx_id: "19443010B1627E4800"
         i_enable_imu: true
         i_enable_ir: true
-        i_floodlight_brightness: 400 
-        i_laser_dot_brightness: 100 
+        i_floodlight_brightness: 0 
+        i_laser_dot_brightness: 800 
         i_pipeline_type: RGBD
         i_usb_speed: SUPER_PLUS
         i_nn_type: none 
 
       rgb:
         i_board_socket_id: 0
-        i_fps: 30.0
+        i_fps: 15.0
         i_height: 720
         i_width: 1280
         i_resolution: "1080P"
@@ -79,7 +104,33 @@ oak_cameras:
         i_rot_mode: ROTATION_VECTOR
         i_rot_freq: 400
 
-      stereo: {}
+      stereo: 
+        i_depth_preset: ROBOTICS
+        i_align_depth: true
+        i_subpixel: true
+        i_right_rect_publish_topic: true
+        i_right_rect_synced: false
+        i_fps: 15.0
+        i_enable_temporal_filter: true
+        i_temporal_filter_alpha: 0.4
+        i_temporal_filter_delta: 20
+        i_temporal_filter_persistency: VALID_2_IN_LAST_4
+        i_enable_speckle_filter: true
+        i_speckle_filter_speckle_range: 50
+        i_enable_spatial_filter: true
+        i_spatial_filter_alpha: 0.5
+        i_spatial_filter_delta: 20
+        i_spatial_filter_hole_filling_radius: 2
+        i_spatial_filter_num_iterations: 1
+        i_enable_threshold_filter: true
+        i_lrc_threshold: 10
+        i_stereo_conf_threshold: 150
+        i_threshold_filter_min_range: 300      # mm
+        i_threshold_filter_max_range: 3000     # mm
+        # Decimation
+        # i_enable_decimation_filter: true
+        # i_decimation_filter_decimation_factor: 2
+        # i_decimation_filter_decimation_mode: NON_ZERO_MEAN
 
       oak2:
         rgb:
