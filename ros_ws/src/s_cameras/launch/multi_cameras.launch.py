@@ -105,11 +105,11 @@ def generate_launch_description():
                     "name": node_name,
                     "namespace": node_name,
                     "params_file": yaml_path,
-                    "enable_depth": "true",
+                    #"enable_depth": "true",
                     "pointcloud.enable": "true",
-                    "enable_color": "true",
-                    "rs_compat": "false",
-                    "rectify_rgb": "true",
+                    #"enable_color": "true",
+                    #"rs_compat": "false",
+                    #"rectify_rgb": "true",
                 }.items(),
             )
 
