@@ -26,6 +26,7 @@ def generate_launch_description():
     hs_description_dir = get_package_share_directory('hs_description')
     hs_robot_dir = get_package_share_directory('hs_robot')
     hs_nav_dir = get_package_share_directory('hs_navigation')
+    fast_lio_dir = get_package_share_directory('fast_lio')
 
     ekf_conf = PathJoinSubstitution(
         [hs_robot_dir, 'conf', 'localization.yaml'])
@@ -76,6 +77,17 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([hs_bringup_dir, 'launch', 'oakd.launch.py'])))
 
+    # FAST_LIO
+    fast_lio_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [fast_lio_dir, 'launch', 'mapping.launch.py']),
+        ),
+    )
+
+    fast_lio_group = GroupAction([
+        SetRemap(src='tf', dst='tf_unused'), fast_lio_launch])
+
     # SLAM
     # slam_toolbox_launch = IncludeLaunchDescription(
     #     PythonLaunchDescriptionSource(
@@ -107,7 +119,7 @@ def generate_launch_description():
     #     src='platform/cmd_vel', dst='/a200_0309/platform/cmd_vel'), nav2_bringup_launch])
 
     nav2_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([hs_nav_dir, 'launch', 'hs_navigation.launch.py'])),
-                                           launch_arguments = {
+                                           launch_arguments={
                                                'use_map': 'False',
                                                'use_sim_time': 'False'
     }.items())
@@ -116,11 +128,12 @@ def generate_launch_description():
     group = GroupAction([
         desc_group,
         # ekf_node,
-        septentrio_launch,
+        # septentrio_launch,
         livox_lidar_launch,
         cloud2scan_launch,
         oak_launch,
-        nav2_launch
+        fast_lio_group,
+        nav2_launch,
         # slam_toolbox_launch,
         # nav2_group,
     ])

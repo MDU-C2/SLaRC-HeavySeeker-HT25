@@ -2,7 +2,7 @@
 <sdf version="1.11" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="$(find hs_description)/model/Sensors/oakd/common.sdf.xacro" />
 
-    <xacro:macro name="oakd" params='name:=oakd_pro parent_link xyz:="0 0 0" rpy:="0 0 0"'>
+    <xacro:macro name="oakd" params='name:=oakd parent_link xyz:="0 0 0" rpy:="0 0 0"'>
 
       <xacro:property name="mass"       value="0.061"/>
       <xacro:property name="baseline"   value="0.075" />

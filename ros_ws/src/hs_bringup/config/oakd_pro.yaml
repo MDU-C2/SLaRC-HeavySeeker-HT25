@@ -23,5 +23,5 @@
       i_width: 1280
     imu:
       i_enable_rotation: true
-      i_rotation_vector_type: GEOMAGNETIC_ROTATION_VECTOR
+      i_rot_mode: ROTATION_VECTOR
     use_sim_time: false
