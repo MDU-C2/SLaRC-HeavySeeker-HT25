@@ -8,18 +8,28 @@
 
   <model name="Rig7" canonical_link='UGV_link'>
 
-    <xacro:property name="oakd_x_offset" value="${4*cm2m}"/>
-    <xacro:property name="oakd_y_offset" value="${0*cm2m}"/>
-    <xacro:property name="oakd_z_offset" value="${0*cm2m}"/>
+    <xacro:property name="box_size_x" value="${6.4*cm2m}"/>
+    <xacro:property name="box_size_y" value="${6.4*cm2m}"/>
+    <xacro:property name="box_size_z" value="${25*cm2m}"/> 
+
+    <xacro:property name="oakd_1_x_offset" value="${(1.3+2.8/2)*cm2m}"/>
+    <xacro:property name="oakd_1_y_offset" value="${0*cm2m}"/>
+    <xacro:property name="oakd_1_z_offset" value="${(25/2-1.3)*cm2m}"/>
+
+    <xacro:property name="oakd_2_x_offset" value="${(1.3+2.8/2)*cm2m}"/>
+    <xacro:property name="oakd_2_y_offset" value="${0*cm2m}"/>
+    <xacro:property name="oakd_2_z_offset" value="${(25/2-1.3)*cm2m}"/>
+
     <xacro:property name="mid360_lidar_x_offset" value="${0*cm2m}"/>
     <xacro:property name="mid360_lidar_y_offset" value="${0*cm2m}"/>
     <xacro:property name="mid360_lidar_z_offset" value="${3*cm2m}"/>
+
     <xacro:property name="gnss_x_offset" value="${0*cm2m}"/>
     <xacro:property name="gnss_y_offset" value="${0*cm2m}"/>
-    <xacro:property name="gnss_z_offset" value="${15*cm2m}"/>
-    <xacro:property name="box_size_x" value="0.1"/>
-    <xacro:property name="box_size_y" value="0.1"/>
-    <xacro:property name="box_size_z" value="0.25"/> 
+    <xacro:property name="gnss_z_offset" value="${0*cm2m}"/>
+
+    
+
     <xacro:property name="rig_pos_relative_2_UGV" value="0 0 ${0.19/2+0.17/2} 0 0 0"/>  
 
 
@@ -67,7 +77,8 @@
     </link>
 
     <xacro:navsat_gnss parent_link="rig_top_link" xyz="${gnss_x_offset} ${gnss_y_offset} ${gnss_z_offset}" rpy="0 0 0"/>
-    <xacro:oakd parent_link="rig_front_link" xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}" rpy="0 0 0"/>
+    <xacro:oakd parent_link="rig_front_link" name="oakd_pro_1" xyz="${oakd_1_x_offset} ${oakd_1_y_offset} ${oakd_1_z_offset}" rpy="0 ${pi/180*15} 0"/>
+    <xacro:oakd parent_link="rig_back_link" name="oakd_pro_2" xyz="${-oakd_2_x_offset} ${oakd_2_y_offset} ${oakd_2_z_offset}" rpy="0 ${pi/180*15} ${pi}"/>
     <xacro:mid360_lidar parent_link="rig_top_link" xyz="${mid360_lidar_x_offset} ${mid360_lidar_y_offset} ${mid360_lidar_z_offset}" rpy="0 0 0"/>
     <xacro:Light_seeker base_link="UGV_link"/>
 

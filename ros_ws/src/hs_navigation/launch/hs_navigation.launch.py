@@ -111,8 +111,8 @@ def generate_launch_description():
         PushROSNamespace(namespace),
         robot_localization_node,
         waypoint_bridge_node,
-        rviz_node,
-        mapviz_launch_description,
+        #rviz_node,
+        #mapviz_launch_description,
         TimerAction(period=5.0, actions=[slam_toolbox_cmd]),
         TimerAction(period=10.0, actions=[nav2_bringup_cmd])
     ]

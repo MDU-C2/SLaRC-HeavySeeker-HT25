@@ -7,10 +7,14 @@
     <plugin name="gz::sim::systems::UserCommands" filename="gz-sim-user-commands-system"/>
     <plugin name="gz::sim::systems::Imu" filename="gz-sim-imu-system"/>
 
-    <physics name="default" type="gz-physics">
+    <!-- <physics name="default" type="gz-physics">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
       <real_time_update_rate>1000</real_time_update_rate>
+    </physics> -->
+    <physics name="tpe" type="tpe">
+      <max_step_size>0.010</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
     </physics>
 
     <!-- (Valfritt men bra) sätt geodetisk referens för rimliga lat/lon från NavSat -->

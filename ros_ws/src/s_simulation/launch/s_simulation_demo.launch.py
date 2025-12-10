@@ -13,12 +13,16 @@ from launch.substitutions import (
     PathJoinSubstitution,
     LaunchConfiguration,
 )
+from launch.conditions import (
+    IfCondition,
+    UnlessCondition,
+    )
 from ament_index_python.packages import get_package_share_directory
 
 import os
 from launch.utilities import perform_substitutions
 from launch.launch_description_sources import PythonLaunchDescriptionSource, AnyLaunchDescriptionSource
-from launch.conditions import IfCondition
+
 from launch.substitutions import LaunchConfiguration, PythonExpression
 
 
@@ -45,8 +49,9 @@ def generate_launch_description():
 
     use_foxglove_arg = DeclareLaunchArgument(
         "use_foxglove",
-        default_value="false",
+        default_value="False",
         description="Start foxglove_bridge. If set to false rviz and mapviz will be used instead.",
+        choices=['True', 'False'],
     )
 
     spawn_coordinates_arg = DeclareLaunchArgument(
@@ -77,7 +82,7 @@ def generate_launch_description():
     )
 
     foxglove_xml_root = os.path.join(
-        get_package_share_directory("foxglove_bridge"),
+        get_package_share_directory("foxglove_bridge"), #remove?
         "launch",
         "foxglove_bridge_launch.xml",
     )
@@ -144,7 +149,7 @@ def generate_launch_description():
     #---------------------- Launch descriptions ------------------------------
 
 
-    foxglove_bridge_launch = IncludeLaunchDescription(
+    foxglove_bridge_launch = IncludeLaunchDescription( #remove
         AnyLaunchDescriptionSource(foxglove_xml_root),
         condition=IfCondition(LaunchConfiguration("use_foxglove")),
     )
@@ -164,7 +169,7 @@ def generate_launch_description():
     navigation_launch_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(navigation_launch_root),
         launch_arguments={
-            'use_map':   'True',
+            'use_map':   'False',
             'rviz_config': rviz_config_root,
             'use_sim_time': 'True'
         }.items()
@@ -178,14 +183,27 @@ def generate_launch_description():
         }.items()
     )
 
-    ui_launch_description = IncludeLaunchDescription(
+    ui_launch_description_fox = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(ui_launch_root),
+    launch_arguments={
+        'rviz_config': 'seeker_sim_config.rviz',
+        'use_rviz': 'False',
+        'use_map': 'False',
+        'use_foxglove': 'True',
+    }.items(),
+    condition=IfCondition(LaunchConfiguration("use_foxglove"))
+)
+
+
+    ui_launch_description_no_fox = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(ui_launch_root),
         launch_arguments={
-            'rviz_config':  'seeker_sim_config.rviz',
+            'rviz_config':  'seeker.rviz',
             'use_rviz':   'True',
             'use_map':   'True',
             'use_foxglove':   'False',
-        }.items()
+        }.items(),
+        condition=UnlessCondition(LaunchConfiguration("use_foxglove"))
     )
 
 
@@ -253,8 +271,10 @@ def generate_launch_description():
             "/odometry/wheel@nav_msgs/msg/Odometry@gz.msgs.Odometry",
             "/world/sonoma_raceway/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
-            "/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
-            "/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
+            "/oakd_pro_1/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
+            "/oakd_pro_1/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
+            "/oakd_pro_2/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
+            "/oakd_pro_2/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/gps/fix@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat",
             "/oakd/imu@sensor_msgs/msg/Imu@gz.msgs.IMU",
             "/livox/imu@sensor_msgs/msg/Imu@gz.msgs.IMU",
@@ -262,9 +282,9 @@ def generate_launch_description():
             "-r",
             "/lidar_points/points:=/lidar_points",
             "-r",
-            "/oakd/rgbd/image:=/oakd_image",
+            "/oakd_pro_1/oakd/rgbd/image:=/oakd_image_1",
             "-r",
-            "/oakd/rgbd/points:=/oakd_points",
+            "/oakd_pro_2/oakd/rgbd/image:=/oakd_image_2",
             "-r",
             "/world/sonoma_raceway/clock:=/clock"
         ],
@@ -315,7 +335,8 @@ def generate_launch_description():
     ld.add_action(relay_bridge)
     ld.add_action(scan_converter_launch_description)
     ld.add_action(navigation_launch_description)
-    ld.add_action(foxglove_bridge_launch)
-    ld.add_action(ui_launch_description)
+    ld.add_action(foxglove_bridge_launch) #remove
+    ld.add_action(ui_launch_description_fox)
+    ld.add_action(ui_launch_description_no_fox)
 
     return ld
