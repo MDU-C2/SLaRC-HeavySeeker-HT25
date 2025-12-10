@@ -105,7 +105,7 @@ navsat_transform:
   ros__parameters:
     frequency: 30.0
     delay: 3.0
-    magnetic_declination_radians: 0.1237
+    magnetic_declination_radians: 0.1237  # True for Västerås, Sweden. Please update if running in another locale.
     yaw_offset: 1.5707963
     zero_altitude: true
     broadcast_cartesian_transform: true
