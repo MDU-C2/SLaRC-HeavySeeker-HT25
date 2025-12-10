@@ -9,7 +9,7 @@ from sensor_msgs.msg import Imu
 from geometry_msgs.msg import Quaternion, Vector3
 from math import radians, isnan
 from tf_transformations import quaternion_from_euler
-from copy import copy
+from copy import deepcopy
 
 
 class GPSHeadingToIMU(Node):
@@ -24,7 +24,7 @@ class GPSHeadingToIMU(Node):
         if msg.error == 1:
             return
         imu = Imu()
-        imu.header = copy(msg.header)
+        imu.header = deepcopy(msg.header)
         orientation = Quaternion()
         angular_velocity = Vector3()
         roll = radians(num_or_default(msg.roll))
