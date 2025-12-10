@@ -25,6 +25,11 @@ def generate_launch_description():
         "config",
         "cameras.yaml",
     )
+    pcl_config_path = os.path.join(
+        get_package_share_directory("s_cameras"),
+        "config",
+        "pcl_cams.yaml",
+    )
 
     manager = CameraManager(config_path)
     cameras = manager.get_camera_configurations()
@@ -62,12 +67,13 @@ def generate_launch_description():
                     'namespace' : node_name,
                     'enable_depth': 'true',
                     'pointcloud.enable': 'true',
+                    'i_enable_imu' : 'false',
                     'enable_color': 'true',
                     'rs_compat': 'false',
                     'nn_enable': 'false',
                     'i_nn_type': '0',
                     'spatial_detection.enable': 'false',
-                    'params_file': config_path
+                    'params_file': pcl_config_path
                 }.items()
             )
 

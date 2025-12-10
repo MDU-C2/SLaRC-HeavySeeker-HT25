@@ -23,6 +23,26 @@ oak_cameras:
         i_publish_topic: true
         i_resolution: '720P'
         i_width: 1280
+      # stereo:
+      #   i_depth_preset: ROBOTICS
+
+      #   # Limit usable range to where the sensor is reliable
+      #   i_enable_threshold_filter: true
+      #   i_threshold_filter_min_range: 400    # 0.4 m
+      #   i_threshold_filter_max_range: 3000   # 3.0 m (or 4.0 if it looks good)
+
+      #   # Make OAK more conservative about what counts as valid depth
+      #   i_stereo_conf_threshold: 100         # higher -> discard more noisy pixels
+
+      #   # Temporal filter to smooth flicker
+      #   i_enable_temporal_filter: true
+      #   i_temporal_filter_alpha: 0.4
+      #   i_temporal_filter_persistency: VALID_2_IN_LAST_4
+
+      #   # Spatial (edge-preserving) smoothing
+      #   i_enable_spatial_filter: true
+      #   i_spatial_filter_hole_filling_radius: 2
+      #   i_spatial_filter_alpha: 0.5
       use_sim_time: false
   "19443010B1627E4800": #deviceId for oak1
     name: oak2
@@ -31,7 +51,7 @@ oak_cameras:
         i_enable_imu: false
         i_enable_ir: false
         i_floodlight_brightness: 0
-        i_laser_dot_brightness: 100
+        i_laser_dot_brightness: 0
         i_nn_type: none
         i_pipeline_type: RGBD
         i_usb_speed: SUPER_PLUS

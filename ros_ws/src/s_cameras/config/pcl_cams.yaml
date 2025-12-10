@@ -1,0 +1,60 @@
+# https://docs.luxonis.com/software-v3/depthai/ros/parameters/
+
+/**:
+  ros__parameters:
+    camera:
+      i_nn_type: none
+
+    rgb:
+      i_publish_topic: true
+      i_resolution: '720P'
+      i_width: 1280
+      i_height: 720
+      i_fps: 15.0
+
+    stereo:
+      i_depth_preset: ROBOTICS
+      i_align_depth: true
+      i_subpixel: true
+      i_right_rect_publish_topic: true
+      i_right_rect_synced: false
+      i_fps: 15.0
+
+      # Temporal
+      i_enable_temporal_filter: true
+      # The alpha factor in an exponential moving average with Alpha=1 - no filter. Alpha=0 - infinite filter. 
+      # Determines the extent of the temporal history that should be averaged.
+      i_temporal_filter_alpha: 0.4
+      # Step-size boundary. Establishes the threshold used to preserve "edges". 
+      # If the disparity value between neighboring pixels exceed the disparity threshold set by this delta parameter, then filtering will be temporarily disabled. 
+      # Default value 0 means auto: 3 disparity integer levels. In case of subpixel mode it's 3*number of subpixel levels.
+      i_temporal_filter_delta: 20
+      i_temporal_filter_persistency: VALID_2_IN_LAST_4
+
+      # Speckle
+      i_enable_speckle_filter: true
+      i_speckle_filter_speckle_range: 50
+
+      # Spatial
+      i_enable_spatial_filter: true
+      # The Alpha factor in an exponential moving average with Alpha=1 - no filter. 
+      # Alpha = 0 - infinite filter. Determines the amount of smoothing.
+      i_spatial_filter_alpha: 0.5
+      # Similar to delta in temporal filter.
+      i_spatial_filter_delta: 20
+      i_spatial_filter_hole_filling_radius: 2
+      i_spatial_filter_num_iterations: 1
+
+      # Threshold
+      i_enable_threshold_filter: true
+      # Threshold for left-right, right-left disparity map combine.
+      i_lrc_threshold: 10
+      # Confidence threshold for disparity calculation. High value means more depth values are discarded
+      i_stereo_conf_threshold: 150
+      i_threshold_filter_min_range: 300      # mm
+      i_threshold_filter_max_range: 3000     # mm
+
+      # Decimation
+      # i_enable_decimation_filter: true
+      # i_decimation_filter_decimation_factor: 2
+      # i_decimation_filter_decimation_mode: NON_ZERO_MEDIAN
