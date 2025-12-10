@@ -18,15 +18,15 @@ class CameraEncoder:
         codec = self.encoder_info.get("codec", "h264").lower()
         self.output_topic = output_topic or f"/{camera_name}/encoded/{codec}"
 
-        # Input topic (e.g. /oak1/oak1/rgb/image_raw)
+        # Input topic (e.g. /camera0/image_raw)
         self.input_topic = input_topic or f"/{camera_name}/rgb/image_raw"
 
         self.bridge = CvBridge()
         self.running = False
 
         # FFmpeg processes
-        self.process_ts = None          # MPEG-TS - CompressedImage
-        self.process_foxglove = None    # raw H264 Annex-B - CompressedVideo
+        self.process_ts = None          # MPEG-TS encoder
+        self.process_foxglove = None    # TS -> Annex-B (copy + bsf)
 
         self.sub = None
 
@@ -72,6 +72,7 @@ class CameraEncoder:
                 self.node.get_logger().error(
                     f"[{self.camera_name}] FFmpeg failed to start, not enabling encoder."
                 )
+                self.stop()
                 return
 
             self.running = True
@@ -95,18 +96,20 @@ class CameraEncoder:
             # Save original capture timestamp
             self._last_input_stamp = msg.header.stamp
 
-            # Convert to BGR24 and push raw bytes to both ffmpeg instances (this might be a cpu user)
+            # Convert to BGR24 and push raw bytes to TS ffmpeg only
+            # (This CPU work is still here, but encoding only happens once.)
             frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
             raw_bytes = frame.tobytes()
 
+            # *** Only write to TS encoder ***
             self.process_ts.stdin.write(raw_bytes)
-            self.process_foxglove.stdin.write(raw_bytes)
 
         except BrokenPipeError:
             self.node.get_logger().error(f"[{self.camera_name}] Encoder pipe closed.")
             self.stop()
         except Exception as e:
             self.node.get_logger().error(f"[{self.camera_name}] Encoding error: {e}")
+            self.stop()
 
     # ------------------------------------------------------------------
     def _build_base_cmd(self, width, height):
@@ -118,7 +121,7 @@ class CameraEncoder:
             "-hide_banner",
             "-loglevel", "error",
             "-f", "rawvideo",
-            "-pix_fmt", "bgr24",      #This might be a CPU user
+            "-pix_fmt", "bgr24",      # This is where raw frames come in
             "-s", f"{width}x{height}",
             "-r", str(self.fps),
             "-i", "pipe:0",
@@ -144,15 +147,34 @@ class CameraEncoder:
 
         return cmd
 
+    def _build_fg_cmd(self):
+
+        cmd = [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel", "error",
+            "-f", "mpegts",
+            "-i", "pipe:0",
+            "-an",
+            "-c:v", "copy",
+            "-bsf:v", "h264_mp4toannexb",
+            "-fflags", "nobuffer",
+            "-muxdelay", "0",
+            "-muxpreload", "0",
+            "-f", "h264",
+            "pipe:1",
+        ]
+        return cmd
+
     # ------------------------------------------------------------------
     def _launch_ffmpeg_pipelines(self):
         width, height = self._first_frame_size
         enc = self.encoder_info
 
-        # ---------- Pipeline A: MPEG-TS - sensor_msgs/CompressedImage ----------
+        # ---------- Pipeline A: MPEG-TS encoder ----------
         cmd_ts = self._build_base_cmd(width, height)
 
-        # Optional bitstream filter (e.g. h264_mp4toannexb)
+        # Optional bitstream filter (e.g. h264_mp4toannexb) for TS stream
         if enc.get("bitstream_filter"):
             cmd_ts += ["-bsf:v", enc["bitstream_filter"]]
 
@@ -172,28 +194,11 @@ class CameraEncoder:
             bufsize=0,
         )
 
-        threading.Thread(target=self._reader_loop_ts, daemon=True).start()
-        threading.Thread(
-            target=self._stderr_reader_loop,
-            args=(self.process_ts, "TS"),
-            daemon=True,
-        ).start()
-
-        # ---------- Pipeline B: Foxglove-compatible raw H264 Annex-B - foxglove_msgs/CompressedVideo ----------
-        cmd_fg = self._build_base_cmd(width, height)
-        cmd_fg += ["-bsf:v", "h264_mp4toannexb"]
-
-        cmd_fg += [
-            "-fflags", "nobuffer",
-            "-muxdelay", "0",
-            "-muxpreload", "0",
-        ]
-
-        # Raw H264 bitstream on stdout
-        cmd_fg += ["-f", "h264", "pipe:1"]
+        # ---------- Pipeline B: TS -> Foxglove Annex-B (copy, no encode) ----------
+        cmd_fg = self._build_fg_cmd()
 
         self.node.get_logger().info(
-            f"[{self.camera_name}] Launching FFmpeg (Foxglove H264):\n  {' '.join(cmd_fg)}"
+            f"[{self.camera_name}] Launching FFmpeg (Foxglove H264 copy+bsf):\n  {' '.join(cmd_fg)}"
         )
 
         self.process_foxglove = subprocess.Popen(
@@ -204,14 +209,23 @@ class CameraEncoder:
             bufsize=0,
         )
 
+        # Readers
+        threading.Thread(target=self._reader_loop_ts, daemon=True).start()
         threading.Thread(target=self._reader_loop_foxglove, daemon=True).start()
+
+        # Stderr loggers
+        threading.Thread(
+            target=self._stderr_reader_loop,
+            args=(self.process_ts, "TS"),
+            daemon=True,
+        ).start()
         threading.Thread(
             target=self._stderr_reader_loop,
             args=(self.process_foxglove, "FG"),
             daemon=True,
         ).start()
 
-    # -------------------------MPEG-TS non foxglove-----------------------------------------
+    # ------------------------- MPEG-TS reader -------------------------
     def _reader_loop_ts(self):
         width, height = self._first_frame_size
         try:
@@ -224,6 +238,7 @@ class CameraEncoder:
                 if not chunk:
                     continue
 
+                # Publish TS to ROS
                 msg = CompressedImage()
                 msg.header.stamp = self._last_input_stamp or self.node.get_clock().now().to_msg()
                 msg.header.frame_id = self.camera_name
@@ -234,10 +249,21 @@ class CameraEncoder:
                 msg.data = chunk
                 self.pub_ts.publish(msg)
 
+                # Feed same TS chunk to Foxglove ffmpeg
+                if self.process_foxglove and self.process_foxglove.poll() is None:
+                    try:
+                        if self.process_foxglove.stdin:
+                            self.process_foxglove.stdin.write(chunk)
+                    except BrokenPipeError:
+                        self.node.get_logger().error(
+                            f"[{self.camera_name}] Foxglove ffmpeg pipe closed while writing TS."
+                        )
+                        break
+
         except Exception as e:
             self.node.get_logger().error(f"[{self.camera_name}] Reader loop TS error: {e}")
 
-    # -------------------------------Annex-B for foxglove-----------------------------------
+    # ---------------------- Annex-B for Foxglove ----------------------
     def _reader_loop_foxglove(self):
 
         try:
@@ -266,8 +292,6 @@ class CameraEncoder:
             self.node.get_logger().error(
                 f"[{self.camera_name}] Reader loop Foxglove error: {e}"
             )
-
-
 
     # ------------------------------------------------------------------
     def _stderr_reader_loop(self, process, tag):

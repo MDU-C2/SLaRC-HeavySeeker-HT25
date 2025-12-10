@@ -23,7 +23,7 @@ def generate_launch_description():
 
     ARGUMENTS = [
         DeclareLaunchArgument(
-            "namespace", default_value="", description="Robot namespace"
+            "namespace", default_value="/", description="Robot namespace"
         ),
         DeclareLaunchArgument(
             "use_sim_time",
@@ -64,9 +64,6 @@ def generate_launch_description():
         remappings=[("odometry/filtered", "odometry/global")],
     )
 
-
-
-
     navsat_transform_node = Node(
         package="robot_localization",
         executable="navsat_transform_node",
@@ -74,7 +71,7 @@ def generate_launch_description():
         output="screen",
         parameters=[dual_ekf_navsat_config, {"use_sim_time": use_sim_time}],
         remappings=[
-            ("oakd/imu", "imu/data"),
+            ("imu", "gps/heading/imu"),
             ("gps/fix", "navsatfix"),
             ("gps/filtered", "gps/filtered"),
             ("odometry/gps", "odometry/gps"),
@@ -82,7 +79,12 @@ def generate_launch_description():
         ],
     )
 
-
+    gps_heading_node = Node(
+        package="hs_navigation",
+        executable="gps_heading.py",
+        name="gps_imu_heading",
+        output="screen"
+    )
 
     actions = [
         PushROSNamespace(namespace),
@@ -90,6 +92,7 @@ def generate_launch_description():
         rl_ekf_local_node,
         rl_ekf_global_node,
         navsat_transform_node,
+        gps_heading_node,
     ]
     hs = GroupAction(actions)
 

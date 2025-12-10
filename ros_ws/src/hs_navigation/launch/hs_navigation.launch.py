@@ -89,16 +89,6 @@ def generate_launch_description():
         ],
     )
 
-
-    # gnss_to_rig_tf = Node(
-    #     package="tf2_ros",
-    #     executable="static_transform_publisher",
-    #     # x  y  z   roll pitch yaw   parent_frame   child_frame
-    #     arguments=["0.0","0.0","0.0","0.0","0.0","0.0","gnss_link", "Rig5/gnss_link/gnss"],
-    #     output="screen",
-    #     name="gnss_to_rig_static_tf"
-    # )
-
     mapviz_launch_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(mapviz_launch),
         condition=IfCondition(LaunchConfiguration("use_map")),
@@ -139,5 +129,4 @@ def generate_launch_description():
 
     ld = LaunchDescription(ARGUMENTS)
     ld.add_action(hs)
-    # ld.add_action(gnss_to_rig_tf)
     return ld

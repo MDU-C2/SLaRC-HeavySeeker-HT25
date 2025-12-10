@@ -106,7 +106,6 @@
                   </noise>
                 </lidar>
                 <topic>/lidar_points</topic>  <!-- Gazebo Transport topic -->
-                <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
           </sensor>
       </link>
 

@@ -15,7 +15,7 @@ class FPVDecoder(Node):
 
     def __init__(self, topic_names):
         super().__init__("fpv_viewer_client")
-
+        self.get_logger().info("Decoder node started!")
         self.topic_names = topic_names
         self.ffmpegs = {}
         self.frames = {}
