@@ -13,6 +13,7 @@ from nav2_simple_commander.robot_navigator import BasicNavigator
 from geometry_msgs.msg import PointStamped
 from hs_msgs.msg import WaypointCommandMsgs
 from hs_msgs.srv import WaypointCommand
+from std_msgs.msg import Bool
 
 
 def quaternion_from_euler(roll, pitch, yaw):
@@ -61,6 +62,7 @@ class InteractiveGpsWpCommander(Node):
 
         self.waypoint_command_srv = self.create_service(WaypointCommand, "/waypoint_command", self.waypoint_command_cb)
 
+        self.activate_autonom_pub = self.create_publisher(Bool, "/activate_autonomous_drive", 10)
 
     def waypoint_command_cb(self, request: WaypointCommand.Request, response: WaypointCommand.Response):
         """
@@ -84,29 +86,50 @@ class InteractiveGpsWpCommander(Node):
 
 
     def start_navigation(self):
-        self.logger.info("Starting navigation to waypoint")
+        if len(self.waypoints) <= 0:
+            self.get_logger().info("No waypoints to navigate to")
+            return False
+
+        self.get_logger().info("Starting autonomous navigation")
+        self.activate_autonom_pub.publish(True)
+
+        self.navigator.waitUntilNav2Active(localizer='robot_localization')
+        self.navigator.followGpsWaypoints(self.waypoints)
+
         return True
-        # self.navigator.addGpsWaypoint(latLonYaw2Geopose(waypoint.latitude, waypoint.longitude, waypoint.yaw))
 
 
     def stop_navigation(self):
-        self.logger.info("Stopping navigation to waypoint")
+        self.get_logger().info("Stopping autonomous navigation")
+
+        self.activate_autonom_pub.publish(False)
+        self.navigator.cancelTask()
+
         return True
-        # self.navigator.removeGpsWaypoint(latLonYaw2Geopose(waypoint.latitude, waypoint.longitude, waypoint.yaw))
 
 
     def clear_last_waypoint(self):
         if len(self.waypoints) > 0:
             self.waypoints.pop()
-            self.logger.info(f"Cleared last waypoint, length now: {len(self.waypoints)}")
+            self.get_logger().info("Cleared last waypoint")
             return True
+
         return False
-        # self.navigator.clearGpsWaypoints()
 
     def clear_all_waypoints(self):
         self.get_logger().info("Cleared all waypoint")
         self.waypoints = []
+
         return True
+
+    def _add_waypoint(self, msg):
+        if msg.header.frame_id not in ['wgs84', 'map']:
+            self.get_logger().warning(
+                "Received point from mapviz that ist not in wgs84 frame. This is not a gps point and wont be followed")
+            return
+
+        wp = latLonYaw2Geopose(msg.point.y, msg.point.x)
+        self.waypoints.append(wp)
 
 
     def mapviz_wp_cb(self, msg: PointStamped):
