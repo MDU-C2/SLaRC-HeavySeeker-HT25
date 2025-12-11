@@ -46,6 +46,7 @@ class CameraActionHandler:
             self.encoders.pop(cam)
         return CancelResponse.ACCEPT
 
+        
     async def _start_exec(self, goal_handle):
         cam = goal_handle.request.camera_name
 
@@ -53,26 +54,49 @@ class CameraActionHandler:
         fps = float(self.camera_configs.get(cam, {}).get("params", {}).get("framerate", 30))
 
         codec = self.encoder_info["codec"]
-        output_topic = f"/{cam}/encoded/{codec}"
+        mode = self.node.output_mode.lower()
 
+        # Base encoder topic (for MPEG-TS pipeline)
+        encoder_topic = f"/{cam}/encoded/{codec}"
+
+        # Topic reported back to client (depends on mode)
+        if mode == "mpegts":
+            client_topic = encoder_topic
+
+        elif mode == "foxglove":
+            client_topic = encoder_topic + "/foxglove"
+
+        elif mode == "headless":
+            # headless still uses TS topic, client just doesn't open viewer
+            client_topic = encoder_topic
+
+        # ----------------------------
+        # Create encoder
+        # ----------------------------
         enc = CameraEncoder(
             node=self.node,
             camera_name=cam,
             encoder_info=self.encoder_info,
             fps=fps,
             input_topic=input_topic,
-            output_topic=output_topic,
+            output_topic=encoder_topic,   # base TS topic only
+            output_mode=mode,
         )
+
+        # Apply the active output mode (enables correct publisher)
+        enc.apply_output_mode(mode)
 
         try:
             enc.start()
             self.encoders[cam] = enc
+
             goal_handle.succeed()
             result = StartCamera.Result()
             result.success = True
             result.message = f"Started encoder for {cam}"
-            result.topic = output_topic
+            result.topic = client_topic   # what the client should subscribe to
             return result
+
         except Exception as e:
             goal_handle.abort()
             result = StartCamera.Result()
@@ -80,7 +104,8 @@ class CameraActionHandler:
             result.message = str(e)
             return result
 
-    # ------------------------------
+
+        # ------------------------------
     # STOP
     # ------------------------------
     def _stop_goal(self, goal):

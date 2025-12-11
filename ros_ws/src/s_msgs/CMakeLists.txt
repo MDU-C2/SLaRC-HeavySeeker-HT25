@@ -14,6 +14,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/StartCamera.action"
   "action/StopCamera.action"
   "srv/GetCameras.srv"
+  "srv/SetOutputMode.srv"
   "msg/WaypointCommandMsgs.msg"
   "srv/WaypointCommand.srv"
   DEPENDENCIES builtin_interfaces
