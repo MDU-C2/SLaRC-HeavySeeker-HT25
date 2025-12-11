@@ -29,7 +29,7 @@ from launch.substitutions import LaunchConfiguration, PythonExpression
 
 
 def generate_launch_description():
-    namespace = "s_sim"
+    namespace = ""
 
     # ---------------------- Launch arguments ------------------------------
     world_arg = DeclareLaunchArgument(
@@ -261,13 +261,13 @@ def generate_launch_description():
 
 
     # --------------------------------- ROS 2 nodes --------------------------------
-
+#"/cmd_vel@geometry_msgs/msg/TwistStamped@gz.msgs.Twist",
 
     bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            "/cmd_vel@geometry_msgs/msg/TwistStamped@gz.msgs.Twist",
+            "/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist",
             "/odometry/wheel@nav_msgs/msg/Odometry@gz.msgs.Odometry",
             "/world/sonoma_raceway/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
@@ -313,9 +313,20 @@ def generate_launch_description():
 
 
 
-    delay_spawn = TimerAction(
-        period=3.0,
-        actions=[spawn_cmd],
+    delayed_launch = TimerAction(
+        period=12.0,
+        actions=[
+        launch_Robot_description,
+        spawn_cmd,
+        gnss_to_rig_tf,
+        bridge,
+        relay_bridge,
+        scan_converter_launch_description,
+        navigation_launch_description,
+        ui_launch_description_fox,
+        ui_launch_description_no_fox,
+        
+            ],
     )
 
     # Starting order
@@ -328,15 +339,18 @@ def generate_launch_description():
 
     ld.add_action(set_gz_path)
     ld.add_action(start_gz)
-    ld.add_action(launch_Robot_description)
-    ld.add_action(delay_spawn)
-    ld.add_action(gnss_to_rig_tf)
-    ld.add_action(bridge)
-    ld.add_action(relay_bridge)
-    ld.add_action(scan_converter_launch_description)
-    ld.add_action(navigation_launch_description)
-    ld.add_action(foxglove_bridge_launch) #remove
-    ld.add_action(ui_launch_description_fox)
-    ld.add_action(ui_launch_description_no_fox)
+    ld.add_action(delayed_launch)
+
+
+    # ld.add_action(launch_Robot_description)
+    # ld.add_action(delay_spawn)
+    # ld.add_action(gnss_to_rig_tf)
+    # ld.add_action(bridge)
+    # ld.add_action(relay_bridge)
+    # ld.add_action(scan_converter_launch_description)
+    # ld.add_action(navigation_launch_description)
+    #ld.add_action(foxglove_bridge_launch) #remove
+    #ld.add_action(ui_launch_description_fox)
+    #ld.add_action(ui_launch_description_no_fox)
 
     return ld
