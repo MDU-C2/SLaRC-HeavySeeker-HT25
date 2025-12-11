@@ -1,7 +1,7 @@
 
 import logging
-from utils.camera_utils.usb_utils import detect_usb_cameras
-from utils.camera_utils.depthai_utils import detect_depthai_devices
+from .camera_utils.usb_utils import detect_usb_cameras
+from .camera_utils.depthai_utils import detect_depthai_devices
 
 
 

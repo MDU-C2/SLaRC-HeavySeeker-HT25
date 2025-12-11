@@ -240,7 +240,7 @@ class FPVDecoder(Node):
                 self.running = False
                 break
 
-    cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
 
 
     # ------------------------------------------------------------------
