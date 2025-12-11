@@ -12,7 +12,7 @@ oak_cameras:
         i_usb_speed: SUPER_PLUS
       rgb:
         i_board_socket_id: 0
-        i_fps: 30.0
+        i_fps: 5.0
         i_height: 720
         i_interleaved: false
         i_max_q_size: 10
@@ -21,28 +21,56 @@ oak_cameras:
         i_low_bandwidth: true
         i_keep_preview_aspect_ratio: true
         i_publish_topic: true
-        i_resolution: '720P'
-        i_width: 1280
-      # stereo:
-      #   i_depth_preset: ROBOTICS
+        i_enable_nn: false 
 
-      #   # Limit usable range to where the sensor is reliable
-      #   i_enable_threshold_filter: true
-      #   i_threshold_filter_min_range: 400    # 0.4 m
-      #   i_threshold_filter_max_range: 3000   # 3.0 m (or 4.0 if it looks good)
+      left:
+        i_enable_nn: false
+      right:
+        i_enable_nn: false
 
-      #   # Make OAK more conservative about what counts as valid depth
-      #   i_stereo_conf_threshold: 100         # higher -> discard more noisy pixels
+      imu:
+        i_enable_rotation: true
+        i_rot_mode: ROTATION_VECTOR
+        i_rot_freq: 400
 
-      #   # Temporal filter to smooth flicker
-      #   i_enable_temporal_filter: true
-      #   i_temporal_filter_alpha: 0.4
-      #   i_temporal_filter_persistency: VALID_2_IN_LAST_4
+      stereo: 
+        i_depth_preset: ROBOTICS
+        i_align_depth: true
+        i_subpixel: true
+        i_subpixel_fractional_bits: 3
+        i_fps: 5.0
+        i_enable_distortion_correction: true
+        #i_enable_companding: true
+        #i_enable_temporal_filter: true
+        #i_temporal_filter_alpha: 0.4
+        #i_temporal_filter_delta: 20
+        #i_temporal_filter_persistency: VALID_2_IN_LAST_4
+        i_enable_speckle_filter: true
+        i_speckle_filter_speckle_range: 50
+        i_enable_spatial_filter: true
+        i_spatial_filter_alpha: 0.5
+        i_spatial_filter_delta: 0 # 0 means automatic
+        i_spatial_filter_hole_filling_radius: 2
+        i_spatial_filter_num_iterations: 1
+        i_enable_threshold_filter: true
+        i_lrc_threshold: 10
+        i_stereo_conf_threshold: 150
+        i_threshold_filter_min_range: 300      # mm
+        i_threshold_filter_max_range: 3000     # mm
+        # Decimation
+        #i_enable_decimation_filter: true
+        #i_decimation_filter_decimation_factor: 2
+        #i_decimation_filter_decimation_mode: NON_ZERO_MEAN
+      oak0:
+        rgb:
+          image_raw:
+            enable_pub_plugins:
+              - image_transport/raw
+        stereo:
+          image_raw:
+            enable_pub_plugins:
+              - image_transport/raw
 
-      #   # Spatial (edge-preserving) smoothing
-      #   i_enable_spatial_filter: true
-      #   i_spatial_filter_hole_filling_radius: 2
-      #   i_spatial_filter_alpha: 0.5
       use_sim_time: false
   "19443010B1627E4800": #deviceId for oak1
     name: oak2
