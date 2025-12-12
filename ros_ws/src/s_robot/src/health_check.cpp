@@ -3,7 +3,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
-#include "hs_msgs/msg/operation_modes.hpp"
+#include "s_msgs/msg/operation_modes.hpp"
 
 /** Class HealthCheckNode
  * 
@@ -13,6 +13,7 @@
  * 
  * Subscribers:
  *  - /emergency_stop - std_msgs/msg/Bool - state of emergency stop, pressed=True
+ * 
  * 
  * Publishers:
  *  - /allowed_operation_modes - hs_msgs/msg/operation_modes - information about allowed operation modes
@@ -33,7 +34,7 @@ class HealthCheckNode : public rclcpp::Node {
 
         sub_emergency_stop = this->create_subscription<std_msgs::msg::Bool>("/emergency_stop", qos_profile, std::bind(&HealthCheckNode::callback_emergency_stop, this, std::placeholders::_1));
 
-        pub_allowed_operation_modes = this->create_publisher<hs_msgs::msg::OperationModes>("/allowed_operation_modes", 10);
+        pub_allowed_operation_modes = this->create_publisher<s_msgs::msg::OperationModes>("/allowed_operation_modes", 10);
 
         using namespace std::chrono_literals;
         timer_health_update = this->create_timer(500ms, std::bind(&HealthCheckNode::callback_timer_health_update, this));
@@ -74,13 +75,13 @@ class HealthCheckNode : public rclcpp::Node {
         publishAllowedModes();
     }
 
-    rclcpp::Publisher<hs_msgs::msg::OperationModes>::SharedPtr pub_allowed_operation_modes;
+    rclcpp::Publisher<s_msgs::msg::OperationModes>::SharedPtr pub_allowed_operation_modes;
     rclcpp::TimerBase::SharedPtr timer_health_update;
 
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr sub_emergency_stop;
 
     bool h_emergency_stop;
-    hs_msgs::msg::OperationModes allowed_modes;
+    s_msgs::msg::OperationModes allowed_modes;
     
 
     // general health check, allows operation modes based on system status
