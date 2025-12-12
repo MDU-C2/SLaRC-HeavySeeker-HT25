@@ -88,11 +88,11 @@ def generate_launch_description():
 
     actions = [
         PushROSNamespace(namespace),
-        # gps_odom_node,
+        gps_odom_node,
         rl_ekf_local_node,
-        # rl_ekf_global_node,
-        # navsat_transform_node,
-        # gps_heading_node,
+        rl_ekf_global_node,
+        navsat_transform_node,
+        gps_heading_node,
     ]
     hs = GroupAction(actions)
 

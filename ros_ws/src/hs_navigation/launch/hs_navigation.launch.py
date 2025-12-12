@@ -55,7 +55,7 @@ def generate_launch_description():
         executable="imu_g_to_ms2.py",
         name="livox_imu_conv",
         output="screen",
-        remappings=[("imu/data", "livox/imu_192_168_10_93"),
+        remappings=[("imu/data", "livox/imu_192_168_10_24"),
                     ("imu_conv/data", "livox/imu/data")]
     )
 

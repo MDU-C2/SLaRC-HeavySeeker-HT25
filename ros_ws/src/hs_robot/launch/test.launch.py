@@ -27,6 +27,7 @@ def generate_launch_description():
     hs_robot_dir = get_package_share_directory('hs_robot')
     hs_nav_dir = get_package_share_directory('hs_navigation')
     fast_lio_dir = get_package_share_directory('fast_lio')
+    l_t_pcl_dir = get_package_share_directory("livox_to_pointcloud2")
 
     ekf_conf = PathJoinSubstitution(
         [hs_robot_dir, 'conf', 'localization.yaml'])
@@ -55,6 +56,13 @@ def generate_launch_description():
             PathJoinSubstitution([hs_bringup_dir, 'launch', 'livox_launch.py'])
         ),
     )
+
+    l_to_pcl_launch = IncludeLaunchDescription(
+        PathJoinSubstitution([l_t_pcl_dir, 'launch', 'livox_to_pointcloud2.launch.yml'])
+        )
+
+    l_to_pcl_group = GroupAction([SetRemap(src="/livox_pointcloud", dst="livox/lidar_192_168_10_24"),
+        l_to_pcl_launch])
 
     septentrio_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -128,8 +136,9 @@ def generate_launch_description():
     group = GroupAction([
         desc_group,
         # ekf_node,
-        # septentrio_launch,
+        septentrio_launch,
         livox_lidar_launch,
+        l_to_pcl_group,
         cloud2scan_launch,
         oak_launch,
         fast_lio_group,

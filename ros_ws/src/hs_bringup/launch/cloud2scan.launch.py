@@ -36,7 +36,7 @@ def generate_launch_description():
     # add launch argument for cloud_topic instead of hardcording it
     cloud_topic_arg = DeclareLaunchArgument(
         name='cloud_topic',
-        default_value="livox/lidar_192_168_10_93",
+        default_value="/livox/lidar/pcd2",
         description='Topic name for the input point cloud'
     )
     #add another launch argument for the target_frame

@@ -17,7 +17,7 @@ ekf_filter_node_odom_local:
 
     # odom0: /a200_0309/platform/odom
     odom0: /Odometry
-    odom0_config: [true, true, false,
+    odom0_config: [false, false, false,
                   false, false, false,
                   true,  true,  false,
                   false, false, false,
@@ -69,87 +69,87 @@ ekf_filter_node_odom_local:
                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.3,   0.0,
                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.3]
 
-# ekf_filter_node_map_global:
-#   ros__parameters:
-#     frequency: 30.0
-#     two_d_mode: true  # Recommended to use 2d mode for nav2 in mostly planar environments
-#     print_diagnostics: true
-#     debug: false
-#     publish_tf: true
+ekf_filter_node_map_global:
+  ros__parameters:
+    frequency: 30.0
+    two_d_mode: true  # Recommended to use 2d mode for nav2 in mostly planar environments
+    print_diagnostics: true
+    debug: false
+    publish_tf: true
 
-#     map_frame: map
-#     odom_frame: odom
-#     base_link_frame: base_link # the frame id used by the turtlebot's diff drive plugin
-#     world_frame: map
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link # the frame id used by the turtlebot's diff drive plugin
+    world_frame: map
 
-#     # odom0: /a200_0309/platform/odom
-#     odom0: /Odometry
-#     odom0_config: [false, false, false,
-#                   false, false, false,
-#                   true,  true,  true,
-#                   false, false, true,
-#                   false, false, false]
-#     odom0_queue_size: 10
-#     odom0_differential: false
-#     odom0_relative: false
+    # odom0: /a200_0309/platform/odom
+    odom0: /Odometry
+    odom0_config: [false, false, false,
+                  false, false, false,
+                  true,  true,  true,
+                  false, false, false,
+                  false, false, false]
+    odom0_queue_size: 10
+    odom0_differential: false
+    odom0_relative: false
 
-#     # Keep, testing without odom1
-#     odom1: odometry/gps
-#     odom1_config: [true,  true,  false,
-#                   false, false, false,
-#                   false, false, false,
-#                   false, false, false,
-#                   false, false, false]
-#     odom1_queue_size: 10
-#     odom1_differential: false
-#     odom1_relative: false
+    # Keep, testing without odom1
+    odom1: odometry/gps
+    odom1_config: [true,  true,  false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
+    odom1_queue_size: 10
+    odom1_differential: false
+    odom1_relative: false
 
-#     # imu0: oakd/imu/data
-#     imu0: livox/imu/data
-#     imu0_config: [false, false, false,
-#                   false,  false,  false,
-#                   false, false, false,
-#                   false,  false,  true,
-#                   false,  false,  false]
-#     imu0_differential: true  # If using a real robot you might want to set this to true, since usually absolute measurements from real imu's are not very accurate
-#     imu0_relative: false
-#     imu0_queue_size: 10
-#     imu0_remove_gravitational_acceleration: true
-#     gravitational_acceleration: 9.81
+    # imu0: oakd/imu/data
+    imu0: livox/imu/data
+    imu0_config: [false, false, false,
+                  false,  false,  false,
+                  false, false, false,
+                  false,  false,  true,
+                  false,  false,  false]
+    imu0_differential: true  # If using a real robot you might want to set this to true, since usually absolute measurements from real imu's are not very accurate
+    imu0_relative: false
+    imu0_queue_size: 10
+    imu0_remove_gravitational_acceleration: true
+    gravitational_acceleration: 9.81
 
-#     imu1: gps/heading/imu
-#     imu1_config: [false, false, false,
-#                   false, false, true,
-#                   false, false, false,
-#                   false, false, false,
-#                   false, false, false]
+    imu1: gps/heading/imu
+    imu1_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
 
-#     use_control: false
+    use_control: false
 
-#     process_noise_covariance: [1.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    1.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    1e-3,   0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.3,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.3,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.0,    0.01,   0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.5,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.5,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.1,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.3,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.3,    0.0,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.3,    0.0,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.3,    0.0,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.3,    0.0,
-#                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.3]
+    process_noise_covariance: [1.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    1.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    1e-3,   0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.3,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.3,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.0,    0.01,   0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.5,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.5,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.1,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.3,    0.0,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.3,    0.0,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.3,    0.0,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.3,    0.0,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.3,    0.0,
+                              0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.3]
 
-# navsat_transform:
-#   ros__parameters:
-#     frequency: 30.0
-#     delay: 3.0
-#     magnetic_declination_radians: 0.1237  # True for Västerås, Sweden. Please update if running in another locale.
-#     yaw_offset: 1.5707963
-#     zero_altitude: true
-#     broadcast_utm_transform: true
-#     publish_filtered_gps: true
-#     use_odometry_yaw: false
-#     wait_for_datum: false
+navsat_transform:
+  ros__parameters:
+    frequency: 30.0
+    delay: 3.0
+    magnetic_declination_radians: 0.1237  # True for Västerås, Sweden. Please update if running in another locale.
+    yaw_offset: 1.5707963
+    zero_altitude: true
+    broadcast_utm_transform: true
+    publish_filtered_gps: true
+    use_odometry_yaw: false
+    wait_for_datum: false
