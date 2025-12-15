@@ -10,6 +10,7 @@ class CameraMonitor:
     def __init__(self, node: Node):
         self.node = node
         self.available_cameras: List[str] = []
+        self.registered_cameras: List[str] = []
         self.subscription = node.create_subscription(
             String, "/available_cameras", self._on_camera_list, 10
         )
@@ -19,8 +20,10 @@ class CameraMonitor:
         try:
             data = json.loads(msg.data)
             available = data.get("available_cameras", [])
+            registered = data.get("registered_cameras", []) or available
             if available != self.available_cameras:
                 self.available_cameras = available
+                self.registered_cameras = registered
 
                 if hasattr(self.node, "actions"):
                     # Cameras that are encoding but no longer in available list
@@ -36,10 +39,12 @@ class CameraMonitor:
 
                     # Redraw UI quietly
                     self.node.actions.list_cameras(silent=True)
+            else:
+                # Update registered list even if availability unchanged
+                self.registered_cameras = registered
 
         except Exception as e:
             log(f"Failed to parse camera list: {e}")
-
 
 
 

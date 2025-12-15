@@ -56,20 +56,25 @@ def load_camera_config(yaml_path: str):
 
     if not os.path.exists(yaml_path):
         logger.warning("Camera configuration file not found: %s", yaml_path)
-        return {}, {}
+        return {}, {}, {}
 
     try:
         with open(yaml_path, "r") as f:
             cfg = yaml.safe_load(f) or {}
     except yaml.YAMLError as e:
         logger.error("Error parsing YAML: %s", e)
-        return {}, {}
+        return {}, {}, {}
 
     oak = cfg.get("oak_cameras", {})
     usb = cfg.get("usb_cameras", {})
+    h264 = cfg.get("h264_network_cameras", {})
 
-    logger.info("Loaded config: %d OAK, %d USB cameras", len(oak), len(usb))
-    return oak, usb
+    logger.info(
+        "Loaded config: %d OAK, %d USB, %d H264 network cameras",
+        len(oak), len(usb), len(h264)
+    )
+
+    return oak, usb, h264
 
 
 # ---------------------------------------------------------------------------

@@ -63,7 +63,7 @@ class CameraManager:
 
     # Full detection + config pipeline
     def get_camera_configurations(self):
-        oak_cfg, usb_cfg = load_camera_config(self.config_path)
+        oak_cfg, usb_cfg, h264_cfg = load_camera_config(self.config_path)
         detector = DetectCameras()
         detected = detector.detect()
 
@@ -114,6 +114,7 @@ class CameraManager:
                     "port": getattr(cam, "port_path", None),
                     "params": final_params,
                     "configured": cam.id in config_dict,
+                    "outputs_h264": False,
                 }
             )
 
@@ -127,6 +128,25 @@ class CameraManager:
                     "port": cam.device,
                     "params": cam.params,
                     "configured": cam.id in usb_cfg,
+                    "outputs_h264": False,
+                }
+            )
+
+        # ------------------------------------------------------------
+        # H.264 network cameras (e.g. Raspberry Pi)
+        # ------------------------------------------------------------
+
+        for cam_id, entry in h264_cfg.items():
+            cameras.append(
+                {
+                    "type": "h264_network",
+                    "name": entry.get("name", cam_id),
+                    "id": cam_id,
+                    "port": entry.get("port"),
+                    "url": entry.get("url"),
+                    "params": entry.get("params", {}),
+                    "configured": True,
+                    "outputs_h264": True,
                 }
             )
 

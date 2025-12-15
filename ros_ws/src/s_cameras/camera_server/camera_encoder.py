@@ -417,6 +417,14 @@ class CameraEncoder:
             self.node.destroy_subscription(self.sub)
             self.sub = None
 
+        # Destroy publishers so topics disappear
+        if self.pub_ts:
+            self.node.destroy_publisher(self.pub_ts)
+            self.pub_ts = None
+        if self.pub_foxglove:
+            self.node.destroy_publisher(self.pub_foxglove)
+            self.pub_foxglove = None
+
         for proc, label in ((self.process_ts, "TS"), (self.process_foxglove, "FG")):
             if proc:
                 try:

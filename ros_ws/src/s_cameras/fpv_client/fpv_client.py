@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import rclpy
 import signal
 import threading
@@ -34,7 +35,6 @@ def log(msg: str):
 class FPVViewerClient(Node):
     def __init__(self):
         super().__init__("fpv_viewer_client")
-        self._stop_event = threading.Event()
 
         self.monitor = CameraMonitor(self)
         self.service = CameraServiceClient(self)
@@ -64,12 +64,14 @@ class FPVViewerClient(Node):
                 cmd = input("FPV> ").strip()
             except EOFError:
                 break
+            except KeyboardInterrupt:
+                log("Ctrl+C detected — shutting down...")
+                _shutdown_event.set()
+                break
 
             if cmd in ("exit", "quit"):
-                log("Exiting...")
-                self.shutdown()
-                self._stop_event.set()
-                rclpy.shutdown()
+                log("Exit requested — shutting down...")
+                _shutdown_event.set()
                 break
 
             elif cmd == "list":
@@ -121,7 +123,12 @@ def setup_sigint_handler():
     def handler(signum, frame):
         print("\n[Viewer] Ctrl+C detected — shutting down...", flush=True)
         _shutdown_event.set()
+        try:
+            rclpy.try_shutdown()
+        except Exception:
+            pass
     signal.signal(signal.SIGINT, handler)
+    signal.signal(signal.SIGTERM, handler)
 
 
 def main(args=None):
@@ -148,6 +155,8 @@ def main(args=None):
         _shutdown_event.set()
         ui_thread.join(timeout=1.0)
         log("Shutdown complete.")
+        # Ensure we return to shell promptly even if any thread lingers.
+        os._exit(0)
 
 
 if __name__ == "__main__":
