@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:macro name="Light_seeker" params='base_link:="base_link"'>
+  <xacro:macro name="Light_seeker" params='base_link'>
     <xacro:property name="groundz_z_offset" value="${0.1}"/>
 
     <link name="${base_link}">
-      <pose frame="">0 0 0 0 0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
       <inertial>
         <pose frame="">0 0 0.062329 0 -0 0</pose>
         <mass>46.064</mass>

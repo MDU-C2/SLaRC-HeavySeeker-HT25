@@ -79,7 +79,7 @@
     <xacro:navsat_gnss parent_link="rig_top_link" xyz="${gnss_x_offset} ${gnss_y_offset} ${gnss_z_offset}" rpy="0 0 0"/>
     <xacro:oakd parent_link="rig_front_link" name="oakd_pro_1" xyz="${oakd_1_x_offset} ${oakd_1_y_offset} ${oakd_1_z_offset}" rpy="0 ${pi/180*15} 0"/>
     <xacro:oakd parent_link="rig_back_link" name="oakd_pro_2" xyz="${-oakd_2_x_offset} ${oakd_2_y_offset} ${oakd_2_z_offset}" rpy="0 ${pi/180*15} ${pi}"/>
-    <xacro:mid360_lidar parent_link="rig_top_link" xyz="${mid360_lidar_x_offset} ${mid360_lidar_y_offset} ${mid360_lidar_z_offset}" rpy="0 0 0"/>
+    <xacro:mid360_lidar parent_link="rig_top_link" xyz="${mid360_lidar_x_offset} ${mid360_lidar_y_offset} ${mid360_lidar_z_offset}" rpy="0 0 ${pi/2}"/>
     <xacro:Light_seeker base_link="UGV_link"/>
 
 
