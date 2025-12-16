@@ -6,7 +6,7 @@
   <xacro:macro name="Rig_simpelBox_xacro" params='size:="0.6 0.4 0.5" offset:="0 0 0 0 0 0" base_frame'>
     <static>false</static>
     <link name="box_link">
-      <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
+      <pose relative_to="${base_frame}">${offset}</pose>
       <gravity>true</gravity> 
       <collision name="c">
         <geometry><box><size>${size}</size></box></geometry>

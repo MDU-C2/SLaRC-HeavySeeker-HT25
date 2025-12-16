@@ -28,16 +28,19 @@
           </mesh>
         </geometry>
       </visual>
-    </link>
-      
-      
-      
+
       <velocity_decay/>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
       <gravity>1</gravity>
       <velocity_decay/>
+
+    </link>
+      
+      
+      
+      
       
 
     <link name="base_footprint">

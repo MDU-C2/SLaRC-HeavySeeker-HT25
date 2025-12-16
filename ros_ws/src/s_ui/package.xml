@@ -4,7 +4,7 @@
   <version>0.0.1</version>
   <description>UI launch package for Seeker (RViz, Foxglove, Mapviz).</description>
 
-  <maintainer email="jlg19004@student.mdu.se">Josef Landing</maintainer>
+  <maintainer email="slarc25@proton.me">slarc</maintainer>
   <license>TODO: License</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

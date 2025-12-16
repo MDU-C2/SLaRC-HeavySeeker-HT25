@@ -55,7 +55,7 @@ def generate_launch_description():
     )
 
     spawn_coordinates_arg = DeclareLaunchArgument(
-        "Spawn",
+        "spawn",
         default_value="0.0 0.0 2.0 0.0 0.0 0.0",
         description="The XYZ coordinates and RPY to spawn the robot at. Sepreated by spaces.\n" \
     )
@@ -79,12 +79,6 @@ def generate_launch_description():
 
     config_root = PathJoinSubstitution(
         [get_package_share_directory("s_simulation"), "config"]
-    )
-
-    foxglove_xml_root = os.path.join(
-        get_package_share_directory("foxglove_bridge"), #remove?
-        "launch",
-        "foxglove_bridge_launch.xml",
     )
 
     rviz_config_root = PathJoinSubstitution(
@@ -148,11 +142,6 @@ def generate_launch_description():
 
     #---------------------- Launch descriptions ------------------------------
 
-
-    foxglove_bridge_launch = IncludeLaunchDescription( #remove
-        AnyLaunchDescriptionSource(foxglove_xml_root),
-        condition=IfCondition(LaunchConfiguration("use_foxglove")),
-    )
 
     model = LaunchConfiguration('model')
 
@@ -222,12 +211,12 @@ def generate_launch_description():
     )
 
 
-    spawn_x = PythonExpression(["'", LaunchConfiguration("Spawn"), "'.split()[0]"])
-    spawn_y = PythonExpression(["'", LaunchConfiguration("Spawn"), "'.split()[1]"])
-    spawn_z = PythonExpression(["'", LaunchConfiguration("Spawn"), "'.split()[2]"])
-    spawn_roll = PythonExpression(["'", LaunchConfiguration("Spawn"), "'.split()[3]"])
-    spawn_pitch = PythonExpression(["'", LaunchConfiguration("Spawn"), "'.split()[4]"])
-    spawn_yaw = PythonExpression(["'", LaunchConfiguration("Spawn"), "'.split()[5]"])
+    spawn_x = PythonExpression(["'", LaunchConfiguration("spawn"), "'.split()[0]"])
+    spawn_y = PythonExpression(["'", LaunchConfiguration("spawn"), "'.split()[1]"])
+    spawn_z = PythonExpression(["'", LaunchConfiguration("spawn"), "'.split()[2]"])
+    spawn_roll = PythonExpression(["'", LaunchConfiguration("spawn"), "'.split()[3]"])
+    spawn_pitch = PythonExpression(["'", LaunchConfiguration("spawn"), "'.split()[4]"])
+    spawn_yaw = PythonExpression(["'", LaunchConfiguration("spawn"), "'.split()[5]"])
 
 
 
@@ -341,16 +330,5 @@ def generate_launch_description():
     ld.add_action(start_gz)
     ld.add_action(delayed_launch)
 
-
-    # ld.add_action(launch_Robot_description)
-    # ld.add_action(delay_spawn)
-    # ld.add_action(gnss_to_rig_tf)
-    # ld.add_action(bridge)
-    # ld.add_action(relay_bridge)
-    # ld.add_action(scan_converter_launch_description)
-    # ld.add_action(navigation_launch_description)
-    #ld.add_action(foxglove_bridge_launch) #remove
-    #ld.add_action(ui_launch_description_fox)
-    #ld.add_action(ui_launch_description_no_fox)
 
     return ld
