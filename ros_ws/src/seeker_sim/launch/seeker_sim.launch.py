@@ -171,17 +171,27 @@ def generate_launch_description():
     )
 
 
+    model = LaunchConfiguration('model')
+
     launch_Robot_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(Robot_description_launch),
         launch_arguments={
-            'model':       LaunchConfiguration('model'),
+            'model':       model,
             'use_rviz':   'False',
             'rviz_params': rviz_config_root,
             'use_joint_state_publisher': 'True'
         }.items()
     )
 
-
+    # Attach gnss plugin frame to the rig
+    gnss_to_rig_tf = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        # x  y  z   roll pitch yaw   parent_frame   child_frame
+        arguments=["0.0","0.0","0.0","0.0","0.0","0.0","gnss_link", [model, "/gnss_link/gnss"]],
+        output="screen",
+        name="gnss_to_rig_static_tf"
+    )
 
     navigation_launch_description = IncludeLaunchDescription(
           PythonLaunchDescriptionSource(hs_navigation_launch),
@@ -315,6 +325,7 @@ def generate_launch_description():
     ld.add_action(log_gz_path)
 
     ld.add_action(launch_Robot_description)
+    ld.add_action(gnss_to_rig_tf)
     ld.add_action(scan_converter_launch_description)
 
     # Navigation related

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>s_cameras</name>
+  <version>0.1.0</version>
+  <description>Camera management, FPV streaming, and action interfaces for ROS 2</description>
+
+  <maintainer email="slarc25@proton.me">Kim</maintainer>
+  <license>MIT</license>
+
+  <!-- Build tools -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+
+  <!-- Core runtime -->
+  <depend>rclpy</depend>
+  <depend>ament_index_python</depend>
+
+  <!-- Launch + drivers -->
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+  <depend>usb_cam</depend>
+  <depend>depthai_ros_driver</depend>
+  <depend>s_msgs</depend>
+  
+  <!-- Python libraries -->
+  <depend>python3-yaml</depend>
+  <depend>python3-opencv</depend>
+  <depend>python3-numpy</depend>
+
+  <!-- Action / interface support -->
+  <build_depend>rosidl_default_generators</build_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
+  <depend>builtin_interfaces</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

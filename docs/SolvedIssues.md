@@ -30,3 +30,40 @@ To this:
 FollowPath:
     plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
 ```
+
+# Troubleshooting LiDAR Discovery
+
+## Description
+If trouble with discovery of LiDAR. Firewall can be the issue. The Viewer manual suggests disabling the firewall entirely but a workaround can be done.
+
+## Solution
+
+#### 1. First see if the firewall is the issue:
+```bash
+    sudo ufw status
+    sudo ufw disable
+```
+
+#### 2. If firewall is the issue find your ethernet/USB-Ethernet interface name (it’s usually enx…):
+```bash
+    ip -br linkip -br link
+```
+
+#### 3. Allow Livox discovery + traffic on the LiDAR LAN only:
+```bash
+    IFACE=<your-ethernet-iface>   # e.g., IFACE=enx00e04c680001
+```
+```bash
+    sudo ufw allow in  on $IFACE from 192.168.10.0/24
+    sudo ufw allow out on $IFACE to   192.168.10.0/24
+
+    sudo ufw allow in  on $IFACE to any port 56000 proto udp
+    sudo ufw allow in  on $IFACE to any port 55000 proto udp
+    sudo ufw allow in  on $IFACE to any port 65000 proto udp
+```
+
+#### 4. Re-enable firewall:
+```bash
+    sudo ufw enable
+    sudo ufw status verbose
+```
