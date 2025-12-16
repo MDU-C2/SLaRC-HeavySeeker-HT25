@@ -21,6 +21,7 @@ install(
 install(PROGRAMS
     ${PROJECT_NAME}/waypoint_bridge_node.py
     ${PROJECT_NAME}/imu_g_to_ms2.py
+    ${PROJECT_NAME}/gps_heading.py
     DESTINATION lib/${PROJECT_NAME}
 )
 
