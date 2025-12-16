@@ -19,10 +19,12 @@ class OakdRotVector(Node):
     def publish_quaternion(self, x, y, z, w):
         msg = Imu()
         orientation = Quaternion()
-        old_orientation = (x, y, z, w)
-        rotation = tf.quaternion_from_euler(0.0, 0.0, math.pi / 2)
-        (orientation.x, orientation.y, orientation.z, orientation.w) = tf.quaternion_multiply(rotation, old_orientation)
+        (roll, pitch, yaw) = tf.euler_from_quaternion((x, y, z, w))
+        yaw = -yaw + (math.pi / 2) 
+        (orientation.x, orientation.y, orientation.z, orientation.w) = tf.quaternion_from_euler(roll, pitch, yaw)
         msg.orientation = orientation
+        msg.header.frame_id = 'oakd_imu_frame'
+        msg.header.stamp = self.get_clock().now().to_msg()
         self.imu_pub.publish(msg)
 
 

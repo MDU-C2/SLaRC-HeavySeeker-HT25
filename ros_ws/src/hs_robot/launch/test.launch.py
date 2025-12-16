@@ -87,7 +87,7 @@ def generate_launch_description():
 
     oakd_imu_node = Node(
         package='hs_navigation',
-        executable='oakd_imu_rotation.py',
+        executable='oakd_rot_vector.py',
         name='oakd_imu_rotation',
         output='screen',
     )
