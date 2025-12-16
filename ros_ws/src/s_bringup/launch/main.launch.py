@@ -74,9 +74,17 @@ def generate_launch_description():
         "control_mode",
         default_value="teleop",
         description="Control mode for the robot, e.g., teleop or manual",
+        choices=["teleop", "manual", "autonomous"],
     )
 
     #-------------------Conditions------------------
+
+    auto_or_teleop_or_manual_condition = IfCondition(
+    PythonExpression(
+        ["'", LaunchConfiguration("control_mode"), "' in ['autonomous', 'manual', 'teleop']"]
+    )
+)
+
     auto_or_manual_condition = IfCondition(
     PythonExpression(
         ["'", LaunchConfiguration("control_mode"), "' in ['autonomous', 'manual']"]
@@ -89,23 +97,33 @@ def generate_launch_description():
     )
     )
 
+    teleop_condition = IfCondition(
+    PythonExpression(
+        ["'", LaunchConfiguration("control_mode"), "' in ['teleop']"]
+    )
+    )
+
+    autonomus_condition = IfCondition(
+    PythonExpression(
+        ["'", LaunchConfiguration("control_mode"), "' in ['autonomus']"]
+    )
+    )
+
     #-------------------Processes------------------
 
-    rviz_proc = ExecuteProcess(
-    cmd=["rviz2"],
-    output="screen",
-    condition=manual_condition,
-)
+#     rviz_proc = ExecuteProcess(
+#     cmd=["rviz2"],
+#     output="screen",
+#     condition=manual_condition,
+# )
 
-    passed_log = LogInfo(
-        msg=["passed"],
-        condition=auto_or_manual_condition,
-    )
+#     passed_log = LogInfo(
+#         msg=["passed"],
+#         condition=auto_or_manual_condition,
+#     )
     
     #-------------------Launch Description------------------
     ld = LaunchDescription()
     ld.add_action(control_arg)
-    ld.add_action(rviz_proc)
-    ld.add_action(passed_log)
 
     return LaunchDescription([ld])
