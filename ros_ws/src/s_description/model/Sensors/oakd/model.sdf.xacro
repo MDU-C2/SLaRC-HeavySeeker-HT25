@@ -79,7 +79,7 @@
               <far>100</far>
             </clip>
           </depth_camera>
-          <topic>/oakd/rgbd</topic>
+          <topic>${name}/oakd/rgbd</topic>
           <gz_frame_id>${name}_rgb_camera_frame</gz_frame_id>
         </sensor>
       </link>
@@ -95,12 +95,15 @@
       </link>
       
       <joint name="${name}_rgb_camera_optical_joint" type="fixed">
-        
+        <pose relative_to="${name}_rgb_camera_frame">0 0 0 -${M_PI/2} 0.0 -${M_PI/2}</pose>
         <parent>${name}_rgb_camera_frame</parent>
         <child>${name}_rgb_camera_optical_frame</child>
       </joint>
 
-      <link name="${name}_rgb_camera_sensor_mount" />
+      <link name="${name}_rgb_camera_sensor_mount">
+        <pose relative_to="${base_frame}">0 0 0 0 0 0</pose>
+      </link>
+
       <joint name="${name}_rgb_camera_sensor_mount_joint" type="fixed">
         <parent>${name}_rgb_camera_optical_frame</parent>
         <child>${name}_rgb_camera_sensor_mount</child>
@@ -109,6 +112,7 @@
       <!-- Left Camera -->
       <link name="${name}_left_camera_frame">
         <xacro:inertial_dummy/>
+        <pose relative_to="${base_frame}">0 ${baseline/2} 0 0 0 0</pose>
         <sensor name="${name}_left_camera_sensor" type="camera">
           <always_on>1</always_on>
           <update_rate>30</update_rate>
@@ -124,7 +128,7 @@
               <far>100</far>
             </clip>
           </camera>
-          <topic>/oakd/left</topic>
+          <topic>${name}/oakd/left</topic>
           <gz_frame_id>${name}_left_camera_frame</gz_frame_id>
         </sensor>
       </link>
@@ -132,15 +136,14 @@
       <joint name="${name}_left_camera_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_left_camera_frame</child>
-        <pose relative_to="${base_frame}">0 ${baseline/2} 0 0 0 0</pose>
       </joint>
 
       <link name="${name}_left_camera_optical_frame">
         <xacro:inertial_dummy/>
+        <pose relative_to="${name}_left_camera_frame">0 0 0 -${M_PI/2} 0.0 -${M_PI/2}</pose>
       </link>
       
       <joint name="${name}_left_camera_optical_joint" type="fixed">
-        <pose relative_to="${base_frame}">0 0 0 -${M_PI/2} 0.0 -${M_PI/2}</pose>
         <parent>${name}_left_camera_frame</parent>
         <child>${name}_left_camera_optical_frame</child>
       </joint>
@@ -148,6 +151,7 @@
       <!-- Right Camera -->
       <link name="${name}_right_camera_frame">
         <xacro:inertial_dummy/>
+        <pose relative_to="${base_frame}">0 -${baseline/2} 0 0 0 0</pose>
         <sensor name="${name}_right_camera_sensor" type="camera">
           <always_on>1</always_on>
           <update_rate>30</update_rate>
@@ -163,7 +167,7 @@
               <far>100</far>
             </clip>
           </camera>
-          <topic>/oakd/right</topic>
+          <topic>${name}/oakd/right</topic>
           <gz_frame_id>${name}_right_camera_frame</gz_frame_id>
         </sensor>
       </link>
@@ -171,15 +175,14 @@
       <joint name="${name}_right_camera_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_right_camera_frame</child>
-        <pose relative_to="${base_frame}">0 -${baseline/2} 0 0 0 0</pose>
       </joint>
 
       <link name="${name}_right_camera_optical_frame">
         <xacro:inertial_dummy/>
+        <pose relative_to="${name}_right_camera_frame">0 0 0 -${M_PI/2} 0.0 -${M_PI/2}</pose>
       </link>
       
       <joint name="${name}_right_camera_optical_joint" type="fixed">
-        <pose relative_to="${base_frame}">0 0 0 -${M_PI/2} 0.0 -${M_PI/2}</pose>
         <parent>${name}_right_camera_frame</parent>
         <child>${name}_right_camera_optical_frame</child>
       </joint>
@@ -214,7 +217,7 @@
             </orientation>
           </imu>
           <pose relative_to="${base_frame}">0 0 0 ${M_PI/2} 0 ${M_PI/2}</pose>
-          <topic>/oakd/imu</topic>
+          <topic>${name}/oakd/imu</topic>
           <gz_frame_id>${name}_imu_frame</gz_frame_id>
         </sensor>
       </link>
@@ -222,13 +225,14 @@
       <joint name="${name}_imu_joint" type="fixed">
         <parent>${base_frame}</parent>
         <child>${name}_imu_frame</child>
-        <pose relative_to="${base_frame}">0 0 0 -${M_PI/2} 0 -${M_PI/2}</pose>
       </joint>
 
-      <joint name="oakd_mount" type="fixed">
+      <joint name="${name}_mount" type="fixed">
         <parent>${parent_link}</parent>
         <child>${base_frame}</child>
       </joint>
+
+    
 
     </xacro:macro>
 </sdf>

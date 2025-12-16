@@ -91,7 +91,7 @@ def generate_launch_description():
 
     ARGUMENTS = [DeclareLaunchArgument('namespace', default_value='', description='Robot namespace'),
                  DeclareLaunchArgument(
-                     'model', default_value='Rig5', description='Name of model FOLDER located under one of the subfolders of this packages model/Assemblies directory'),
+                     'model', default_value='Rig7', description='Name of model FOLDER located under one of the subfolders of this packages model/Assemblies directory'),
                  DeclareLaunchArgument('use_sim_time', default_value='False',
                                        description='Use clock from simulation', choices=['True', 'False']),
                  DeclareLaunchArgument('use_joint_state_publisher', default_value='False', description='Run joint state publisher', choices=['True', 'False'])]

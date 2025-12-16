@@ -447,14 +447,13 @@
       </axis>
     </joint>
 
-    <link name="Top_plate_link">
-      
+    <link name="top_plate_link">
+      <pose relative_to ="${base_link}">0.0812 0 0.245 0 -0 0</pose>
     </link>
 
-    <joint name="Top_plate_joint" type="fixed">
-      <child>Top_plate_link</child>
+    <joint name="top_plate_joint" type="fixed">
+      <child>top_plate_link</child>
       <parent>${base_link}</parent>
-      <pose relative_to ="${base_link}">0.0812 0 0.245 0 -0 0</pose>
     </joint>
 
     <static>false</static>
