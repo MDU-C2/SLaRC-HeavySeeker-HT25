@@ -118,7 +118,7 @@ It is also possible to use the parent_link as the base_frame/base_link directly.
 ## PLUGINS
 Beware that some plugins used also need to be added in the world file. Example:
 
-In world file
-'''<plugin name="gz::sim::systems::Imu" filename="gz-sim-imu-system"/>
+```In world file
+<plugin name="gz::sim::systems::Imu" filename="gz-sim-imu-system"/>
 
 This will enable the <imu> tag.
