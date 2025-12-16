@@ -28,7 +28,7 @@
       "ip" : "192.168.10.93",
       "pcl_data_type" : 1,
       "pattern_mode" : 0,
-      "frame_id" : "livox_mid360_frame93",
+      "frame_id" : "livox_frame",
       "extrinsic_parameter" : {
         "roll": 0.0,
         "pitch": 0.0,
@@ -42,7 +42,7 @@
       "ip" : "192.168.10.24",
       "pcl_data_type" : 1,
       "pattern_mode" : 0,
-      "frame_id" : "livox_mid360_frame24",
+      "frame_id" : "livox_frame",
       "extrinsic_parameter" : {
         "roll": 0.0,
         "pitch": 0.0,
