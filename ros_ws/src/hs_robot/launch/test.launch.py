@@ -81,9 +81,16 @@ def generate_launch_description():
     )
 
     # OAK-D
-    oak_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([hs_bringup_dir, 'launch', 'oakd.launch.py'])))
+    # oak_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         PathJoinSubstitution([hs_bringup_dir, 'launch', 'oakd.launch.py'])))
+
+    oakd_imu_node = Node(
+        package='hs_navigation',
+        executable='oakd_imu_rotation.py',
+        name='oakd_imu_rotation',
+        output='screen',
+    )
 
     # FAST_LIO
     fast_lio_launch = IncludeLaunchDescription(
@@ -140,7 +147,8 @@ def generate_launch_description():
         livox_lidar_launch,
         l_to_pcl_group,
         cloud2scan_launch,
-        oak_launch,
+        # oak_launch,
+        oakd_imu_node,
         fast_lio_group,
         nav2_launch,
         # slam_toolbox_launch,
