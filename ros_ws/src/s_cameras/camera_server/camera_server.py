@@ -54,7 +54,7 @@ class CameraServer(Node):
         )
 
         # --------------------------------------------------
-        # ✅ REGISTER NETWORK CAMERAS (guarded)
+        # REGISTER NETWORK CAMERAS
         # --------------------------------------------------
         net_cams = self.camera_configs.get("h264_network_cameras", {})
 

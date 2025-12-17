@@ -43,7 +43,7 @@ class FPVDecoder(Node):
 
     # ------------------------------------------------------------------
     def _start_ffmpeg(self, topic, codec):
-        """Spawn ffmpeg decoder process for one topic."""
+        # ffmpeg decoder process for one topic.
         proc = subprocess.Popen([
             "ffmpeg",
             "-hide_banner", "-loglevel", "error",
@@ -105,7 +105,7 @@ class FPVDecoder(Node):
         w = int(parts["width"])
         h = int(parts["height"])
 
-        # --- FIX: ensure only ONE ffmpeg per topic ---
+        # Ensure only ONE ffmpeg per topic
         proc = self.ffmpegs.get(topic)
         needs_restart = proc is None or proc.poll() is not None
 
@@ -120,7 +120,7 @@ class FPVDecoder(Node):
                 f"=====================================\n"
             )
 
-        # --- Use real camera timestamps for FPS tracking ---
+        # Use real camera timestamps for FPS tracking
         try:
             stamp = msg.header.stamp
             t_sec = stamp.sec + stamp.nanosec * 1e-9
@@ -141,7 +141,7 @@ class FPVDecoder(Node):
                         s["avg_window"].pop(0)
                     s["fps"] = sum(s["avg_window"]) / len(s["avg_window"])
 
-        # --- Feed encoded bytes to ffmpeg ---
+        # Feed encoded bytes to ffmpeg
         try:
             proc = self.ffmpegs[topic]
             if proc and proc.stdin:

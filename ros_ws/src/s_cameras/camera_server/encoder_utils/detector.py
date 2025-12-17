@@ -13,6 +13,7 @@ CODEC_OUTPUT = {
     "h265": {"container": "hevc", "bsf": "hevc_mp4toannexb"},
 }
 
+# Detect available GPUs. Probbes using ffmepg to ensure the choosen GPU is working.
 class EncoderDetector:
 
     def __init__(self, prefer_hevc=True):

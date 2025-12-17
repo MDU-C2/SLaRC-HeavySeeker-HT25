@@ -10,7 +10,7 @@ from .server_utils import (
     make_camera_status_json,
 )
 
-
+# Handles camera registry.
 class CameraRegistry:
 
 

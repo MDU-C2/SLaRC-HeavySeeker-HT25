@@ -37,10 +37,10 @@ class CameraActionHandler:
     # START
     # ------------------------------
     def start_network_receiver(self, cam: str):
-        """
-        Idempotently start a NetworkTSReceiver for a configured H.264 camera.
-        Returns (ok: bool, message: str, client_topic: str | None)
-        """
+        
+        #Idempotently start a NetworkTSReceiver for a configured H.264 camera.
+        #Returns (ok: bool, message: str, client_topic: str | None)
+
         if self.registry is None:
             return False, "Registry not ready", None
 
@@ -128,7 +128,7 @@ class CameraActionHandler:
         codec = self.encoder_info["codec"]
 
         # ----------------------------
-        # Prevent double start (but respond gracefully)
+        # Prevent double start
         # ----------------------------
         if cam in self.encoders or cam in self.network_receivers:
             # If network receiver was paused, ensure it resumes
@@ -152,7 +152,7 @@ class CameraActionHandler:
             return result
 
         # ----------------------------
-        # NETWORK CAMERA
+        # NETWORK CAMERA (cameras in the network)
         # ----------------------------
         if cam in self.camera_configs.get("h264_network_cameras", {}):
             ok, message, topic = self.start_network_receiver(cam)
@@ -171,7 +171,7 @@ class CameraActionHandler:
             return result
 
         # ----------------------------
-        # LOCAL CAMERA
+        # LOCAL CAMERA (usb oak-d connected throug USB)
         # ----------------------------
         input_topic = self.registry.get_topic_for(cam)
         fps = float(

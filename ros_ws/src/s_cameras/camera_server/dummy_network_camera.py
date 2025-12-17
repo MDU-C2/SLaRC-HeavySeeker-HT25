@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""
-Standalone dummy that mimics the Raspberry Pi by taking an existing
-MPEG-TS/H.264 stream from a ROS topic and sending it over UDP to the
-camera server. This keeps the server and client happy without real hardware.
-"""
+
+#Standalone dummy that mimics the Raspberry Pi by taking an existing
+#MPEG-TS/H.264 stream from a ROS topic and sending it over UDP to the
+#camera server. This keeps the server and client happy without real hardware.
+
 
 import argparse
 import socket

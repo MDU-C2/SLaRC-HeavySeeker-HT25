@@ -161,4 +161,4 @@ h264_network_cameras:
     params:
       width: 640
       height: 480
-      framerate: 30
+      framerate: 30.0

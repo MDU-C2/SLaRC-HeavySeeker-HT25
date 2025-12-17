@@ -6,7 +6,7 @@ import threading
 from sensor_msgs.msg import CompressedImage
 from foxglove_msgs.msg import CompressedVideo
 
-
+# Seperate handling for h264 comming over network. I.e network cameras, we dont need to encode only pass through.
 class NetworkTSReceiver:
 
     def __init__(
@@ -295,10 +295,8 @@ class NetworkTSReceiver:
 
     # ------------------------------------------------------------
     def _infer_resolution(self, data: bytes):
-        """
-        Attempt to parse SPS from an H.264 stream to extract width/height.
-        Works best when the chunk contains SPS NAL units.
-        """
+        
+        #Attempt to parse SPS from an H.264 stream to extract width/height.
         try:
             for nal in self._iter_nals(data):
                 nal_type = nal[0] & 0x1F
@@ -380,12 +378,15 @@ class NetworkTSReceiver:
         # High profiles have extra fields
         if profile_idc in (100, 110, 122, 244, 44, 83, 86, 118, 128, 138, 139, 134, 135):
             chroma_format_idc = br.read_ue()
+            
             if chroma_format_idc == 3:
                 br.read_bits(1)  # separate_colour_plane_flag
+            
             br.read_ue()  # bit_depth_luma_minus8
             br.read_ue()  # bit_depth_chroma_minus8
             br.read_bits(1)  # qpprime_y_zero_transform_bypass_flag
             seq_scaling_matrix_present_flag = br.read_bits(1)
+            
             if seq_scaling_matrix_present_flag:
                 # Skip scaling lists (we don't need them for resolution)
                 for _ in range(8 if chroma_format_idc == 3 else 12):
@@ -403,6 +404,7 @@ class NetworkTSReceiver:
 
         br.read_ue()  # log2_max_frame_num_minus4
         pic_order_cnt_type = br.read_ue()
+        
         if pic_order_cnt_type == 0:
             br.read_ue()  # log2_max_pic_order_cnt_lsb_minus4
         elif pic_order_cnt_type == 1:
@@ -410,6 +412,7 @@ class NetworkTSReceiver:
             br.read_se()     # offset_for_non_ref_pic
             br.read_se()     # offset_for_top_to_bottom_field
             num_ref_frames_in_pic_order_cnt_cycle = br.read_ue()
+            
             for _ in range(num_ref_frames_in_pic_order_cnt_cycle):
                 br.read_se()
 
@@ -418,11 +421,14 @@ class NetworkTSReceiver:
         pic_width_in_mbs_minus1 = br.read_ue()
         pic_height_in_map_units_minus1 = br.read_ue()
         frame_mbs_only_flag = br.read_bits(1)
+        
         if not frame_mbs_only_flag:
             br.read_bits(1)  # mb_adaptive_frame_field_flag
+        
         br.read_bits(1)  # direct_8x8_inference_flag
         frame_cropping_flag = br.read_bits(1)
         crop_left = crop_right = crop_top = crop_bottom = 0
+        
         if frame_cropping_flag:
             crop_left = br.read_ue()
             crop_right = br.read_ue()
@@ -444,11 +450,10 @@ class NetworkTSReceiver:
 
     # ------------------------------------------------------------
     def _build_ffmpeg_cmd(self):
-        """
-        Build ffmpeg command. If target width/height are provided, transcode
-        with scaling to that size (or smaller if input is smaller). Otherwise,
-        copy the stream.
-        """
+        
+        #Build ffmpeg command. If target width/height are provided, transcode
+        #with scaling to that size (or smaller if input is smaller). Otherwise, copy the stream.
+        
         base = [
             "ffmpeg",
             "-hide_banner",

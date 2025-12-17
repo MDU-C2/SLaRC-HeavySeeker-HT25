@@ -203,7 +203,7 @@ class CameraActionManager:
         # Just send stop goals and let the executor handle callbacks
         self.stop_cameras(self.current_cameras.copy())
 
-        # ------------------------------------------------------------
+    # ------------------------------------------------------------
     # Output Mode Control
     # ------------------------------------------------------------
     def set_output_mode(self, mode: str):
