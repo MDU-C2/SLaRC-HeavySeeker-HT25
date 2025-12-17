@@ -134,11 +134,25 @@ class NetworkTSReceiver:
             "ffmpeg",
             "-hide_banner",
             "-loglevel", "error",
-            "-fflags", "nobuffer",
+
+            # 🔑 CRITICAL LOW-LATENCY FLAGS
+            "-fflags", "+genpts+nobuffer",
+            "-use_wallclock_as_timestamps", "1",
             "-flags", "low_delay",
+            "-probesize", "32",
+            "-analyzeduration", "0",
+
+            # Input
             "-i", self.listen_url,
+
+            # Video only, passthrough
             "-an",
             "-c:v", "copy",
+            "-mpegts_flags", "+resend_headers+pat_pmt_at_frames",
+
+            # Output TS to stdout
+            "-muxdelay", "0",
+            "-muxpreload", "0",
             "-f", "mpegts",
             "pipe:1",
         ]
@@ -154,42 +168,17 @@ class NetworkTSReceiver:
             bufsize=0,
         )
 
-        # Fail fast if ffmpeg could not start
         if self.process_ts.poll() is not None:
             self.node.get_logger().error(
                 f"[{self.camera_name}] Failed to start TS receiver"
             )
             return
 
-        # --- Foxglove converter (optional) ---
-        if self.output_mode == "foxglove":
-            cmd_fg = [
-                "ffmpeg",
-                "-hide_banner",
-                "-loglevel", "error",
-                "-fflags", "nobuffer",
-                "-flags", "low_delay",
-                "-f", "mpegts",
-                "-i", "pipe:0",
-                "-an",
-                "-c:v", "copy",
-                "-bsf:v", "h264_mp4toannexb",
-                "-f", "h264",
-                "pipe:1",
-            ]
-
-            self.process_foxglove = subprocess.Popen(
-                cmd_fg,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                bufsize=0,
-            )
-
-            threading.Thread(
-                target=self._reader_foxglove,
-                daemon=True,
-            ).start()
+        threading.Thread(
+            target=self._stderr_reader_loop,
+            args=(self.process_ts, "ts"),
+            daemon=True,
+        ).start()
 
         threading.Thread(
             target=self._reader_ts,
@@ -272,6 +261,23 @@ class NetworkTSReceiver:
 
             if self.pub_foxglove:
                 self.pub_foxglove.publish(msg)
+
+    # ------------------------------------------------------------
+    def _stderr_reader_loop(self, process, tag: str):
+        try:
+            while process and process.poll() is None:
+                line = process.stderr.readline()
+                if not line:
+                    break
+                text = line.decode("utf-8", errors="ignore").strip()
+                if text:
+                    self.node.get_logger().error(
+                        f"[{self.camera_name}] ffmpeg[{tag}]: {text}"
+                    )
+        except Exception as exc:
+            self.node.get_logger().error(
+                f"[{self.camera_name}] ffmpeg stderr loop error [{tag}]: {exc}"
+            )
 
     # ------------------------------------------------------------
     def stop(self):
