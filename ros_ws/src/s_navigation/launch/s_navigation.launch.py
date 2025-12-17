@@ -1,8 +1,12 @@
-import os
-import yaml
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    TimerAction,
+    GroupAction,
+)
 from launch.substitutions import (
     PathJoinSubstitution,
     LaunchConfiguration,
@@ -36,8 +40,9 @@ def generate_launch_description():
 
     use_simtime_arg = DeclareLaunchArgument(
         "use_simtime",
-        default_value="",
+        default_value="False",
         description="Use simulation (Gazebo) clock if true, should be used for simulation only",
+        choices=["True", "False"],
     )
 
     namespace = DeclareLaunchArgument(
@@ -47,25 +52,28 @@ def generate_launch_description():
         )
 
     # Robot localization node using world and map ekf
-    robot_localization_nodes = IncludeLaunchDescription(
-        PathJoinSubstitution([s_nav_dir, "launch", "s_navsat.launch.py"]),
+    robot_localization_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([s_nav_dir, "launch", "s_navsat.launch.py"])),
         launch_arguments=[
-            ("use_sim_time", use_simtime_arg),
-            ("navsat_config", navsat_config_arg)
+            ("use_sim_time", LaunchConfiguration('use_simtime')),
+            ("navsat_config", LaunchConfiguration('navsat_config'))
         ],
     )
 
-    slam_toolbox_cmd = IncludeLaunchDescription(
-        PathJoinSubstitution([slam_dir, "launch", "online_async_launch.py"]),
-        launch_arguments=[("use_sim_time", use_simtime_arg), ("namespace", namespace)],
+    slam_toolbox_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([slam_dir, "launch", "online_async_launch.py"])),
+        launch_arguments=[
+            ("use_sim_time", LaunchConfiguration('use_simtime')),
+            ("namespace", LaunchConfiguration('namespace')),
+        ],
     )
 
-    nav2_bringup_cmd = IncludeLaunchDescription(
-        PathJoinSubstitution([nav2_bringup_dir, "launch", "navigation_launch.py"]),
+    nav2_bringup_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([nav2_bringup_dir, "launch", "navigation_launch.py"])),
         launch_arguments=[
-            ("use_sim_time", use_simtime_arg),
-            ("namespace", namespace),
-            ("params_file", PathJoinSubstitution([config_dir, nav2_config_arg])), # nav2 wants abs path
+            ("use_sim_time", LaunchConfiguration('use_simtime')),
+            ("namespace", LaunchConfiguration('namespace')),
+            ("params_file", PathJoinSubstitution([config_dir, LaunchConfiguration('nav2_config')])), # nav2 wants abs path
         ],
     )
 
@@ -84,15 +92,20 @@ def generate_launch_description():
 
 
     actions = [
-        PushROSNamespace(namespace),
-        robot_localization_nodes,
+        #PushROSNamespace(namespace), what is this?
+        robot_localization_launch,
         waypoint_bridge_node,
-        TimerAction(period=5.0, actions=[slam_toolbox_cmd]),
-        TimerAction(period=10.0, actions=[nav2_bringup_cmd])
+        TimerAction(period=5.0, actions=[slam_toolbox_launch]),
+        TimerAction(period=10.0, actions=[nav2_bringup_launch])
     ]
     hs = GroupAction(actions)
 
-    ld = LaunchDescription(ARGUMENTS)
+    ld = LaunchDescription()
+    ld.add_action(nav2_config_arg)
+    ld.add_action(navsat_config_arg)
+    ld.add_action(use_simtime_arg)
+    ld.add_action(namespace)
+
     ld.add_action(hs)
 
     return ld

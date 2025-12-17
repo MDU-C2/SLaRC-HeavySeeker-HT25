@@ -15,7 +15,6 @@ install(
     model
     worlds
     python_nodes
-    config
   DESTINATION share/${PROJECT_NAME}
 )
 

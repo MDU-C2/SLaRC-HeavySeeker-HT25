@@ -2,10 +2,8 @@
 
 from launch import LaunchDescription
 from launch.actions import (
-    IncludeLaunchDescription,
     DeclareLaunchArgument,
     GroupAction,
-    TimerAction,
 )
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition
@@ -17,9 +15,6 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
     nav_dir = get_package_share_directory("s_navigation")
 
-    default_navsat_config = PathJoinSubstitution(
-        [nav_dir, "config", "dual_ekf_navsat.yaml"]
-    )
 
     ARGUMENTS = [
         DeclareLaunchArgument(
@@ -33,14 +28,17 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "navsat_config_arg",
-            defailt_value=default_navsat_config,
+            default_value="dual_ekf_navsat.yaml",
             description="Config file for navsat nodes"
         )
     ]
 
     namespace = LaunchConfiguration("namespace")
     use_sim_time = LaunchConfiguration("use_sim_time")
-    navsat_config = LaunchConfiguration("navsat_config_arg")
+
+    navsat_config = PathJoinSubstitution(
+        [nav_dir, "config", LaunchConfiguration("navsat_config_arg")]
+    )
 
     rl_ekf_local_node = Node(
         package="robot_localization",
@@ -77,7 +75,7 @@ def generate_launch_description():
 
 
     actions = [
-        PushROSNamespace(namespace),
+        #PushROSNamespace(namespace),
         rl_ekf_local_node,
         rl_ekf_global_node,
         navsat_transform_node,

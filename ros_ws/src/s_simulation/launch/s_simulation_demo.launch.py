@@ -87,9 +87,9 @@ def generate_launch_description():
 
     navigation_launch_root = PathJoinSubstitution(
         [
-            get_package_share_directory("hs_navigation"),
+            get_package_share_directory("s_navigation"),
             'launch',
-            'hs_navigation.launch.py',
+            's_navigation.launch.py',
         ]
         )
 
@@ -158,9 +158,10 @@ def generate_launch_description():
     navigation_launch_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(navigation_launch_root),
         launch_arguments={
-            'use_map':   'False',
             'rviz_config': rviz_config_root,
-            'use_sim_time': 'True'
+            'use_sim_time': 'True',
+            'navsat_config_arg': 'simulation_singel_ekf.yaml',
+            'namespace': namespace,
         }.items()
     )
 
