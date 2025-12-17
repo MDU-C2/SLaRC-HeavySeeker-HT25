@@ -156,8 +156,8 @@ usb_cameras:
 h264_network_cameras:
   pi_front:
     name: pi_front
-    url: "udp://0.0.0.0:5000"
-    port: 5000
+    url: "udp://0.0.0.0:5600"
+    port: 5600
     params:
       width: 640
       height: 480
