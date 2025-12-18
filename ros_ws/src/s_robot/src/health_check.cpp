@@ -1,5 +1,6 @@
 
 #include <chrono>
+#include <iostream>
 
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
@@ -14,6 +15,10 @@
  * Subscribers:
  *  - /emergency_stop - std_msgs/msg/Bool - state of emergency stop, pressed=True
  * 
+ *  - /battery_info - s_msgs/msg/BatterInfo - info about current battery status
+ *  - /motor_info - s_msgs/msg/MotorInfo - info about current motor status
+ * 
+ *  sensors
  * 
  * Publishers:
  *  - /allowed_operation_modes - hs_msgs/msg/operation_modes - information about allowed operation modes
@@ -40,15 +45,65 @@ class HealthCheckNode : public rclcpp::Node {
         timer_health_update = this->create_timer(500ms, std::bind(&HealthCheckNode::callback_timer_health_update, this));
 
         RCLCPP_INFO(this->get_logger(), "Health Checks Is Running");
+
+        // declare ros params
+        this->declare_parameter<std::string>("platform.motor", "");
+        this->declare_parameter<std::string>("platform.battery", "");
+        this->declare_parameter<std::string>("manual_controllers.local_controller_topic", "");
+        this->declare_parameter<std::string>("manual_controllers.telop_controller_topic", "");
+        this->declare_parameter<std::string>("requirements.telop.fpv_camera", "");
+        this->declare_parameter<std::string>("requirements.autonomy.lidar", "");
+        this->declare_parameter<std::string>("requirements.autonomy.camera1", "");
+        this->declare_parameter<std::string>("requirements.autonomy.camera2", "");
+
+        // create subscribers based on topic names
+        platform_topics[0] = this->get_parameter("platform.motor").as_string();
+        platform_topics[1] = this->get_parameter("platform.battery").as_string();
+
+        controller_topics[0] = this->get_parameter("manual_controllers.local_controller_topic").as_string();
+        controller_topics[1] = this->get_parameter("manual_controllers.telop_controller_topic").as_string();
+        
+        telop_req_topics[0] = this->get_parameter("requiremnts.telop.fpv_camera").as_string();
+
+        autonomy_req_topics[0] = this->get_parameter("requirements.autonomy.lidar").as_string();
+        autonomy_req_topics[1] = this->get_parameter("requirements.autonomy.camera1").as_string();
+        autonomy_req_topics[2] = this->get_parameter("requirements.autonomy.camera2").as_string();
+
+        
+
+        sub_platform[0] = this->create_subscription<std_msgs::msg::Bool>(this->get_parameter("platform.motor").as_string(), 10, std::bind(HealthCheckNode::callback_sub_platform_motor, this, std::placeholders::_1));
+        sub_platform[1] = this->create_subscription<std_msgs::msg::Bool>(this->get_parameter("platform.battery").as_string(), 10, std::bind(HealthCheckNode::callback_sub_platform_battery, this, std::placeholders::_1));
+
+
+
+    }
+
+    std::string platform_topics[2];
+    std::string controller_topics[2];
+    std::string telop_req_topics[1];
+    std::string autonomy_req_topics[3];
+
+    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr sub_platform[2];
+    void callback_sub_platform_motor(std_msgs::msg::Bool batteryOK){
+
+    }
+    void callback_sub_platform_battery(std_msgs::msg::Bool batteryOK){
+
     }
 
     private:
     // timer callback that sends hear beats to the robot node
     void callback_timer_health_update() {
 
+        topics = this->get_topic_names_and_types();
+        std::cout << topics.begin()->first << std::endl;
+
+        // add function for finding sensors and to update curent sensor list
+
         checkHealth();
         
         publishAllowedModes();
+        //publishCurrentMode();
         return;
     }
 
@@ -82,11 +137,22 @@ class HealthCheckNode : public rclcpp::Node {
 
     bool h_emergency_stop;
     s_msgs::msg::OperationModes allowed_modes;
+
+    std::map<std::string, std::vector<std::string>> topics;
     
 
     // general health check, allows operation modes based on system status
     void checkHealth() {
         
+        // check if platform is ok to run
+        for(std::string topic: platform_topics) {
+
+        }
+
+        // check if the registred sensors are delivering data
+
+
+
         // dont update status if emergency button is pressed
         if(this->h_emergency_stop)
             return;
