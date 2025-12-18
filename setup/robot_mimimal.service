@@ -1,0 +1,14 @@
+[Unit]
+Description=Robot service, that starts the minimum required parts for manual controlling the robot
+After=zenoh.service
+
+[Service]
+Environment=ROS_DOMAIN_ID=4
+Environment=RMW_IMPLEMENTATION=rmw_zenoh_cpp
+
+User=
+
+ExecStart=""
+
+
+[Install]

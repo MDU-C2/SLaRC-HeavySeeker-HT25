@@ -66,8 +66,18 @@ echo "export _colcon_cd_root=/opt/ros/jazzy/" >> ~/.bashrc
 echo "export ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET" >> ~/.bashrc
 echo "export ROS_DOMAIN_ID=10" >> ~/.bashrc
 
-# PlatformSpecifics
-./platformSpecifics.sh
+# Install Zenoh
+curl -L https://download.eclipse.org/zenoh/debian-repo/zenoh-public-key | sudo gpg --dearmor --yes --output /etc/apt/keyrings/zenoh-public-key.gpg
+echo "deb [signed-by=/etc/apt/keyrings/zenoh-public-key.gpg] https://download.eclipse.org/zenoh/debian-repo/ /" | sudo tee -a /etc/apt/sources.list > /dev/null
+sudo apt update
+sudo apt install zenoh -y
+
+# Platform Requirements
+./install_sensor_requirements.sh
+
+# enable kernel module for can
+sudo modprobe --all can can_raw vcan
+
 
 # Install Zerotier 
 curl -s https://install.zerotier.com | sudo bash

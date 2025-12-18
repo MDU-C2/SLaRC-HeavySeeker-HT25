@@ -1,0 +1,14 @@
+[Unit]
+Description=Robot service, that starts the robot
+After=zenoh.service
+
+[Service]
+Environment=ROS_DOMAIN_ID=4
+Environment=RMW_IMPLEMENTATION=rmw_zenoh_cpp
+
+User=
+
+ExecStart=""
+
+
+[Install]
