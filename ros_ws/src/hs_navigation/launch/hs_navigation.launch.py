@@ -21,7 +21,7 @@ def generate_launch_description():
     nav2_bringup_dir = get_package_share_directory("nav2_bringup")
 
     rviz_config = PathJoinSubstitution([nav_dir, "rviz", "config.rviz"])
-    nav2_config = PathJoinSubstitution([nav_dir, "config", "nav2_params.yaml"])
+    nav2_config = PathJoinSubstitution([nav_dir, "config", "nav2_params_stvl.yaml"])
 
     ARGUMENTS = [
         DeclareLaunchArgument(
@@ -122,7 +122,7 @@ def generate_launch_description():
         waypoint_bridge_node,
         rviz_node,
         mapviz_launch_description,
-        TimerAction(period=5.0, actions=[slam_toolbox_cmd]),
+        # TimerAction(period=5.0, actions=[slam_toolbox_cmd]),
         TimerAction(period=10.0, actions=[nav2_bringup_cmd])
     ]
     hs = GroupAction(actions)

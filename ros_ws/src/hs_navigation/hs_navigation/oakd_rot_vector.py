@@ -35,7 +35,7 @@ class OakdRotVector(Node):
         q_old = tf.quaternion_from_matrix(np.pad(R_enu, ((0, 1), (0, 1)), 'constant', constant_values=0))
 
         (orientation1.x, orientation1.y, orientation1.z,
-         orientation1.w) = tf.quaternion_multiply(q_old, tf.quaternion_about_axis(math.radians(50.0), [0, 0, 1]))
+         orientation1.w) = tf.quaternion_multiply(q_old, tf.quaternion_about_axis(math.radians(90.0), [0, 0, 1]))
         
         (orientation2.x, orientation2.y,
          orientation2.z, orientation2.w) = q_old
