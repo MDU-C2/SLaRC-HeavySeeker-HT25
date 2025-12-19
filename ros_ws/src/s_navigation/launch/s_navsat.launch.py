@@ -4,6 +4,7 @@ from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     GroupAction,
+    LogInfo
 )
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch.conditions import IfCondition
@@ -74,14 +75,20 @@ def generate_launch_description():
     )
 
 
+
+
     actions = [
         #PushROSNamespace(namespace),
         rl_ekf_local_node,
         rl_ekf_global_node,
         navsat_transform_node,
+        LogInfo(msg=["s_navsat_launch: Launching with navsat_config: ", navsat_config]),
+        LogInfo(msg=["s_navsat_launch: Launching with use_sim_time: ", use_sim_time]),
     ]
     hs = GroupAction(actions)
+    
 
     ld = LaunchDescription(ARGUMENTS)
+
     ld.add_action(hs)
     return ld

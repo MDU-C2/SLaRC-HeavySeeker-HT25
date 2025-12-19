@@ -36,6 +36,14 @@
       </attenuation>
     </light>
 
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>59.696872</latitude_deg>
+      <longitude_deg>15.906671</longitude_deg>
+      <elevation>0.0</elevation>
+      <heading_deg>0.0</heading_deg>
+    </spherical_coordinates>
+
     <!-- Forest floor - 40x40m -->
     <model name="ground_plane">
       <static>true</static>

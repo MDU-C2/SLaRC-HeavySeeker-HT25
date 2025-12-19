@@ -13,7 +13,6 @@ queue_size=5
 scan_time=0.1
 range_min=0.1
 range_max=100.0
-idk="frame"
 transform_tolerance=0.01
 use_inf=True
 

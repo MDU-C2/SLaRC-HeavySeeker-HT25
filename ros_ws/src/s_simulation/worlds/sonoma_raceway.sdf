@@ -17,8 +17,6 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
 
-    <!-- (Valfritt men bra) sätt geodetisk referens för rimliga lat/lon från NavSat -->
-    <!-- Byt till Sonamas lat/lon/höjd om du vill ha "riktiga" GPS-koordinater -->
     <spherical_coordinates>
       <surface_model>EARTH_WGS84</surface_model>
       <latitude_deg>38.161479</latitude_deg>

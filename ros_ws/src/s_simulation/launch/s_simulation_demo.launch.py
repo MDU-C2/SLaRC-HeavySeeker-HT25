@@ -60,6 +60,12 @@ def generate_launch_description():
         description="The XYZ coordinates and RPY to spawn the robot at. Sepreated by spaces.\n" \
     )
 
+    headless_arg = DeclareLaunchArgument(
+        "headless",
+        default_value="False",
+        description="Run Gazebo in headless mode (no GUI).",
+        choices=['True', 'False'],
+    )
 
     # ------------------ Paths to package resources (world, models, configs) -------------------
 
@@ -108,6 +114,25 @@ def generate_launch_description():
                 's_ui.launch.py',
             ]
         )
+    
+    nav2_config = PathJoinSubstitution(
+            [
+                get_package_share_directory("s_simulation"), 
+                'config',
+                'nav2_params_sim.yaml',
+            ]
+        )
+    
+    slam_params_file = PathJoinSubstitution(
+            [
+                get_package_share_directory("s_simulation"), 
+                'config',
+                'slam_async_config.yaml',
+            ]
+        )
+    
+    slam_toolbox_dir = get_package_share_directory('slam_toolbox')
+    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
 
 
     # Set GZ_SIM_RESOURCE_PATH to include the model paths
@@ -158,9 +183,9 @@ def generate_launch_description():
     navigation_launch_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(navigation_launch_root),
         launch_arguments={
-            'rviz_config': rviz_config_root,
             'use_sim_time': 'True',
-            'navsat_config_arg': 'simulation_singel_ekf.yaml',
+            'navsat_config': 'simulation_ekf.yaml',
+            'nav2_config': 'nav2_params_sim.yaml',
             'namespace': namespace,
         }.items()
     )
@@ -169,7 +194,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(scan_launch_root),
         launch_arguments={
             'cloud_topic':  '/lidar_points_fixed',
-            'target_frame':   'mid360_lidar_link',
+            'target_frame':   'livox_frame',
         }.items()
     )
 
@@ -190,14 +215,35 @@ def generate_launch_description():
         launch_arguments={
             'rviz_config':  'seeker.rviz',
             'use_rviz':   'True',
-            'use_map':   'True',
+            'use_map':   'False',
             'use_foxglove':   'False',
         }.items(),
         condition=UnlessCondition(LaunchConfiguration("use_foxglove"))
     )
 
 
+    slam_toolbox_launch = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(
+        os.path.join(slam_toolbox_dir, 'launch', 'online_sync_launch.py')),
+        launch_arguments={
+            'autostart': "True",
+            'use_lifecycle_manager': "False",
+            'use_sim_time': "True",
+            'slam_params_file': slam_params_file,
+        }.items(),
+    )
 
+    # NAV2
+    nav2_bringup_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(nav2_bringup_dir, 'launch', 'bringup_launch.py')
+        ),
+        launch_arguments={
+            'autostart': "True",
+            'use_sim_time': "True",
+            'params_file': nav2_config,
+        }.items(),
+    )
 
 
     # --- Processes launched via shell commands (not ROS 2 nodes) ---
@@ -206,9 +252,16 @@ def generate_launch_description():
     # Note: Here '-r' is used to start the simulation; behavior can vary between tools.
     start_gz = ExecuteProcess(
         cmd=['gz', 'sim', '-r', world_root],
-        #cmd=["gz", "sim", world_root],
         output="screen",
         env=start_env,
+        condition=UnlessCondition(LaunchConfiguration("headless"))
+    )
+
+    start_gz_2 = ExecuteProcess(
+        cmd=['gz', 'sim', '-r','-s', world_root],
+        output="screen",
+        env=start_env,
+        condition=IfCondition(LaunchConfiguration("headless"))
     )
 
 
@@ -257,9 +310,9 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            "/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist",
+            "/cmd_vel@geometry_msgs/msg/TwistStamped@gz.msgs.Twist",
             "/odometry/wheel@nav_msgs/msg/Odometry@gz.msgs.Odometry",
-            "/world/sonoma_raceway/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock",
+            ["/world/", LaunchConfiguration("world"), "/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock"],
             "/lidar_points/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
             "/oakd_pro_1/oakd/rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image",
             "/oakd_pro_1/oakd/rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked",
@@ -276,7 +329,7 @@ def generate_launch_description():
             "-r",
             "/oakd_pro_2/oakd/rgbd/image:=/oakd_image_2",
             "-r",
-            "/world/sonoma_raceway/clock:=/clock"
+            ["/world/", LaunchConfiguration("world"), "/clock:=/clock"],
         ],
         output="screen",
     )
@@ -321,7 +374,7 @@ def generate_launch_description():
 
     # Starting order
     ld = LaunchDescription()
-
+    ld.add_action(headless_arg)
     ld.add_action(world_arg)
     ld.add_action(model_arg)
     ld.add_action(use_foxglove_arg)
@@ -329,6 +382,7 @@ def generate_launch_description():
 
     ld.add_action(set_gz_path)
     ld.add_action(start_gz)
+    ld.add_action(start_gz_2)
     ld.add_action(delayed_launch)
 
 

@@ -5,7 +5,7 @@ amcl:
     alpha3: 0.2
     alpha4: 0.2
     alpha5: 0.2
-    base_frame_id: "base_footprint"
+    base_frame_id: "base_link" #Check
     beam_skip_distance: 0.5
     beam_skip_error_threshold: 0.9
     beam_skip_threshold: 0.3
@@ -36,13 +36,13 @@ amcl:
     z_max: 0.05
     z_rand: 0.5
     z_short: 0.05
-    scan_topic: scan
+    scan_topic: '/scan'
 
 bt_navigator:
   ros__parameters:
     global_frame: map
-    robot_base_frame: UGV_link
-    odom_topic: /odometry/local # /odometry/wheel
+    robot_base_frame: base_link
+    odom_topic: /odometry/local #Check
     bt_loop_duration: 10
     default_server_timeout: 20
     wait_for_service_timeout: 1000
@@ -52,15 +52,6 @@ bt_navigator:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-    # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
-    # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
-    # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
-    # They can be set here or via a RewrittenYaml remap from a parent launch file to Nav2.
-
-    # plugin_lib_names is used to add custom BT plugins to the executor (vector of strings).
-    # Built-in plugins are added automatically
-    # plugin_lib_names: []
-
     error_code_name_prefixes:
       - assisted_teleop
       - backup
@@ -79,35 +70,28 @@ controller_server:
   ros__parameters:
     controller_frequency: 20.0
     costmap_update_timeout: 0.30
-    min_x_velocity_threshold: 0.001
+    min_x_velocity_threshold: 0.001 #Colud change
     min_y_velocity_threshold: 0.5
-    min_theta_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001 #Could change
     failure_tolerance: 0.3
-    current_goal_checker: "general_goal_checker"
-    current_progress_checker: "progress_checker"
     progress_checker_plugins: ["progress_checker"]
     goal_checker_plugins: ["general_goal_checker"]
     controller_plugins: ["FollowPath"]
-    odom_topic: /odometry/local # /odometry/wheel
+    odom_topic: /odometry/local #Check
     use_realtime_priority: false
     enable_stamped_cmd_vel: true
 
-    # Progress checker parameters
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
       movement_time_allowance: 10.0
-    # Goal checker parameters
-    #precise_goal_checker:
-    #  plugin: "nav2_controller::SimpleGoalChecker"
-    #  xy_goal_tolerance: 0.25
-    #  yaw_goal_tolerance: 0.25
-    #  stateful: True
+
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
       yaw_goal_tolerance: 0.25
+
     FollowPath:
       plugin: "nav2_mppi_controller::MPPIController"
       time_steps: 56
@@ -117,12 +101,12 @@ controller_server:
       ax_min: -3.0
       ay_max: 3.0
       az_max: 3.5
-      vx_std: 2.0
-      vy_std: 1.0
+      vx_std: 0.2
+      vy_std: 0.2
       wz_std: 0.4
-      vx_max: 2.0
+      vx_max: 0.5
       vx_min: -0.35
-      vy_max: 1.5
+      vy_max: 0.5
       wz_max: 1.9
       iteration_count: 1
       prune_distance: 1.7
@@ -132,11 +116,14 @@ controller_server:
       motion_model: "DiffDrive"
       visualize: true
       regenerate_noises: true
+
       TrajectoryVisualizer:
         trajectory_step: 5
         time_step: 3
+
       AckermannConstraints:
         min_turning_r: 0.2
+
       critics:
         [
           "ConstraintCritic",
@@ -148,25 +135,30 @@ controller_server:
           "PathAngleCritic",
           "PreferForwardCritic",
         ]
+
       ConstraintCritic:
         enabled: true
         cost_power: 1
         cost_weight: 4.0
+
       GoalCritic:
         enabled: true
         cost_power: 1
         cost_weight: 5.0
         threshold_to_consider: 1.4
+
       GoalAngleCritic:
         enabled: true
         cost_power: 1
         cost_weight: 3.0
         threshold_to_consider: 0.5
+
       PreferForwardCritic:
         enabled: true
         cost_power: 1
         cost_weight: 5.0
         threshold_to_consider: 0.5
+
       CostCritic:
         enabled: true
         cost_power: 1
@@ -176,6 +168,7 @@ controller_server:
         collision_cost: 1000000.0
         near_goal_distance: 1.0
         trajectory_point_step: 2
+
       PathAlignCritic:
         enabled: true
         cost_power: 1
@@ -185,12 +178,14 @@ controller_server:
         threshold_to_consider: 0.5
         offset_from_furthest: 20
         use_path_orientations: false
+
       PathFollowCritic:
         enabled: true
         cost_power: 1
         cost_weight: 5.0
         offset_from_furthest: 5
         threshold_to_consider: 1.4
+
       PathAngleCritic:
         enabled: true
         cost_power: 1
@@ -200,100 +195,147 @@ controller_server:
         max_angle_to_furthest: 1.0
         mode: 0
 
+
+# LOCAL COSTMAP — NO STVL
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 5.0
-      publish_frequency: 2.0
+      update_frequency: 10.0
+      publish_frequency: 5.0
       global_frame: odom
-      robot_base_frame: UGV_link
+      robot_base_frame: base_link #Check
       rolling_window: true
-      width: 5
-      height: 5
+      width: 4
+      height: 4
       resolution: 0.05
-      footprint: "[ [0.21, 0.195], [0.21, -0.195], [-0.21, -0.195], [-0.21, 0.195] ]"
-      plugins: ["voxel_layer", "inflation_layer"]
+      footprint: "[[0.47, 0.4175], [0.47, -0.4175], [-0.47, -0.4175], [-0.47, 0.4175]]" #Check
+      #robot_radius: 0.22
+
+      plugins: ["stvl_layer", "inflation_layer"]
+
+      stvl_layer:
+        plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
+        enabled: true
+        voxel_decay: 1.5 #secons if the decay model is 0 (linear)
+        decay_model: 0 
+        voxel_size: 0.05
+        track_unknown_space: true
+        mark_threshold: 3
+        unknown_threshold: 10
+        update_footprint_enabled: true
+        combination_method: 1
+        origin_z: 0.0
+        publish_voxel_map: true
+        transform_tolerance: 0.2
+        mapping_mode: false
+        map_save_duration: 30.0
+
+        observation_sources:  camera_mark camera_clear lidar_mark #lidar_clear
+
+        lidar_mark:
+          data_type: PointCloud2
+          topic: "/lidar_points_fixed"
+          marking: true
+          clearing: false
+          obstacle_range: 20.0
+          min_obstacle_height: -0.4
+          max_obstacle_height: 0.75
+          filter: "voxel"
+          voxel_min_points: 1
+
+        lidar_clear:
+          data_type: PointCloud2
+          topic: "/lidar_points_fixed"
+          marking: false 
+          clearing: true
+          obstacle_range: 20.0
+          min_obstacle_height: -0.4
+          max_obstacle_height: 0.75
+          filter: "voxel"
+          voxel_min_points: 1
+        
+        camera_mark:
+          data_type: PointCloud2
+          topic: "/oakd_points_1_fixed"
+          transport_type: "raw"
+          marking: true
+          clearing: false
+          obstacle_range: 5.0
+          min_obstacle_height: -0.4
+          max_obstacle_height: 0.75
+          expected_update_rate: 0.0
+          observation_persistence: 0.0
+          inf_is_valid: false
+          filter: "passthrough"
+          voxel_min_points: 3
+          clear_after_reading: false
+
+          # Camera model so STVL knows the frustum
+          model_type: 0                 # 0 = depth camera and 1 =lidar
+          # vertical_fov_angle: 0.959931     # 55 degrees
+          # horizontal_fov_angle: 1.20428    # 69 degrees   
+      
+        camera_clear:
+          data_type: PointCloud2
+          topic: "/oakd_points_1_fixed"
+          marking: false
+          clearing: true
+          max_z: 0.75
+          min_z: -0.4
+
+          vertical_fov_angle: 0.959931     # 55 degrees
+          horizontal_fov_angle: 1.20428    # 69 degrees
+
+          decay_acceleration: 1.0       # non-zero for RGBD
+          model_type: 0                 # 0 = depth camera
+
+          clear_after_reading: true
+
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.55
-      voxel_layer:
-        plugin: "nav2_costmap_2d::VoxelLayer"
-        enabled: True
-        publish_voxel_map: True
-        origin_z: 0.0
-        z_resolution: 0.05
-        z_voxels: 16
-        max_obstacle_height: 2.0
-        mark_threshold: 0
-        observation_sources: scan
-        scan:
-          # A relative topic will be appended to the parent of the local_costmap namespace.
-          # For example:
-          #   * User chosen namespace is `tb4`.
-          #   * User chosen topic is `scan`.
-          #   * Topic will be remapped to `/tb4/scan` without `local_costmap`.
-          #   * Use global topic `/scan` if you do not wish the node namespace to apply
-          topic: "/scan"
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
-      always_send_full_costmap: True
+        inflation_radius: 0.75
 
+      always_send_full_costmap: true
+
+
+
+# GLOBAL COSTMAP — STVL ONLY
 global_costmap:
   global_costmap:
     ros__parameters:
       update_frequency: 1.0
       publish_frequency: 1.0
       global_frame: map
-      robot_base_frame: UGV_link
-
+      robot_base_frame: base_link
+      track_unknown_space: true
+      footprint: "[[0.47, 0.4175], [0.47, -0.4175], [-0.47, -0.4175], [-0.47, 0.4175]]"
       rolling_window: true
-      width: 200 # big rolling window for Sonoma
+      width: 200 
       height: 200
-      resolution: 0.05 # match local_costmap to keep it simple
-      footprint: "[ [0.21, 0.195], [0.21, -0.195], [-0.21, -0.195], [-0.21, 0.195] ]"
-      plugins: ["voxel_layer", "inflation_layer"]
+      resolution: 0.05
+
+      plugins: ["obstacle_layer", "inflation_layer"]
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enable: True
+        observation_sources: scan
+        scan:
+          topic: '/scan'
+          data_type: "LaserScan"
+          marking: true
+          clearing: true
+          obstacle_max_range: 3.0
+          raytrace_max_range: 4.0
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.55
+        inflation_radius: 0.75
 
-      voxel_layer:
-        plugin: "nav2_costmap_2d::VoxelLayer"
-        enabled: True
-        publish_voxel_map: True
-        origin_z: 0.0
-        z_resolution: 0.05
-        z_voxels: 16
-        max_obstacle_height: 2.0
-        mark_threshold: 0
-        observation_sources: scan
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
+      always_send_full_costmap: true
 
-      always_send_full_costmap: True
-
-# The yaml_filename does not need to be specified since it going to be set by defaults in launch.
-# If you'd rather set it in the yaml, remove the default "map" value in the tb3_simulation_launch.py
-# file & provide full path to map below. If CLI map configuration or launch default is provided, that will be used.
-# map_server:
-#   ros__parameters:
-#     yaml_filename: ""
 
 map_saver:
   ros__parameters:
@@ -343,7 +385,7 @@ behavior_server:
       plugin: "nav2_behaviors::AssistedTeleop"
     local_frame: odom
     global_frame: map
-    robot_base_frame: UGV_link
+    robot_base_frame: base_link
     transform_tolerance: 0.1
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
@@ -367,11 +409,11 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [2.0, 0.0, 2.0]
+    max_velocity: [0.5, 0.0, 2.0]
     min_velocity: [-0.5, 0.0, -2.0]
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
-    odom_topic: /odometry/local
+    odom_topic: "/odometry/local" #Check
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
@@ -379,18 +421,16 @@ velocity_smoother:
 
 collision_monitor:
   ros__parameters:
-    base_frame_id: "UGV_link"
+    base_frame_id: "base_link"
     odom_frame_id: "odom"
     cmd_vel_in_topic: "cmd_vel_smoothed"
-    cmd_vel_out_topic: "/auto_cmd_vel"
+    cmd_vel_out_topic: "cmd_vel" #This should be changed, ask Sebastian
     enable_stamped_cmd_vel: true
     state_topic: "collision_monitor_state"
     transform_tolerance: 0.2
     source_timeout: 1.0
     base_shift_correction: True
     stop_pub_timeout: 2.0
-    # Polygons represent zone around the robot for "stop", "slowdown" and "limit" action types,
-    # and robot footprint for "approach" action type.
     polygons: ["FootprintApproach"]
     FootprintApproach:
       type: "polygon"
@@ -419,20 +459,19 @@ docking_server:
     undock_linear_tolerance: 0.05
     undock_angular_tolerance: 0.1
     max_retries: 3
-    base_frame: "UGV_link"
+    base_frame: "base_link"
     fixed_frame: "odom"
     dock_backwards: false
     dock_prestaging_tolerance: 0.5
 
-    # Types of docks
     dock_plugins: ["simple_charging_dock"]
     simple_charging_dock:
       plugin: "opennav_docking::SimpleChargingDock"
       docking_threshold: 0.05
       staging_x_offset: -0.7
       use_external_detection_pose: true
-      use_battery_status: false # true
-      use_stall_detection: false # true
+      use_battery_status: false
+      use_stall_detection: false
 
       external_detection_timeout: 1.0
       external_detection_translation_x: -0.18
@@ -441,14 +480,6 @@ docking_server:
       external_detection_rotation_pitch: -1.57
       external_detection_rotation_yaw: 0.0
       filter_coef: 0.1
-
-    # Dock instances
-    # The following example illustrates configuring dock instances.
-    # docks: ['home_dock']  # Input your docks here
-    # home_dock:
-    #   type: 'simple_charging_dock'
-    #   frame: map
-    #   pose: [0.0, 0.0, 0.0]
 
     controller:
       k_phi: 3.0
@@ -465,7 +496,7 @@ docking_server:
 
 loopback_simulator:
   ros__parameters:
-    base_frame_id: "base_footprint"
+    base_frame_id: "base_link"
     odom_frame_id: "odom"
     map_frame_id: "map"
     scan_frame_id: "base_scan"

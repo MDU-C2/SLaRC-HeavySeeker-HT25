@@ -6,7 +6,7 @@
   <xacro:include filename="$(find s_description)/model/UGV/Light_seeker/model.sdf.xacro"/>
   <xacro:include filename="$(find s_description)/model/Sensors/navsat_gnss/model.sdf.xacro"/>
 
-  <model name="Rig7" canonical_link='UGV_link'>
+  <model name="Rig7" canonical_link='base_link'>
 
     <xacro:property name="box_size_x" value="${6.4*cm2m}"/>
     <xacro:property name="box_size_y" value="${6.4*cm2m}"/>
@@ -22,7 +22,7 @@
 
     <xacro:property name="mid360_lidar_x_offset" value="${0*cm2m}"/>
     <xacro:property name="mid360_lidar_y_offset" value="${0*cm2m}"/>
-    <xacro:property name="mid360_lidar_z_offset" value="${3*cm2m}"/>
+    <xacro:property name="mid360_lidar_z_offset" value="${0*cm2m}"/>
 
     <xacro:property name="gnss_x_offset" value="${0*cm2m}"/>
     <xacro:property name="gnss_y_offset" value="${0*cm2m}"/>
@@ -30,7 +30,8 @@
 
     
 
-    <xacro:property name="rig_pos_relative_2_UGV" value="0 0 ${0.19/2+0.17/2} 0 0 0"/>  
+    <!---<xacro:property name="rig_pos_relative_2_UGV" value="0 0 ${0.19/2+0.17/2} 0 0 0"/>  -->
+    <xacro:property name="rig_pos_relative_2_UGV" value="0 0 ${0.19/2+box_size_z/2} 0 0 0"/> 
 
 
 
@@ -43,11 +44,11 @@
       </inertia>
       </inertial>
 
-      <pose relative_to="UGV_link">${rig_pos_relative_2_UGV}</pose>
+      <pose relative_to="base_link">${rig_pos_relative_2_UGV}</pose>
     </link>
     
     
-    <xacro:Rig_simpelBox_xacro base_frame="rig_link" size="${box_size_x} ${box_size_y} ${box_size_z}" offset="${rig_pos_relative_2_UGV}"/>
+    <xacro:Rig_simpelBox_xacro base_frame="rig_link" size="${box_size_x} ${box_size_y} ${box_size_z}"/>
     <!--use box_size_x,box_size_y,box_size_z in the offset to allign sensor placement-->
 
     <!-- <origin xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}"/> -->
@@ -80,7 +81,7 @@
     <xacro:oakd parent_link="rig_front_link" name="oakd_pro_1" xyz="${oakd_1_x_offset} ${oakd_1_y_offset} ${oakd_1_z_offset}" rpy="0 ${pi/180*15} 0"/>
     <xacro:oakd parent_link="rig_back_link" name="oakd_pro_2" xyz="${-oakd_2_x_offset} ${oakd_2_y_offset} ${oakd_2_z_offset}" rpy="0 ${pi/180*15} ${pi}"/>
     <xacro:mid360_lidar parent_link="rig_top_link" xyz="${mid360_lidar_x_offset} ${mid360_lidar_y_offset} ${mid360_lidar_z_offset}" rpy="0 0 ${pi/2}"/>
-    <xacro:Light_seeker base_link="UGV_link"/>
+    <xacro:Light_seeker base_link="base_link"/>
 
 
     <joint name="base_joint" type="fixed">
@@ -121,7 +122,7 @@
 
 
     <joint name="UGV_rig_mount" type="fixed">
-      <parent>UGV_link</parent>
+      <parent>base_link</parent>
       <child>rig_link</child>
     </joint>
 
