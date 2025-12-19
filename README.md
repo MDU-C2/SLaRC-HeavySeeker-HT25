@@ -5,6 +5,10 @@ Since this repo uses submodules, they need to be cloned as well. To do this run:
 ```
 git clone --recurse-submodules https://github.com/MDU-C2/SLaRC-HeavySeeker-HT25.git
 ```
+If you've already cloned without submodules, initialize them separately:
+```
+git submodule update --init --recursive
+```
 
 # Running the lidars
 ## 1.1 Prerequisites
