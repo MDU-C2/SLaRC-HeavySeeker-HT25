@@ -17,7 +17,7 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    slam_dir = get_package_share_directory("slam_toolbox")
+    # slam_dir = get_package_share_directory("slam_toolbox")
     s_nav_dir = get_package_share_directory("s_navigation")
     nav2_bringup_dir = get_package_share_directory("nav2_bringup")
 
@@ -51,7 +51,7 @@ def generate_launch_description():
         default_value='',
         description='Robot namespace'
         )
-    
+
     # nav2_config= PathJoinSubstitution(
     #     [
     #         get_package_share_directory("nav2_bringup"),
@@ -67,13 +67,13 @@ def generate_launch_description():
         ],
     )
 
-    slam_toolbox_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(PathJoinSubstitution([slam_dir, "launch", "online_async_launch.py"])),
-        launch_arguments=[
-            ("use_sim_time", LaunchConfiguration('use_sim_time')),
-            ("namespace", LaunchConfiguration('namespace')),
-        ],
-    )
+    # slam_toolbox_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(PathJoinSubstitution([slam_dir, "launch", "online_async_launch.py"])),
+    #     launch_arguments=[
+    #         ("use_sim_time", LaunchConfiguration('use_sim_time')),
+    #         ("namespace", LaunchConfiguration('namespace')),
+    #     ],
+    # )
 
     nav2_bringup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([nav2_bringup_dir, "launch", "navigation_launch.py"])),
@@ -85,10 +85,10 @@ def generate_launch_description():
     )
 
 
-    waypoint_bridge_node = Node(
+    waypoint_command_node = Node(
         package="s_navigation",
-        executable="waypoint_bridge_node.py",
-        name="waypoint_bridge",
+        executable="waypoint_command_node.py",
+        name="waypoint_command",
         output="screen",
         parameters=[],
         remappings=[
@@ -101,7 +101,7 @@ def generate_launch_description():
     actions = [
         #PushROSNamespace(namespace), what is this?
         robot_localization_launch,
-        waypoint_bridge_node,
+        waypoint_command_node,
         #TimerAction(period=5.0, actions=[slam_toolbox_launch]),
         TimerAction(period=10.0, actions=[nav2_bringup_launch]),
         LogInfo(msg=["s_navigation_launch: Launching with nav2_config: ", PathJoinSubstitution([config_dir, LaunchConfiguration('nav2_config')])]),
