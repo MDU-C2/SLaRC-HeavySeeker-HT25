@@ -11,15 +11,12 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/OperationModes.msg"
-<<<<<<< HEAD
   "msg/WaypointCommandMsgs.msg"
   "srv/WaypointCommand.srv"
-=======
   "action/StartCamera.action"
   "action/StopCamera.action"
   "srv/GetCameras.srv"
   DEPENDENCIES builtin_interfaces
->>>>>>> main
 )
 
 ament_export_dependencies(rosidl_default_runtime)
