@@ -24,12 +24,27 @@ class OakdImuRotataion(Node):
         old_orientation = (msg.orientation.x, msg.orientation.y,
                            msg.orientation.z, msg.orientation.w)
         new_orientation = Quaternion()
-        rotation = tf.quaternion_from_euler(math.pi / 2.0, 0.0, math.pi / 2.0, "sxyz")
-        # R = np.array([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-        # rotation = tf.quaternion_from_matrix(R)
-        # rotation = (0.0, 0.0, 0.7071067811865475, 0.7071067811865475)
-        (new_orientation.x, new_orientation.y, new_orientation.z,
-         new_orientation.w) = tf.quaternion_multiply(old_orientation, rotation)
+
+        # a bunch of frame transformations to fix the driver's outputed yaw
+        R = tf.quaternion_matrix(tf.quaternion_inverse(old_orientation))[:3, :3]
+
+        # +90 degrees rotation about z axis - fixes the yaw, but the axis' direction is opposite
+        R_des2enu = np.array([
+            [0, -1, 0],
+            [1, 0, 0],
+            [0, 0, 1]
+        ])
+        R_enu = R_des2enu @ R
+        q_old = tf.quaternion_from_matrix(np.pad(R_enu, ((0, 1), (0, 1)), 'constant', constant_values=0))
+        rotated_q = tf.quaternion_matrix(tf.quaternion_multiply(q_old, tf.quaternion_about_axis(math.pi, [0, 0, 1])))[:3, :3]
+
+        # invert z axis, so the yaw sign is correct
+        S = np.diag((-1, 1, 1))
+        new_q = S @ rotated_q @ S
+        inverted_q = tf.quaternion_from_matrix(np.pad(new_q, ((0, 1), (0, 1)), 'constant', constant_values=0))
+
+        # rotate it 90 degrees to right, so east is 0
+        (new_orientation.x, new_orientation.y, new_orientation.z, new_orientation.w) = tf.quaternion_multiply(inverted_q, tf.quaternion_about_axis(math.pi / 2, [0, 0, 1]))
         imu.orientation = new_orientation
         self.imu_pub.publish(imu)
 
