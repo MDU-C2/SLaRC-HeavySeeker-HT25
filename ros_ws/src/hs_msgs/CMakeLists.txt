@@ -11,6 +11,8 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/OperationModes.msg"
+  "msg/WaypointCommandMsgs.msg"
+  "srv/WaypointCommand.srv"
   "action/StartCamera.action"
   "action/StopCamera.action"
   "srv/GetCameras.srv"
