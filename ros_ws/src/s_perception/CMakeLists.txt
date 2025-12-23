@@ -11,6 +11,10 @@ find_package(pointcloud_to_laserscan REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+install(
+  DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME}
+)
 
 install(
   DIRECTORY launch config
