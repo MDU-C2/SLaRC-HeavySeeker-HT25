@@ -4,7 +4,7 @@
   <version>0.1.0</version>
   <description>Camera management, FPV streaming, and action interfaces for ROS 2</description>
 
-  <maintainer email="slarc25@proton.me">Kim</maintainer>
+  <maintainer email="slarc25@proton.me">slarc</maintainer>
   <license>MIT</license>
 
   <!-- Build tools -->

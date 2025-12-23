@@ -18,6 +18,9 @@
     <xacro:property name="gnss_x_offset" value="${0*cm2m}"/>
     <xacro:property name="gnss_y_offset" value="${0*cm2m}"/>
     <xacro:property name="gnss_z_offset" value="${15*cm2m}"/>
+    <xacro:property name="box_size_x" value="0.6"/>
+    <xacro:property name="box_size_y" value="0.4"/>
+    <xacro:property name="box_size_z" value="0.5"/> 
 
 
 
@@ -29,12 +32,11 @@
         <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
       </inertia>
       </inertial>
-
       <pose relative_to="UGV_link">${rig_pos_relative_2_UGV}</pose>
     </link>
     
     
-    <xacro:Rig_simpelBox_xacro UGV_link="UGV_link" offset="${rig_pos_relative_2_UGV}"/>
+    <xacro:Rig_simpelBox_xacro base_frame="rig_link" size="${box_size_x} ${box_size_y} ${box_size_z}" offset="${rig_pos_relative_2_UGV}"/>
     <!--use box_size_x,box_size_y,box_size_z in the offset to allign sensor placement-->
 
     <!-- <origin xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}"/> -->
@@ -110,9 +112,5 @@
       <parent>UGV_link</parent>
       <child>rig_link</child>
     </joint>
-
-
-
-    <pose>0 0 0 0 0 0</pose>
   </model>
 </sdf>

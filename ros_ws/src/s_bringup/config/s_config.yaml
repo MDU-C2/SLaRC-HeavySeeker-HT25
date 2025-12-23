@@ -4,9 +4,9 @@ launch_options:
     model: "Rig5"
     use_JSP: false
     use_simtime: false
-    nav2_config: ""
-    navsat_config: ""
+    nav2_config: "nav2_params.yaml"
+    navsat_config: "dual_ekf_navsat.yaml"
     livox_config: ""
-    ardu_config: ""
+    ardu_config: "ardu_config.yaml"
     camera_config: ""
     camera_serever_config: ""

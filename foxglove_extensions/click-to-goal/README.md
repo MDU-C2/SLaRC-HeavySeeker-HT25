@@ -34,6 +34,8 @@ sudo apt install ros-jazzy-foxglove-bridge
 
 ## One-time setup (install extension)
 
+The folder foxglove_extensions lies in the SLaRC-HeavySeeker-HT25 folder.
+
 ```bash
 cd foxglove_extensions/click-to-goal
 ./setup_extension.sh
