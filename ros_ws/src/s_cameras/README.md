@@ -24,6 +24,21 @@ ROS 2 package that detects cameras, launches the right drivers, and serves H.264
   - `foxglove`: publish Annex‑B for Foxglove.
   - `headless`: no local viewer.
 
+## Encoder parameters (from `camera_server.launch.py`)
+All encoder knobs are ROS 2 parameters on `camera_server` and can be overridden on the launch command line, e.g.:
+`ros2 launch s_cameras camera_server.launch.py encoder.bitrate:=6M encoder.bitrate_mode:=VBR`
+
+- `encoder.prefer_hevc` (bool): pick H.265 before H.264 when hardware supports it. Default in launch is `False` for compatibility.
+- `encoder.quality` (int 1–7): maps to ffmpeg presets per backend; higher = faster/lower quality (opposite of CRF). Also toggles low‑latency tunes on some encoders.
+- `encoder.latency` (`ultra_low|low|normal`): enables low‑latency flags (lookahead off, low_power, etc.) when set to ultra_low/low.
+- `encoder.bitrate_mode` (`CBR|VBR|CQP`): rate control mode passed to the encoder backend.
+- `encoder.bitrate`, `encoder.maxrate`, `encoder.bufsize` (strings like `3M`): primary bitrate, maxrate cap, and VBV buffer size. Used by `common_extra_args`.
+- `encoder.crf` (int): CRF value for CPU encoders (x264/x265) when bitrate_mode is CRF/CQP; ignored by hardware modes.
+- `encoder.gop` (int): GOP length / keyframe interval (`-g`).
+- `encoder.bframes` (int): number of B‑frames (`-bf`).
+- `encoder.mux` (string): container for the encoded stream, default `mpegts`.
+- `encoder.mux_flags` (string): extra muxer flags appended to ffmpeg (flush/nobuffer/low delay).
+
 ## Configuring cameras
 - File: `src/s_cameras/config/cameras.yaml` (installed to the share directory).
 - Sections:
@@ -31,6 +46,7 @@ ROS 2 package that detects cameras, launches the right drivers, and serves H.264
   - `oak_cameras`: DepthAI parameters (see `config/README.md` for the full list).
   - `h264_network_cameras`: name → `{url, port?, params}`. Width/height are optional; the receiver infers resolution. `framerate` is metadata (defaults to 30 if missing).
 - USB/OAK matches by device IDs/MxID; network cameras match by name.
+- DepthAI parameter reference: `src/s_cameras/config/README.md`.
 
 ## Run the stack
 - Build: `colcon build --packages-select s_cameras` and source the workspace.
@@ -38,10 +54,17 @@ ROS 2 package that detects cameras, launches the right drivers, and serves H.264
 - Start the client: `ros2 run s_cameras fpv_client`
   - Handy commands: `list`, `start <cam...>`, `stop`, `use mpegts|foxglove|headless`, `exit`.
 
+## Quick check
+- Build and source: `colcon build --packages-select s_cameras && source install/setup.bash`
+- Launch drivers + server: `ros2 launch s_cameras cameras.launch.py`
+- In another terminal (sourced), start the viewer: `ros2 run s_cameras fpv_client`
+- Run `list` then `start camera0` (or another listed name) to confirm a window opens and stats overlay updates.
+
 ## Client notes
 - `fpv_client.py` drives the CLI, calls server services/actions via `client_service.py`, and manages the decoder with `image_decoder.py`.
 - `decoder.py` consumes `CompressedImage` MPEG‑TS topics, decodes with ffmpeg, and shows a resizable OpenCV window; supports multiple cameras side‑by‑side with bandwidth/FPS overlays.
 - Typical flow: `list` → `start camera0` → viewer opens; `use foxglove` to switch output; `stop` to stop all.
+- Note: the client requires `ffmpeg` on the machine running `fpv_client`; if it’s missing, the client exits when it tries to start a stream.
 
 ## Visual guide
 - FPV client CLI:  
@@ -56,7 +79,7 @@ ROS 2 package that detects cameras, launches the right drivers, and serves H.264
 
 ## Requirements
 - ROS 2 (tested with Jazzy) with `usb_cam` and `depthai_ros_driver` installed.
-- ffmpeg on the host; encoder selection is automatic.
+- ffmpeg on any machine running the server or client; encoder selection is automatic on the server.
 - Hardware encoders supported: NVIDIA (NVENC), Intel (QSV/VAAPI), or CPU fallback.
 - Network cameras must stream H.264 TS at the configured URL.
 
