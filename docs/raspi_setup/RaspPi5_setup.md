@@ -3,33 +3,33 @@
 Use Raspberry Pi Imager to flash Raspberry Pi OS Lite and preconfigure the Pi. Follow the screenshots in `images/` as you go.
 
 1) Install and start Raspberry Pi Imager  
-   ![Raspberry Pi Imager start screen](images/imager_initscreen.png)
+   <img src="images/imager_initscreen.png" width="420" />
 
 2) Choose device → select **Raspberry Pi 5**  
-   ![Select Raspberry Pi 5](images/rpi_device.png)
+   <img src="images/rpi_device.png" width="420" />
 
 3) Choose OS → **Raspberry Pi OS (Other)**  
-   ![Select Raspberry Pi OS (Other)](images/rpi_os_other.png)
+   <img src="images/rpi_os_other.png" width="420" />
 
 4) Pick **Raspberry Pi OS Lite (64-bit)**  
-   ![Select Raspberry Pi OS Lite (64-bit)](images/pi_os_lite.png)
+   <img src="images/pi_os_lite.png" width="420" />
 
 5) Choose the storage device (SD card or SSD) and click **Next**.
 
 6) Click **Edit Settings**  
-   ![Edit settings](images/edit_settings.png)
+   <img src="images/edit_settings.png" width="420" />
 
 7) Set **General** options as shown  
-   ![General settings](images/general_settings.png)
+   <img src="images/general_settings.png" width="420" />
 
 8) Set **Services** options as shown, then click **Save**  
-   ![Service settings](images/service_settings.png)
+   <img src="images/service_settings.png" width="420" />
 
 9) Confirm applying settings  
-  ![Apply settings](images/apply_settings.png)
+  <img src="images/apply_settings.png" width="420" />
 
 10) Accept the overwrite warning (all data on the selected storage will be erased)  
-    ![Overwrite warning](images/pi_overwrite.png)
+    <img src="images/pi_overwrite.png" width="420" />
 
 The Imager writes the image with your settings; when it finishes, eject the media and boot the Pi.
 
