@@ -11,7 +11,7 @@ First: Make sure "lid_topic:" and "imu_topic:" is correct in [mid360.yaml](/SLaR
 
 Second: Follow this: [Running the lidars](/SLaRC-HeavySeeker-HT25/README.md).
 > [!NOTE]
-> Only '''$ ros2 launch hs_bringup livox_launch.py''' if you are using the physical LiDAR.
+> Only '''$ ros2 launch s_perception livox_launch.py''' if you are using the physical LiDAR.
 
 ## 2. Launch 3D-SLAM with LiDAR 
 ```bash

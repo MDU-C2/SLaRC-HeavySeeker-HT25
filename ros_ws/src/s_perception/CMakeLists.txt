@@ -16,9 +16,10 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(
-  DIRECTORY launch config
-  DESTINATION share/${PROJECT_NAME}
+install(PROGRAMS
+  ${PROJECT_NAME}/imu_g_to_ms2.py
+  ${PROJECT_NAME}/gps_heading.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
