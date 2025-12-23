@@ -98,7 +98,7 @@ class FPVDecoder(Node):
 
     # ------------------------------------------------------------------
     def callback(self, msg: CompressedImage, topic: str):
-        # 🔑 FIRST: parse resolution from msg.format
+        # parse resolution from msg.format
         if self.resolutions[topic] is None:
             res = self._parse_resolution_from_format(msg.format)
             if res:

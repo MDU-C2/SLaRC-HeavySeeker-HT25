@@ -38,12 +38,12 @@ DEFAULT_OAK_PARAMS = {
 }
 
 DEFAULT_USB_PARAMS = {
-    "image_width": 640,
-    "image_height": 480,
+    "image_width": 1280,
+    "image_height": 720,
     "pixel_format": "mjpeg2rgb",
-    "auto_white_balance": False,
-    "autoexposure": False,
-    "auto_focus": False,
+    "auto_white_balance": True,
+    "autoexposure": True,
+    "auto_focus": True,
     "framerate": 30.0,
 }
 

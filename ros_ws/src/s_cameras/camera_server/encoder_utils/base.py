@@ -33,12 +33,12 @@ def normalize_settings(s: dict) -> dict:
     return {
         "quality": q,
         "latency": s.get("latency", "ultra_low").lower(),
-        "bitrate": s.get("bitrate", "8M"),
-        "maxrate": s.get("maxrate", "10M"),
-        "bufsize": s.get("bufsize", "16M"),
-        "bitrate_mode": s.get("bitrate_mode", "VBR").upper(),
+        "bitrate": s.get("bitrate", "3M"),
+        "maxrate": s.get("maxrate", "6M"),
+        "bufsize": s.get("bufsize", "12M"),
+        "bitrate_mode": s.get("bitrate_mode", "CBR").upper(),
         "crf": str(s.get("crf", 23)),
-        "gop": str(s.get("gop", 1)),
+        "gop": str(s.get("gop", 30)),
         "bframes": str(s.get("bframes", 0)),
     }
 

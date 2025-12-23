@@ -16,8 +16,6 @@ class CameraEncoder:
         self.camera_name = camera_name
         self.encoder_info = encoder_info
         self.fps = fps
-        self.target_width  = 640
-        self.target_height = 480
 
         codec = self.encoder_info.get("codec", "h264").lower()
         # Base MPEG-TS topic (always the same regardless of mode)
@@ -113,17 +111,11 @@ class CameraEncoder:
         # -------------------------------------------------------------
         if not self.running:
             orig_w, orig_h = msg.width, msg.height
+            # Keep the camera's native resolution
+            self._first_frame_size = (orig_w, orig_h)
+            enc_w, enc_h = self._first_frame_size
 
-            # Determine actual encode resolution (never upscale)
-            if orig_w > self.target_width or orig_h > self.target_height:
-                enc_w, enc_h = self.target_width, self.target_height
-            else:
-                enc_w, enc_h = orig_w, orig_h
-
-            # Save final encoder resolution
-            self._first_frame_size = (enc_w, enc_h)
-
-            # Launch ffmpeg with the resized resolution
+            # Launch ffmpeg with the native resolution
             self._launch_ffmpeg_pipelines()
 
             # Validate processes
