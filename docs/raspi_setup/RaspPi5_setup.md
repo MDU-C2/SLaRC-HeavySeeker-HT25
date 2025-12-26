@@ -154,4 +154,4 @@ The Imager writes the image with your settings; when it finishes, eject the medi
    ```bash
    journalctl -u fpv-stream.service -f
    ```
-11) Now all should be setup and the Raspberry Pi should start the camera, encode to H.264 and start sending to over the ethernet port to the server.
+11) Now all should be setup and the Raspberry Pi should start the camera, encode to H.264 and start sending over ethernet to the server.
