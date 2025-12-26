@@ -37,6 +37,7 @@ class NetworkTSReceiver:
 
         self.process_ts = None
         self.process_foxglove = None
+        self._fg_stderr_thread = None
 
         self._stop = False
         self.publishing = False
@@ -58,6 +59,17 @@ class NetworkTSReceiver:
             self.node.destroy_publisher(self.pub_foxglove)
             self.pub_foxglove = None
 
+        # Manage foxglove converter lifecycle
+        if self.process_foxglove:
+            try:
+                if self.process_foxglove.stdin:
+                    self.process_foxglove.stdin.close()
+                self.process_foxglove.terminate()
+            except Exception:
+                pass
+            self.process_foxglove = None
+            self._fg_stderr_thread = None
+
         # Do not recreate pubs while paused unless explicitly forced
         if not self.publishing and not force:
             return
@@ -75,6 +87,9 @@ class NetworkTSReceiver:
                 self.foxglove_topic,
                 10,
             )
+            # Spin up the foxglove converter if TS is already running
+            if self.process_ts and (not self.process_foxglove or self.process_foxglove.poll() is not None):
+                self._launch_foxglove()
 
     # ------------------------------------------------------------
     def pause_publishers(self, lock: bool = True):
@@ -133,7 +148,7 @@ class NetworkTSReceiver:
         cmd_ts = [
             "ffmpeg",
             "-hide_banner",
-            "-loglevel", "error",
+            "-loglevel", "info",
 
             # 🔑 CRITICAL LOW-LATENCY FLAGS
             "-fflags", "+genpts+nobuffer",
@@ -182,6 +197,55 @@ class NetworkTSReceiver:
 
         threading.Thread(
             target=self._reader_ts,
+            daemon=True,
+        ).start()
+
+        # Start foxglove converter immediately when needed
+        if self.output_mode == "foxglove":
+            self._launch_foxglove()
+
+    # ------------------------------------------------------------
+    def _launch_foxglove(self):
+        # Convert TS -> Annex-B H264 copy for foxglove
+        cmd_fg = [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel", "error",
+            "-f", "mpegts",
+            "-i", "pipe:0",
+            "-an",
+            "-c:v", "copy",
+            "-bsf:v", "h264_mp4toannexb",
+            "-fflags", "nobuffer",
+            "-muxdelay", "0",
+            "-muxpreload", "0",
+            "-f", "h264",
+            "pipe:1",
+        ]
+
+        self.node.get_logger().info(
+            f"[{self.camera_name}] Launching Foxglove converter:\n  {' '.join(cmd_fg)}"
+        )
+
+        self.process_foxglove = subprocess.Popen(
+            cmd_fg,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            bufsize=0,
+        )
+
+        # Forward ffmpeg stderr to logs at debug level
+        self._fg_stderr_thread = threading.Thread(
+            target=self._stderr_reader_loop,
+            args=(self.process_foxglove, "fg"),
+            daemon=True,
+        )
+        self._fg_stderr_thread.start()
+
+        # Start reader loop to publish foxglove messages
+        threading.Thread(
+            target=self._reader_foxglove,
             daemon=True,
         ).start()
 
@@ -264,16 +328,33 @@ class NetworkTSReceiver:
 
     # ------------------------------------------------------------
     def _stderr_reader_loop(self, process, tag: str):
+        import re
+
+        # Capture one resolution hint from ffmpeg stderr so we can advertise it downstream.
+        rx_res = re.compile(r"(?<!\d)(\d{2,5})x(\d{2,5})(?!\d)")
+
         try:
             while process and process.poll() is None:
                 line = process.stderr.readline()
                 if not line:
                     break
                 text = line.decode("utf-8", errors="ignore").strip()
-                if text:
-                    self.node.get_logger().error(
-                        f"[{self.camera_name}] ffmpeg[{tag}]: {text}"
-                    )
+                if not text:
+                    continue
+
+                if (not self.width or not self.height):
+                    m = rx_res.search(text)
+                    if m:
+                        self.width, self.height = int(m.group(1)), int(m.group(2))
+                        self.node.get_logger().info(
+                            f"[{self.camera_name}] ffmpeg reported resolution {self.width}x{self.height}"
+                        )
+                        continue
+
+                # Keep other messages lower priority to avoid spam.
+                self.node.get_logger().debug(
+                    f"[{self.camera_name}] ffmpeg[{tag}]: {text}"
+                )
         except Exception as exc:
             self.node.get_logger().error(
                 f"[{self.camera_name}] ffmpeg stderr loop error [{tag}]: {exc}"
