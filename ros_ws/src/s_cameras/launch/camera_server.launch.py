@@ -41,7 +41,7 @@ def generate_launch_description():
             {"encoder.bitrate": "3M"},
             {"encoder.maxrate": "6M"},
             {"encoder.bufsize": "12M"},
-            #{"encoder.crf": 23},
+            #{"encoder.crf": 23}, #only used when crf is choosen
             {"encoder.gop": 30},
             {"encoder.bframes": 0},
             {"encoder.mux": "mpegts"},
@@ -59,6 +59,5 @@ def generate_launch_description():
 
     return LaunchDescription([
         LogInfo(msg="Launching FPV camera server"),
-        LogInfo(msg=summary),
         server_node
     ])
