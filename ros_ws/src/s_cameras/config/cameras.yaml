@@ -159,6 +159,4 @@ h264_network_cameras:
     url: "udp://0.0.0.0:5600?pkt_size=1316&buffer_size=425984"
     port: 5600
     params:
-      width: 1280
-      height: 720
       framerate: 30.0
