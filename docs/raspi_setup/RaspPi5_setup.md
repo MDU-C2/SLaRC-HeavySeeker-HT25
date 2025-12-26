@@ -1,6 +1,6 @@
 # Setting up the Raspberry Pi 5 and Pi HQ camera
 
-Use Raspberry Pi Imager to flash Raspberry Pi OS Lite and preconfigure the Pi. Follow the screenshots in `images/` as you go.
+Use Raspberry Pi Imager to flash Raspberry Pi OS Lite and preconfigure the Pi. Follow the screenshots in as you go.
 
 1) Install and start Raspberry Pi Imager  
    <img src="images/imager_initscreen.png" width="420" />
@@ -36,7 +36,7 @@ The Imager writes the image with your settings; when it finishes, eject the medi
 ## First boot
 - Insert the imaged microSD in the Pi, connect a screen and keyboard, power it on, and follow the on‑screen setup steps.
 
-## (reserved)
+## Enable SSH
 
 ## Stream setup (requirements + autostart)
 1) Install dependencies:
@@ -49,48 +49,78 @@ The Imager writes the image with your settings; when it finishes, eject the medi
    ```bash
    nano /home/slarc/fpv_stream.sh
    ```
+3) Copy and paste following (make sure that the IP-adress is the same as the receiver):
    ```bash
    #!/bin/bash
+   # Exit immediately if any command fails
    set -e
 
+   # Give the system a few seconds to finish booting / initializing hardware
    sleep 3
 
+   # Start Raspberry Pi camera capture and stream video
    exec rpicam-vid \
-     --codec h264 \
-     --profile main \
-     --level 3.1 \
-     --width 1280 \
-     --height 720 \
-     --framerate 30 \
-     --intra 30 \
-     --bitrate 3000000 \
-     --inline \
-     --nopreview \
-     --timeout 0 \
-     --libav-format h264 \
-     -o - \
-   | ffmpeg -nostdin -loglevel error \
-     -fflags +genpts \
-     -use_wallclock_as_timestamps 1 \
-     -f h264 -i pipe:0 \
-     -reset_timestamps 1 \
-     -bsf:v h264_mp4toannexb \
-     -c copy \
-     -mpegts_flags +resend_headers+initial_discontinuity \
-     -muxdelay 0 \
-     -muxpreload 0 \
-     -f mpegts \
-     "udp://192.168.10.222:5600?pkt_size=1316&buffer_size=425984"
+   # Use H.264 video codec
+   --codec h264 \
+   # Use Main profile (better compression than baseline, widely supported)
+   --profile main \
+   # H.264 level 3.1 (suitable for 720p @ 30fps)
+   --level 3.1 \
+   # Video resolution
+   # If you change width/height or framerate, you may need to adjust bitrate
+   --width 1280 \
+   --height 720 \
+   # If you change framerate, you should usually change intra accordingly
+   --framerate 30 \
+   # Intra-frame period (keyframe interval)
+   --intra 30 \
+   # Target bitrate in bits per second (3 Mbps)
+   --bitrate 3000000 \
+   # Include SPS/PPS headers inline with the stream
+   --inline \
+   # Disable camera preview window
+   --nopreview \
+   # Run indefinitely
+   --timeout 0 \
+   # Output raw H.264 stream
+   --libav-format h264 \
+   # Output video to stdout
+   -o - \
+   | \
+   ffmpeg -nostdin -loglevel error \
+   # Generate presentation timestamps if missing
+   -fflags +genpts \
+   # Use wall-clock time as timestamps
+   -use_wallclock_as_timestamps 1 \
+   # Input format is raw H.264 from stdin
+   -f h264 -i pipe:0 \
+   # Reset timestamps so the stream starts cleanly
+   -reset_timestamps 1 \
+   # Convert H.264 bitstream to Annex B format
+   -bsf:v h264_mp4toannexb \
+   # Copy video without re-encoding
+   -c copy \
+   # Resend headers and mark initial discontinuity
+   -mpegts_flags +resend_headers+initial_discontinuity \
+   # Reduce muxing latency
+   -muxdelay 0 \
+   -muxpreload 0 \
+   # Output format: MPEG transport stream
+   -f mpegts \
+   "udp://192.168.10.222:5600?pkt_size=1316&buffer_size=425984"
    ```
+4) Save the script (`Ctrl + S` to save and `Ctrl + X` to exit), then make it executable:
 
    ```bash
    chmod +x /home/slarc/fpv_stream.sh
    ```
 
-3) Create the systemd service:
+5) Create the systemd service:
    ```bash
    sudo nano /etc/systemd/system/fpv-stream.service
    ```
+
+6) Copy and paste following:
    ```
    [Unit]
    Description=FPV Camera Stream
@@ -111,15 +141,17 @@ The Imager writes the image with your settings; when it finishes, eject the medi
    [Install]
    WantedBy=multi-user.target
    ```
+7) Save the service (`Ctrl + S` to save and `Ctrl + X` to exit)
 
-4) Enable and start the service:
+8) Enable and start the service:
    ```bash
    sudo systemctl daemon-reexec
    sudo systemctl daemon-reload
    sudo systemctl start fpv-stream.service
    ```
 
-5) Check logs:
+10) Check logs to verify that it works:
    ```bash
    journalctl -u fpv-stream.service -f
    ```
+11) Now all should be setup and the Raspberry Pi should start the camera, encode to H.264 and start sending to over the ethernet port to the server.
