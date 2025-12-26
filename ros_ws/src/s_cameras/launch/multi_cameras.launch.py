@@ -115,6 +115,10 @@ def generate_launch_description():
 
             nodes.append(depthai_launch)
 
+        elif cam["type"] == "h264_network":
+            # Network cameras are handled by the server; no local node to launch here.
+            continue
+
         else:
             nodes.append(LogInfo(msg=f"Unknown camera type: {cam['type']}"))
 
@@ -129,7 +133,6 @@ def generate_launch_description():
     cleanup = RegisterEventHandler(OnShutdown(on_shutdown=[kill_process]))
 
     return LaunchDescription([
-        LogInfo(msg="Launching camera drivers + camera server."),
         LogInfo(msg=summary),
         cleanup,
         *nodes,
