@@ -89,14 +89,16 @@ Build `s_msgs` (in this workspace) before `s_cameras` since the server and clien
 
 ![Encoder selection](docs/images/encoder_usage.png)
 
-On server launch, encoders are probed in the following order:
+On server launch, encoders are probed in the following order:  
 **NVENC → QSV → VAAPI → CPU**
 
-- “Selected VAAPI” / NVENC / QSV → hardware acceleration in use
-- `libx264` fallback → no GPU encoder detected. It works, but will heavily load the CPU  
-  → Install correct GPU drivers if possible
+- “Selected NVENC / QSV / VAAPI” → hardware acceleration in use
+- “Selected libx264” → CPU fallback (no hardware encoder detected)
 
----
+> **Note**  
+> The CPU fallback works but can significantly increase CPU usage.  
+> If possible, install the appropriate GPU drivers to enable hardware encoding.
+
 
 ### Managed cameras
 
