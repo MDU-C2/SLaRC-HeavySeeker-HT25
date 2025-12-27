@@ -9,13 +9,18 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(s_msgs REQUIRED)
 
-add_executable(health_check src/health_check.cpp)
+include_directories(include)
+
+set(STATUS_INFO include/s_robot/status_info.hpp)
+
+add_executable(health_check src/health_check.cpp ${STATUS_INFO})
 add_executable(robot_node src/robot.cpp)
 
-ament_target_dependencies(health_check rclcpp std_msgs s_msgs)
+ament_target_dependencies(health_check rclcpp std_msgs s_msgs sensor_msgs)
 ament_target_dependencies(robot_node rclcpp std_msgs geometry_msgs s_msgs)
 
 if(BUILD_TESTING)

@@ -1,17 +1,14 @@
 health_checker:
   ros__parameters:
     platform:
-      motor: "/motorOK"
-      battery: "/batteryOK"
+      motor: "platform/motorOK"
+      battery: "platform/batteryOK"
     manual_controllers:
-      local_controller_topic: "/local_joy/joy"
-      telop_controller_topic: "/telop_joy/joy"
+      topics: ["local_joy/joy", "telop_joy/joy"]
     requirements:
       telop:
-        fpv_camera:
+        fpv_camera: ""
       autonomy:
-        lidar:
-        camera1:
-        camera2:
-
-  
+        lidar: ""
+        camera1: ""
+        camera2: ""
