@@ -102,6 +102,7 @@ def generate_launch_description():
         #PushROSNamespace(namespace), what is this?
         robot_localization_launch,
         waypoint_command_node,
+        LogInfo(msg=["waypoint_command_node: Launching"]),
         #TimerAction(period=5.0, actions=[slam_toolbox_launch]),
         TimerAction(period=10.0, actions=[nav2_bringup_launch]),
         LogInfo(msg=["s_navigation_launch: Launching with nav2_config: ", PathJoinSubstitution([config_dir, LaunchConfiguration('nav2_config')])]),

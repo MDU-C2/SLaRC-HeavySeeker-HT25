@@ -11,8 +11,9 @@ from geometry_msgs.msg import Quaternion
 from rclpy.node import Node
 from nav2_simple_commander.robot_navigator import BasicNavigator
 from geometry_msgs.msg import PointStamped
-from hs_msgs.msg import WaypointCommandMsgs
-from hs_msgs.srv import WaypointCommand
+from s_msgs.msg import WaypointCommandMsgs
+from s_msgs.srv import WaypointCommand
+from s_msgs.srv import SetOutputMode
 from std_msgs.msg import Bool
 
 
@@ -67,6 +68,8 @@ class InteractiveGpsWpCommander(Node):
 
         self.activate_autonom_pub = self.create_publisher(Bool, "/activate_autonomous_drive", 10)
 
+        self.get_logger().info("Started gps_wp_commander node")
+
     def waypoint_command_cb(self, request: WaypointCommand.Request, response: WaypointCommand.Response):
         """
         Callback function for waypoint command service.
@@ -94,32 +97,35 @@ class InteractiveGpsWpCommander(Node):
             return False
 
         self.get_logger().info("Starting autonomous navigation")
-        msg = Bool().data = True
+        msg = Bool()
+        msg.data = True
         self.activate_autonom_pub.publish(msg)
 
         self.navigator.waitUntilNav2Active(localizer='robot_localization')
         self.navigator.followGpsWaypoints(self.waypoints)
 
-        return True
+        return msg
 
 
     def stop_navigation(self):
         self.get_logger().info("Stopping autonomous navigation")
 
-        msg = Bool().data = False
+        msg = Bool()
+        msg.data = False
         self.activate_autonom_pub.publish(msg)
         self.navigator.cancelTask()
 
-        return True
+        return msg
 
 
     def clear_last_waypoint(self):
-        if len(self.waypoints) > 0:
-            self.waypoints.pop()
-            self.get_logger().info("Cleared last waypoint")
-            return True
+        if not len(self.waypoints) > 0:
+            return False
 
-        return False
+        self.waypoints.pop()
+        self.get_logger().info("Cleared last waypoint")
+
+        return True
 
 
     def clear_all_waypoints(self):
