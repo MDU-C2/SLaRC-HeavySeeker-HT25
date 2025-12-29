@@ -37,7 +37,8 @@ RUN apt update && apt install -y \
     ros-jazzy-mapviz \
     ros-jazzy-mapviz-plugins \
     ros-jazzy-tile-map \
-    ros-jazzy-foxglove-bridge
+    ros-jazzy-foxglove-bridge \
+    ros-jazzy-spatio-temporal-voxel-layer
 
 
 # Install gazebo harmonic and gz-sensors

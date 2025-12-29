@@ -58,7 +58,10 @@ class InteractiveGpsWpCommander(Node):
         self.waypoints = []
 
         self.mapviz_wp_sub = self.create_subscription(
-            PointStamped, "/clicked_point", self.mapviz_wp_cb, 1)
+            PointStamped, "/clicked_point_mapviz", self.mapviz_wp_cb, 1)
+
+        self.foxglove_wp_sub = self.create_subscription(
+            PointStamped, "/clicked_point", self.foxglove_wp_cb, 1)
 
         self.waypoint_command_srv = self.create_service(WaypointCommand, "/waypoint_command", self.waypoint_command_cb)
 
@@ -116,13 +119,16 @@ class InteractiveGpsWpCommander(Node):
 
         return False
 
+
     def clear_all_waypoints(self):
         self.get_logger().info("Cleared all waypoint")
         self.waypoints = []
+        self.stop_navigation()
 
         return True
 
-    def _add_waypoint(self, msg):
+
+    def foxglove_wp_cb(self, msg: PointStamped):
         if msg.header.frame_id not in ['wgs84', 'map']:
             self.get_logger().warning(
                 "Received point from mapviz that ist not in wgs84 frame. This is not a gps point and wont be followed")
@@ -130,6 +136,7 @@ class InteractiveGpsWpCommander(Node):
 
         wp = latLonYaw2Geopose(msg.point.y, msg.point.x)
         self.waypoints.append(wp)
+        self.get_logger().info(f"Added new waypoint at lat: {msg.point.y}, lon: {msg.point.x}")
 
 
     def mapviz_wp_cb(self, msg: PointStamped):

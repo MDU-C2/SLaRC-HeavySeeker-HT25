@@ -169,7 +169,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
 
   async function sendWaypointCommand(context: any, command: number, index = -1) {
     try {
-      const response = await context.callService("waypoint_command", {
+      const response = await context.callService("/waypoint_command", {
         command,
         waypoint_index: index
       });

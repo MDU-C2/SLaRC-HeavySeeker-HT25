@@ -114,25 +114,25 @@ def generate_launch_description():
                 's_ui.launch.py',
             ]
         )
-    
-    nav2_config = PathJoinSubstitution(
-            [
-                get_package_share_directory("s_simulation"), 
-                'config',
-                'nav2_params_sim.yaml',
-            ]
-        )
-    
-    slam_params_file = PathJoinSubstitution(
-            [
-                get_package_share_directory("s_simulation"), 
-                'config',
-                'slam_async_config.yaml',
-            ]
-        )
-    
-    slam_toolbox_dir = get_package_share_directory('slam_toolbox')
-    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
+
+    # nav2_config = PathJoinSubstitution(
+    #         [
+    #             get_package_share_directory("s_simulation"),
+    #             'config',
+    #             'nav2_params_sim.yaml',
+    #         ]
+    #     )
+
+    # slam_params_file = PathJoinSubstitution(
+    #         [
+    #             get_package_share_directory("s_simulation"),
+    #             'config',
+    #             'slam_async_config.yaml',
+    #         ]
+    #     )
+
+    # slam_toolbox_dir = get_package_share_directory('slam_toolbox')
+    # nav2_bringup_dir = get_package_share_directory('nav2_bringup')
 
 
     # Set GZ_SIM_RESOURCE_PATH to include the model paths
@@ -222,28 +222,28 @@ def generate_launch_description():
     )
 
 
-    slam_toolbox_launch = IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-        os.path.join(slam_toolbox_dir, 'launch', 'online_sync_launch.py')),
-        launch_arguments={
-            'autostart': "True",
-            'use_lifecycle_manager': "False",
-            'use_sim_time': "True",
-            'slam_params_file': slam_params_file,
-        }.items(),
-    )
+    # slam_toolbox_launch = IncludeLaunchDescription(
+    # PythonLaunchDescriptionSource(
+    #     os.path.join(slam_toolbox_dir, 'launch', 'online_sync_launch.py')),
+    #     launch_arguments={
+    #         'autostart': "True",
+    #         'use_lifecycle_manager': "False",
+    #         'use_sim_time': "True",
+    #         'slam_params_file': slam_params_file,
+    #     }.items(),
+    # )
 
     # NAV2
-    nav2_bringup_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(nav2_bringup_dir, 'launch', 'bringup_launch.py')
-        ),
-        launch_arguments={
-            'autostart': "True",
-            'use_sim_time': "True",
-            'params_file': nav2_config,
-        }.items(),
-    )
+    # nav2_bringup_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(nav2_bringup_dir, 'launch', 'bringup_launch.py')
+    #     ),
+    #     launch_arguments={
+    #         'autostart': "True",
+    #         'use_sim_time': "True",
+    #         'params_file': nav2_config,
+    #     }.items(),
+    # )
 
 
     # --- Processes launched via shell commands (not ROS 2 nodes) ---
