@@ -14,7 +14,6 @@ find_package(ament_cmake_python REQUIRED)
 ament_python_install_package(camera_server)
 ament_python_install_package(fpv_client)
 ament_python_install_package(init_cameras)
-ament_python_install_package(utils)
 
 # --------------------------------------------------------------------
 # Install Executables (entry points)
@@ -34,6 +33,11 @@ install(PROGRAMS
   RENAME fpv_client
 )
 
+install(PROGRAMS
+  fpv_client/decoder.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME decoder
+)
 
 # --------------------------------------------------------------------
 # Install Launch & Config

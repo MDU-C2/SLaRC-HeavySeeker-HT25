@@ -5,7 +5,7 @@
 #include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/header.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-#include "hs_msgs/msg/operation_modes.hpp"
+#include "s_msgs/msg/operation_modes.hpp"
 
 
 /** Class RobotNode
@@ -21,6 +21,7 @@
  * 
  * Publishers:
  *  - /cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel
+ *  - /operation_autonomously - std_msgs/msg/Bool - information about the current operation mode
  * 
  */
 class RobotNode : public rclcpp::Node {
@@ -30,7 +31,7 @@ class RobotNode : public rclcpp::Node {
      : Node("robot_node") {
         using std::placeholders::_1;
 
-        sub_allowed_operation_modes = this->create_subscription<hs_msgs::msg::OperationModes>("/allowed_operation_modes", 10, std::bind(&RobotNode::callback_operation_modes, this, _1));
+        sub_allowed_operation_modes = this->create_subscription<s_msgs::msg::OperationModes>("/allowed_operation_modes", 10, std::bind(&RobotNode::callback_operation_modes, this, _1));
 
         sub_remote_telop_cmd_vel = this->create_subscription<geometry_msgs::msg::TwistStamped>("/telop_cmd_vel", 10,  std::bind(&RobotNode::callback_remote_telop_cmd, this, _1));
         sub_auto_cmd_vel = this->create_subscription<geometry_msgs::msg::TwistStamped>("/auto_cmd_vel", 10,  std::bind(&RobotNode::callback_auto_cmd, this, _1));
@@ -70,7 +71,7 @@ class RobotNode : public rclcpp::Node {
         stopTimer(this->timer_soft_stop);
     }
 
-    void callback_operation_modes(hs_msgs::msg::OperationModes allowed_modes) {
+    void callback_operation_modes(s_msgs::msg::OperationModes allowed_modes) {
 
         if(timer_heart_beat == nullptr)
             RCLCPP_INFO(this->get_logger(), "Heart Beat is back, operation allowed");
@@ -120,7 +121,7 @@ class RobotNode : public rclcpp::Node {
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr sub_auto_cmd_vel;
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr sub_op_mode;
     
-    rclcpp::Subscription<hs_msgs::msg::OperationModes>::SharedPtr sub_allowed_operation_modes;
+    rclcpp::Subscription<s_msgs::msg::OperationModes>::SharedPtr sub_allowed_operation_modes;
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr sub_activate_autonomous_drive;
 
     rclcpp::TimerBase::SharedPtr timer_soft_stop;

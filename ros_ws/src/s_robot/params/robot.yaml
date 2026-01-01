@@ -1,0 +1,14 @@
+health_checker:
+  ros__parameters:
+    platform:
+      motor: "platform/motorOK"
+      battery: "platform/batteryOK"
+    manual_controllers:
+      topics: ["local_joy/joy", "telop_joy/joy", "/a200_0309/joy_teleop/joy"]
+    requirements:
+      telop:
+        fpv_camera: ""
+      autonomy:
+        lidar: ""
+        camera1: ""
+        camera2: ""

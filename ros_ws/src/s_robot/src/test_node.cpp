@@ -2,7 +2,7 @@
 #include <chrono>
 
 #include <rclcpp/rclcpp.hpp>
-#include "hs_robot/can_bus.hpp"
+#include "s_robot/can_bus.hpp"
 
 /** Class TestNode
  * 
