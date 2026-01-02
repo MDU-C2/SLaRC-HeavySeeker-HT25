@@ -12,9 +12,12 @@ const std::string BITRATE_str = "1000000";
 class CanBus {
     
     public:
-    CanBus(std::string adapter_ID);
-    CanBus(std::string interface_Name, bool use_ifacename);
+    CanBus();
+    CanBus(const std::string &adapter_ID);
+    CanBus(const std::string &interface_Name, bool use_ifacename);
     ~CanBus();
+
+    void setup_with_ID(const std::string &adapter_ID);
 
     void send_frame(const struct can_frame &frame);
     int recive_frame(struct can_frame &frame);

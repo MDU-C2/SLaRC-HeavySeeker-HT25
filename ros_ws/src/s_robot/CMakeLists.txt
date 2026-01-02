@@ -16,7 +16,7 @@ find_package(s_msgs REQUIRED)
 include_directories(include)
 
 
-set(CAN_PATH include/hs_robot/can_bus.cpp include/hs_robot/can_bus.hpp)
+set(CAN_PATH include/s_robot/can_bus.cpp include/s_robot/can_bus.hpp)
 set(STATUS_INFO include/s_robot/status_info.hpp)
 
 add_executable(health_check src/health_check.cpp ${STATUS_INFO})

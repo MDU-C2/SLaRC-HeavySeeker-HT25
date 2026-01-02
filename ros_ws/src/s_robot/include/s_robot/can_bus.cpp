@@ -31,20 +31,15 @@ void runCmd(std::string &buffer, const std::string &cmd) {
     }    
 }
 
-CanBus::CanBus(std::string adapter_ID) {
-    
-    get_interface_from_ID(adapter_ID);
+CanBus::CanBus() { }
 
-    std::cout << "Interface to use: " << m_interface << std::endl;
-    bring_up_can();
-    setup_socket();
- 
+CanBus::CanBus(const std::string &adapter_ID) {
+    setup_with_ID(adapter_ID);
 }
 
-CanBus::CanBus(std::string interface_Name, bool use_ifacename) {
+CanBus::CanBus(const std::string &interface_Name, bool use_ifacename) {
     m_interface = interface_Name;
 
-    std::cout << "Interface to use: " << m_interface << std::endl;
     bring_up_can();
     setup_socket();
  
@@ -59,6 +54,18 @@ CanBus::~CanBus() {
     std::string set_down = "sudo ip link set " + m_interface + " down";
     std::system(set_down.c_str());
     
+}
+
+/* use this you did not pass CAN interface or adapter_ID during init*/
+void CanBus::setup_with_ID(const std::string &adapter_ID) {
+    if (m_socket != 0)
+        return;
+
+    get_interface_from_ID(adapter_ID);
+
+    bring_up_can();
+    setup_socket();
+
 }
 
 void CanBus::send_frame(const struct can_frame &frame) {
