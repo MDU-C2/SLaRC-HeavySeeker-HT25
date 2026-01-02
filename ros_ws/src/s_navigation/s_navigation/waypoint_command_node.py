@@ -11,9 +11,8 @@ from geometry_msgs.msg import Quaternion
 from rclpy.node import Node
 from nav2_simple_commander.robot_navigator import BasicNavigator
 from geometry_msgs.msg import PointStamped
-from s_msgs.msg import WaypointCommandMsgs
+from s_msgs.msg import WaypointCommandMsgs, WaypointProgress
 from s_msgs.srv import WaypointCommand
-from s_msgs.srv import SetOutputMode
 from std_msgs.msg import Bool
 
 
@@ -54,9 +53,9 @@ class InteractiveGpsWpCommander(Node):
 
     def __init__(self):
         super().__init__(node_name="gps_wp_commander")
-        self.navigator = BasicNavigator("basic_navigator")
-
         self.waypoints = []
+
+        self.navigator = BasicNavigator("basic_navigator")
 
         self.mapviz_wp_sub = self.create_subscription(
             PointStamped, "/clicked_point_mapviz", self.mapviz_wp_cb, 1)
@@ -67,8 +66,13 @@ class InteractiveGpsWpCommander(Node):
         self.waypoint_command_srv = self.create_service(WaypointCommand, "/waypoint_command", self.waypoint_command_cb)
 
         self.activate_autonom_pub = self.create_publisher(Bool, "/activate_autonomous_drive", 10)
+        self.waypoint_progress_pub = self.create_publisher(WaypointProgress, '/waypoint_progress', 10)
+
+        self.feedback_timer = self.create_timer(2.0, self.poll_navigation_feedback)
+
 
         self.get_logger().info("Started gps_wp_commander node")
+
 
     def waypoint_command_cb(self, request: WaypointCommand.Request, response: WaypointCommand.Response):
         """
@@ -91,6 +95,20 @@ class InteractiveGpsWpCommander(Node):
         return response
 
 
+    def poll_navigation_feedback(self):
+        result = self.navigator.getResult()
+        feedback = self.navigator.getFeedback()
+        is_running = not self.navigator.isTaskComplete()
+
+        msg = WaypointProgress()
+        msg.current_waypoint = feedback.current_waypoint if is_running and feedback is not None else -1
+        msg.total_waypoints = len(self.waypoints)
+        msg.is_running = is_running
+        msg.status = result.value
+
+        self.waypoint_progress_pub.publish(msg)
+
+
     def start_navigation(self):
         if len(self.waypoints) <= 0:
             self.get_logger().info("No waypoints to navigate to")
@@ -102,9 +120,9 @@ class InteractiveGpsWpCommander(Node):
         self.activate_autonom_pub.publish(msg)
 
         self.navigator.waitUntilNav2Active(localizer='robot_localization')
-        self.navigator.followGpsWaypoints(self.waypoints)
+        self.running_task = self.navigator.followGpsWaypoints(self.waypoints)
 
-        return msg
+        return True
 
 
     def stop_navigation(self):
@@ -115,7 +133,7 @@ class InteractiveGpsWpCommander(Node):
         self.activate_autonom_pub.publish(msg)
         self.navigator.cancelTask()
 
-        return msg
+        return False
 
 
     def clear_last_waypoint(self):
