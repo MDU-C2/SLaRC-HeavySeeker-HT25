@@ -81,6 +81,7 @@ def generate_launch_description():
             ("use_sim_time", LaunchConfiguration('use_sim_time')),
             ("namespace", LaunchConfiguration('namespace')),
             ("params_file", PathJoinSubstitution([config_dir, LaunchConfiguration('nav2_config')])), # nav2 wants abs path
+            #("bt_xml_filename", PathJoinSubstitution([config_dir, "nav2_bt_back_spin_replan.xml"])),
         ],
     )
 

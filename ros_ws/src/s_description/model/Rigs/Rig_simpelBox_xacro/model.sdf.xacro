@@ -8,9 +8,9 @@
     <link name="box_link">
       <pose relative_to="${base_frame}"></pose>
       <gravity>true</gravity> 
-      <collision name="c">
+      <!--  <collision name="c">
         <geometry><box><size>${size}</size></box></geometry>
-      </collision>
+      </collision>-->
       <visual name="v">
         <geometry><box><size>${size}</size></box></geometry>
         <material>
