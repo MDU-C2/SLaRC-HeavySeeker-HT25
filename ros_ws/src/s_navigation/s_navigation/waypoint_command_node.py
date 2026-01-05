@@ -165,22 +165,6 @@ class InteractiveGpsWpCommander(Node):
         self.get_logger().info(f"Added new waypoint at lat: {msg.point.y}, lon: {msg.point.x}")
 
 
-    def mapviz_wp_cb(self, msg: PointStamped):
-        """
-        clicked point callback, sends received point to nav2 gps waypoint follower if its a geographic point
-        """
-        if msg.header.frame_id not in ['wgs84', 'map']:
-            self.get_logger().warning(
-                "Received point from mapviz that ist not in wgs84 frame. This is not a gps point and wont be followed")
-            return
-
-        self.navigator.waitUntilNav2Active(localizer='robot_localization')
-        wp = [latLonYaw2Geopose(msg.point.y, msg.point.x)]
-        self.navigator.followGpsWaypoints(wp)
-        if (self.navigator.isTaskComplete()):
-            self.get_logger().info("wps completed successfully")
-
-
 def main():
     rclpy.init()
     gps_wpf = InteractiveGpsWpCommander()
