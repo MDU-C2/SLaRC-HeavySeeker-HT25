@@ -123,6 +123,14 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
               setWaypointProgress(waypointProgress => [...waypointProgress, msg.status]);
               updateWaypointMarkerColors(msg.current_waypoint);
           }
+          else{
+              updateWaypointMarkerColors(msg.current_waypoint);
+              setWaypointProgress(waypointProgress => {
+                  const newProgress = [...waypointProgress];
+                  newProgress[msg.current_waypoint] = msg.status;
+                  return newProgress;
+              });
+          }
         }
 
       }
@@ -416,7 +424,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
               justifyContent: "center",
               gap: 8,
               padding: "10px 12px",
-              background: waypointMarkersRef.current.length > 0 && action.id != "pauseStop" ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.3)",
+              background: waypointMarkersRef.current.length < 1 && action.id != "startPause" ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.7)",
               color: "#111",
               border: "none",
               borderRadius: 8,
