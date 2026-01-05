@@ -56,7 +56,7 @@ def generate_launch_description():
 
     spawn_coordinates_arg = DeclareLaunchArgument(
         "spawn",
-        default_value="0.0 0.0 2.0 0.0 0.0 0.0",
+        default_value="0.0 0.0 1.3 0.0 0.0 0.0",
         description="The XYZ coordinates and RPY to spawn the robot at. Sepreated by spaces.\n" \
     )
 
@@ -83,13 +83,6 @@ def generate_launch_description():
         ]
     )
 
-    config_root = PathJoinSubstitution(
-        [get_package_share_directory("s_simulation"), "config"]
-    )
-
-    rviz_config_root = PathJoinSubstitution(
-        [get_package_share_directory("s_simulation"), "rviz", "simulation_demo.rviz"]
-    )
 
     navigation_launch_root = PathJoinSubstitution(
         [
@@ -115,24 +108,6 @@ def generate_launch_description():
             ]
         )
     
-    nav2_config = PathJoinSubstitution(
-            [
-                get_package_share_directory("s_simulation"), 
-                'config',
-                'nav2_params_sim.yaml',
-            ]
-        )
-    
-    slam_params_file = PathJoinSubstitution(
-            [
-                get_package_share_directory("s_simulation"), 
-                'config',
-                'slam_async_config.yaml',
-            ]
-        )
-    
-    slam_toolbox_dir = get_package_share_directory('slam_toolbox')
-    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
 
 
     # Set GZ_SIM_RESOURCE_PATH to include the model paths
@@ -188,7 +163,7 @@ def generate_launch_description():
             'nav2_config': 'nav2_params_sim.yaml',
             'namespace': namespace,
         }.items()
-    )
+    ) 
 
     scan_converter_launch_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(scan_launch_root),
@@ -221,29 +196,6 @@ def generate_launch_description():
         condition=UnlessCondition(LaunchConfiguration("use_foxglove"))
     )
 
-
-    slam_toolbox_launch = IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-        os.path.join(slam_toolbox_dir, 'launch', 'online_sync_launch.py')),
-        launch_arguments={
-            'autostart': "True",
-            'use_lifecycle_manager': "False",
-            'use_sim_time': "True",
-            'slam_params_file': slam_params_file,
-        }.items(),
-    )
-
-    # NAV2
-    nav2_bringup_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(nav2_bringup_dir, 'launch', 'bringup_launch.py')
-        ),
-        launch_arguments={
-            'autostart': "True",
-            'use_sim_time': "True",
-            'params_file': nav2_config,
-        }.items(),
-    )
 
 
     # --- Processes launched via shell commands (not ROS 2 nodes) ---
@@ -352,6 +304,11 @@ def generate_launch_description():
         name="cloud_frame_relay",
     )
 
+    oakd_filter_node = Node(
+        package="s_perception",
+        executable="oakd_filter.py",
+        name="oakd_self_filter",
+    )
 
 
 
@@ -365,6 +322,7 @@ def generate_launch_description():
         bridge,
         relay_bridge,
         scan_converter_launch_description,
+        oakd_filter_node,
         navigation_launch_description,
         ui_launch_description_fox,
         ui_launch_description_no_fox,

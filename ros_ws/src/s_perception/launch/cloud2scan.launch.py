@@ -4,14 +4,14 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 
 ################### user configure parameters for ros2 ###################
-min_height=-0.3
-max_height=0.2
+min_height=-0.5
+max_height=-0.15
 angle_min=-3.1416
 angle_max=3.1416
 angle_increment=0.005
 queue_size=5
 scan_time=0.1
-range_min=0.1
+range_min=0.0
 range_max=100.0
 transform_tolerance=0.01
 use_inf=True

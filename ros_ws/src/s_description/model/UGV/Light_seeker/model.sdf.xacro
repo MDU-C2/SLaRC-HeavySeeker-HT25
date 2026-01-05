@@ -29,6 +29,17 @@
         </geometry>
       </visual>
 
+      <collission name="base_link_visual">
+        <pose frame="">-1.57768 -0.78292 ${-1.12211 - 0.19/2} ${pi/2} 0 ${pi/2}</pose>
+        <!-- Z -X -Y-->
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://Light_seeker/meshes/Light_seeker_base_2.dae</uri>
+          </mesh>
+        </geometry>
+      </collission>
+
       <velocity_decay/>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
