@@ -52,7 +52,9 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   const [isRunning, setIsRunning] = useState(false);
 
   const waypointMarkersRef = useRef<maplibregl.Marker[]>([]);
+  const [waypointProgress, setWaypointProgress] = useState<Array<number>>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessageColor, setErrorMessageColor] = useState("rgba(255,0,0,0.8)");
 
 
 
@@ -116,7 +118,11 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
           const last = progressMsgs[progressMsgs.length - 1];
           const msg = last?.message as WaypointProgress;
 
-          updateWaypointMarkerColors(msg.current_waypoint);
+          
+          if (msg.current_waypoint > waypointProgress.length - 1) {
+              setWaypointProgress(waypointProgress => [...waypointProgress, msg.status]);
+              updateWaypointMarkerColors(msg.current_waypoint);
+          }
         }
 
       }
@@ -204,7 +210,29 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
 
       if (index < currentIndex) {
         // previous
-        el.style.backgroundColor = "#2ecc71"; 
+        switch(waypointProgress[index]){
+          case 1:
+            el.style.backgroundColor = "#2ecc71";  //   SUCCEEDED = 1,
+            setErrorMessageColor("rgba(41, 84, 213, 0.8)");
+            showTemporaryError(`Waypoint ${index + 1} reached successfully.`);
+            break;
+          case 2:
+            el.style.backgroundColor = "#e67e22";  //   CANCELED = 2,
+            showTemporaryError(`Waypoint ${index + 1} was canceled.`);
+            break;
+          case 3:
+            el.style.backgroundColor = "#e74c3c";  //   FAILED = 3,
+            showTemporaryError(`Waypoint ${index + 1} failed to reach.`);
+            break;
+          case 0:
+            el.style.backgroundColor = "#5a5858ff";  //UNKNOWN = 0,
+            showTemporaryError(`Waypoint ${index + 1} has unknown status.`);
+            break;
+          default:
+            el.style.backgroundColor = "#5a5858ff";  //UNKNOWN = 0,
+            showTemporaryError(`Waypoint ${index + 1} has unknown status.`);
+            break;  
+        }
       } else if (index === currentIndex) {
         // current
         el.style.backgroundColor = "#f1c40f";
@@ -213,7 +241,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
         el.style.backgroundColor = "#3498db";
       }
 
-      el.classList.toggle("current", index === currentIndex);
+      // el.classList.toggle("current", index === currentIndex);
     });
   }
 
@@ -250,6 +278,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   const clearAllMarkers = () => {
     waypointMarkersRef.current.forEach(m => m.remove());
     waypointMarkersRef.current = [];
+    setWaypointProgress([]);
   };
 
   const removeLastMarker = () => {
@@ -260,7 +289,10 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
 
   function showTemporaryError(message: string, duration = 3000) {
     setErrorMessage(message);
-    setTimeout(() => setErrorMessage(null), duration);
+    setTimeout(() => {
+        setErrorMessage(null);
+        setErrorMessageColor("rgba(255,0,0,0.8)");
+    },duration);
   }
 
 
@@ -278,6 +310,10 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
 
   const handlePause = async () => {
     console.log("Pause clicked");
+    if (!isRunning){
+        clearAllMarkers();
+        return;
+    };
     const result = await sendWaypointCommand(context, Command.STOP);
     if (result.success){
         setIsRunning(false);
@@ -317,7 +353,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   const actions: Action[] = [
     {
       id: "startPause",
-      label: isRunning ? "Pause" : "Start",
+      label: isRunning ? "Stop" : "Start",
       icon: isRunning ? "⏸️" : "▶️",
       onClick: () => {
         if (isRunning) {
@@ -380,7 +416,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
               justifyContent: "center",
               gap: 8,
               padding: "10px 12px",
-              background: "rgba(255,255,255,0.7)",
+              background: waypointMarkersRef.current.length > 0 && action.id != "pauseStop" ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.3)",
               color: "#111",
               border: "none",
               borderRadius: 8,
@@ -417,7 +453,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
           bottom: 60,
           left: 8,
           padding: "8px 12px",
-          background: "rgba(255,0,0,0.8)",
+          background: errorMessageColor,
           color: "white",
           borderRadius: 8,
           fontSize: 12,
