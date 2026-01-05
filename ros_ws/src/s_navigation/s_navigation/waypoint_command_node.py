@@ -57,9 +57,6 @@ class InteractiveGpsWpCommander(Node):
 
         self.navigator = BasicNavigator("basic_navigator")
 
-        self.mapviz_wp_sub = self.create_subscription(
-            PointStamped, "/clicked_point_mapviz", self.mapviz_wp_cb, 1)
-
         self.foxglove_wp_sub = self.create_subscription(
             PointStamped, "/clicked_point", self.foxglove_wp_cb, 1)
 
@@ -84,6 +81,7 @@ class InteractiveGpsWpCommander(Node):
                 response.success = self.start_navigation()
             case WaypointCommandMsgs.STOP:
                 response.success = self.stop_navigation()
+                self.clear_all_waypoints()
             case WaypointCommandMsgs.UNDO:
                 response.success = self.clear_last_waypoint()
             case WaypointCommandMsgs.CLEAR_ALL:
@@ -133,7 +131,7 @@ class InteractiveGpsWpCommander(Node):
         self.activate_autonom_pub.publish(msg)
         self.navigator.cancelTask()
 
-        return False
+        return True
 
 
     def clear_last_waypoint(self):
@@ -149,7 +147,6 @@ class InteractiveGpsWpCommander(Node):
     def clear_all_waypoints(self):
         self.get_logger().info("Cleared all waypoint")
         self.waypoints = []
-        self.stop_navigation()
 
         return True
 

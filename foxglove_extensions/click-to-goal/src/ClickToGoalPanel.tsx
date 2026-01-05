@@ -5,6 +5,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./ClickToGoalPanel.css";
 import { Command } from "./types/Command";
 import type { PanelExtensionContext } from "@foxglove/studio";
+// import { NodeNotFoundError } from "rclnodejs";
 
 
 type PointStamped = {
@@ -280,6 +281,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
     const result = await sendWaypointCommand(context, Command.STOP);
     if (result.success){
         setIsRunning(false);
+        clearAllMarkers();
         setErrorMessage(null);
     }
     else{
@@ -373,7 +375,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
               flex: 1,
               minWidth: 100,
               height:40,
-              display: "flex",
+              display: (isRunning && action.id != "startPause") ? "none" : "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: 8,
