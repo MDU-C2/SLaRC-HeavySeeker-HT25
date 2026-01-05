@@ -19,6 +19,20 @@ type Action = {
   onClick: () => void;
 };
 
+type WaypointProgress = {
+  current_waypoint: number;
+  total_waypoints: number;
+  is_running: boolean;
+  status: number;
+};
+
+// enum WaypointStatus {
+//   UNKNOWN = 0,
+//   SUCCEEDED = 1,
+//   CANCELED = 2,
+//   FAILED = 3,
+// }
+
 function nowStamp() {
   const t = Date.now() / 1000;
   const sec = Math.floor(t);
@@ -40,11 +54,15 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 
+
   useEffect(() => {
 
     try{
       context.watch?.("currentFrame");
-      context.subscribe?.([{ topic: "/gps/filtered" }]);
+      context.subscribe?.([
+        { topic: "/gps/filtered" },
+        { topic: "/waypoint_progress" },
+      ]);
     }catch(e){
       console.log("Subscribe error: "+e)
     }
@@ -88,6 +106,18 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
             }
           }
         }
+
+        const progressMsgs = frame.filter(
+          (m: any) => m.topic === "/waypoint_progress"
+        );
+
+        if (progressMsgs.length > 0) {
+          const last = progressMsgs[progressMsgs.length - 1];
+          const msg = last?.message as WaypointProgress;
+
+          updateWaypointMarkerColors(msg.current_waypoint);
+        }
+
       }
       // Call done when you've rendered all the UI for this renderState.
       // If your UI framework delays rendering, call done when rendering has actually happened.
@@ -167,6 +197,25 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   }, [context, initialCenter]);
 
 
+  function updateWaypointMarkerColors(currentIndex: number) {
+    waypointMarkersRef.current.forEach((marker, index) => {
+      const el = marker.getElement();
+
+      if (index < currentIndex) {
+        // previous
+        el.style.backgroundColor = "#2ecc71"; 
+      } else if (index === currentIndex) {
+        // current
+        el.style.backgroundColor = "#f1c40f";
+      } else {
+        // remaining
+        el.style.backgroundColor = "#3498db";
+      }
+
+      el.classList.toggle("current", index === currentIndex);
+    });
+  }
+
   async function sendWaypointCommand(context: any, command: number, index = -1) {
     try {
       const response = await context.callService("/waypoint_command", {
@@ -175,6 +224,9 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
       });
 
       console.log("Response:", response);
+      if (response === undefined) {
+        return { success: false, message: "No response from service" };
+      }
       return response
     } catch (err) {
       console.error("Service call failed:", err);
@@ -187,6 +239,8 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
     const el = document.createElement("div");
     el.className = "goal-marker";
     el.innerText = String(index + 1); 
+
+    el.style.backgroundColor = "#3498db";
 
     return new maplibregl.Marker({ element: el });
   }
