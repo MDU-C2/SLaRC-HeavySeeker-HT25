@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 from rclpy.node import Node
 
-from s_msgs.srv import GetCameras
+from s_msgs.srv import GetCameras, SetOutputMode
 
 from .encoder_manager import EncoderManager
 from .camera_registry import CameraRegistry
 from .action_handler import CameraActionHandler
-from utils.server_utils import load_camera_configs
+from .server_utils import load_camera_configs
 
 
 class CameraServer(Node):
@@ -19,6 +19,16 @@ class CameraServer(Node):
 
         # Camera configs from YAML / launch file
         self.camera_configs = load_camera_configs(self)
+        
+        # Default output mode
+        self.output_mode = "mpegts"
+
+        # Service for switching stream output mode
+        self.create_service(
+            SetOutputMode,
+            "set_output_mode",
+            self.handle_set_output_mode,
+        )
 
         # Action handler (registry injected later)
         self.action_handler = CameraActionHandler(
@@ -54,6 +64,25 @@ class CameraServer(Node):
             if enc.is_running()
         ]
         return response
+    def handle_set_output_mode(self, request, response):
+        mode = request.mode.lower()
+
+        if mode not in ("mpegts", "foxglove", "headless"):
+            response.success = False
+            response.message = f"Invalid mode '{mode}'"
+            return response
+
+        self.output_mode = mode
+        self.get_logger().info(f"Switched encoder output mode to: {mode}")
+
+        # Forward mode change to all active encoders
+        for cam, enc in self.action_handler.encoders.items():
+            enc.apply_output_mode(mode)
+
+        response.success = True
+        response.message = f"Output mode set to {mode}"
+        return response
+
 
     def destroy_node(self):
         self.action_handler.stop_all()
