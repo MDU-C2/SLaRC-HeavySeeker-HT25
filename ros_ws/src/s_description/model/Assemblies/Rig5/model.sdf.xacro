@@ -37,7 +37,7 @@
     </link>
     
     
-    <xacro:Rig_simpelBox_xacro base_frame="rig_link" size="${box_size_x} ${box_size_y} ${box_size_z}" offset="${rig_pos_relative_2_UGV}"/>
+    <xacro:Rig_simpelBox_xacro base_frame="rig_link" size="${box_size_x} ${box_size_y} ${box_size_z}"/>
     <!--use box_size_x,box_size_y,box_size_z in the offset to allign sensor placement-->
 
     <!-- <origin xyz="${oakd_x_offset} ${oakd_y_offset} ${oakd_z_offset}"/> -->

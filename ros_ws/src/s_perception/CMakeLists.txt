@@ -11,15 +11,15 @@ find_package(pointcloud_to_laserscan REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-
 install(
   DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(
-  PROGRAMS 
-  s_perception/oakd_filter.py
+install(PROGRAMS
+  ${PROJECT_NAME}/imu_g_to_ms2.py
+  ${PROJECT_NAME}/gps_heading.py
+  ${PROJECT_NAME}/oakd_filter.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
