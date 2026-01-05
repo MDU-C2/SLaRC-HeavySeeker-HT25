@@ -3,9 +3,27 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
 from tf2_ros import Buffer, TransformListener
-from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 import numpy as np
 import sensor_msgs_py.point_cloud2 as pc2
+
+def quat_to_rot_matrix(qx, qy, qz, qw):
+    # Quaternion -> rotation matrix (3x3)
+    # Assumes normalized quaternion (TF usually is)
+    xx = qx * qx
+    yy = qy * qy
+    zz = qz * qz
+    xy = qx * qy
+    xz = qx * qz
+    yz = qy * qz
+    wx = qw * qx
+    wy = qw * qy
+    wz = qw * qz
+
+    return np.array([
+        [1.0 - 2.0*(yy + zz), 2.0*(xy - wz),       2.0*(xz + wy)],
+        [2.0*(xy + wz),       1.0 - 2.0*(xx + zz), 2.0*(yz - wx)],
+        [2.0*(xz - wy),       2.0*(yz + wx),       1.0 - 2.0*(xx + yy)]
+    ], dtype=np.float64)
 
 class CropSelfFilter(Node):
     def __init__(self):
@@ -15,7 +33,7 @@ class CropSelfFilter(Node):
         self.declare_parameter("output_topic", "/oakd_points_1_filtered")
         self.declare_parameter("target_frame", "base_link")
 
-        # Crop box (in target_frame coordinates)
+        # Crop box in target_frame (base_link)
         self.declare_parameter("min_x", -0.55)
         self.declare_parameter("max_x",  0.55)
         self.declare_parameter("min_y", -0.50)
@@ -40,38 +58,61 @@ class CropSelfFilter(Node):
         self.pub = self.create_publisher(PointCloud2, self.out_topic, 10)
         self.sub = self.create_subscription(PointCloud2, self.in_topic, self.cb, 10)
 
-        self.get_logger().info(f"Filtering {self.in_topic} -> {self.out_topic} in frame {self.target_frame}")
-        self.get_logger().info(f"Crop self box: x[{self.min_x},{self.max_x}] y[{self.min_y},{self.max_y}] z[{self.min_z},{self.max_z}]")
+        self.get_logger().info(f"Filtering {self.in_topic} -> {self.out_topic} in {self.target_frame}")
+        self.get_logger().info(
+            f"Crop self box: x[{self.min_x},{self.max_x}] y[{self.min_y},{self.max_y}] z[{self.min_z},{self.max_z}]"
+        )
 
     def cb(self, msg: PointCloud2):
+        # Use the cloud timestamp for TF lookup (important when turning!)
         try:
-            # Transform cloud into target frame
+            stamp = rclpy.time.Time.from_msg(msg.header.stamp)
             tf = self.tf_buffer.lookup_transform(
-                self.target_frame,
-                msg.header.frame_id,
-                rclpy.time.Time()
+                self.target_frame,         # target
+                msg.header.frame_id,       # source
+                stamp
             )
-            cloud_bl = do_transform_cloud(msg, tf)
         except Exception as e:
-            self.get_logger().warn(f"TF transform failed: {e}")
+            self.get_logger().warn(f"TF lookup failed: {e}")
             return
 
-        # Read points
-        pts = []
-        for p in pc2.read_points(cloud_bl, field_names=("x", "y", "z"), skip_nans=True):
-            x, y, z = float(p[0]), float(p[1]), float(p[2])
+        # Build transform (R, t)
+        t = tf.transform.translation
+        q = tf.transform.rotation
+        R = quat_to_rot_matrix(q.x, q.y, q.z, q.w)
+        trans = np.array([t.x, t.y, t.z], dtype=np.float64)
 
-            # Remove points inside the robot box
-            inside = (self.min_x <= x <= self.max_x and
-                      self.min_y <= y <= self.max_y and
-                      self.min_z <= z <= self.max_z)
-            if not inside:
-                pts.append((x, y, z))
+        # Read xyz points (ignore all other fields safely)
+        gen = pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True)
 
-        # Create filtered cloud (still in target_frame)
-        header = cloud_bl.header
-        out = pc2.create_cloud_xyz32(header, pts)
-        self.pub.publish(out)
+        # Force a plain Nx3 float array
+        pts_list = [(float(x), float(y), float(z)) for (x, y, z) in gen]
+        if not pts_list:
+            return
+
+        pts = np.asarray(pts_list, dtype=np.float64)
+        if pts.size == 0:
+            return
+
+        # Transform into base_link: p' = R p + t
+        pts_bl = (pts @ R.T) + trans
+
+        # Remove points inside robot box
+        x = pts_bl[:, 0]
+        y = pts_bl[:, 1]
+        z = pts_bl[:, 2]
+        inside = (
+            (x >= self.min_x) & (x <= self.max_x) &
+            (y >= self.min_y) & (y <= self.max_y) &
+            (z >= self.min_z) & (z <= self.max_z)
+        )
+        pts_out = pts_bl[~inside]
+
+        # Publish filtered cloud in base_link frame
+        header = msg.header
+        header.frame_id = self.target_frame
+        out_msg = pc2.create_cloud_xyz32(header, pts_out.astype(np.float32))
+        self.pub.publish(out_msg)
 
 def main():
     rclpy.init()
@@ -82,4 +123,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

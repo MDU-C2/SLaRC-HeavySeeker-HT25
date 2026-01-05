@@ -70,7 +70,7 @@ bt_navigator:
 controller_server:
   ros__parameters:
     controller_frequency: 20.0
-    costmap_update_timeout: 0.30
+    costmap_update_timeout: 0.60
     min_x_velocity_threshold: 0.001 #Colud change
     min_y_velocity_threshold: 0.001 #Could change
     min_theta_velocity_threshold: 0.001 #Could change
@@ -102,13 +102,13 @@ controller_server:
       ax_min: -3.0
       ay_max: 3.0
       az_max: 3.5
-      vx_std: 0.2
+      vx_std: 0.25
       vy_std: 0.2
-      wz_std: 0.4
+      wz_std: 0.55
       vx_max: 0.5
       vx_min: -0.35
       vy_max: 0.5
-      wz_max: 1.9
+      wz_max: 0.45
       iteration_count: 1
       prune_distance: 1.7
       transform_tolerance: 0.1
@@ -173,7 +173,7 @@ controller_server:
       PathAlignCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 5.0
+        cost_weight: 2.0
         max_path_occupancy_ratio: 0.05
         trajectory_point_step: 4
         threshold_to_consider: 0.5
@@ -183,14 +183,14 @@ controller_server:
       PathFollowCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 5.0
+        cost_weight: 2.0
         offset_from_furthest: 5
         threshold_to_consider: 1.4
 
       PathAngleCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 2.0
+        cost_weight: 1.0
         offset_from_furthest: 4
         threshold_to_consider: 0.5
         max_angle_to_furthest: 1.0
@@ -221,7 +221,7 @@ local_costmap:
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         enabled: true
-        voxel_decay: 25.0 #secons if the decay model is 0 (linear)
+        voxel_decay: 3.0 #secons if the decay model is 0 (linear)
         decay_model: 0 
         voxel_size: 0.05
         track_unknown_space: true
@@ -233,7 +233,7 @@ local_costmap:
         publish_voxel_map: true
         transform_tolerance: 0.2
         mapping_mode: false
-        map_save_duration: 10.0
+        map_save_duration: 5.0
 
         observation_sources:  camera_mark camera_clear lidar_mark lidar_clear
 
@@ -243,10 +243,10 @@ local_costmap:
           marking: true
           clearing: false
           obstacle_range: 5.0
-          min_obstacle_height: -0.33
-          max_obstacle_height: 0.4
+          min_obstacle_height: -0.28
+          max_obstacle_height: 0.35
           filter: "voxel"
-          voxel_min_points: 1
+          voxel_min_points: 3
 
         lidar_clear:
           data_type: PointCloud2
@@ -254,21 +254,21 @@ local_costmap:
           marking: false 
           clearing: true
           obstacle_range: 5.0
-          min_obstacle_height: -0.33
-          max_obstacle_height: 0.4
+          min_obstacle_height: -0.28
+          max_obstacle_height: 0.35
           filter: "voxel"
           voxel_min_points: 1
           model_type: 1
         
         camera_mark:
           data_type: PointCloud2
-          topic: "/oakd_points_1_fixed"
+          topic: "/oakd_points_1_filtered"
           transport_type: "raw"
           marking: true
           clearing: false
           obstacle_range: 5.0
-          min_obstacle_height: -0.33
-          max_obstacle_height: 0.4
+          min_obstacle_height: -0.28
+          max_obstacle_height: 0.35
           expected_update_rate: 0.0
           observation_persistence: 0.0
           inf_is_valid: false
@@ -282,11 +282,11 @@ local_costmap:
       
         camera_clear:
           data_type: PointCloud2
-          topic: "/oakd_points_1_fixed"
+          topic: "/oakd_points_1_filtered"
           marking: false
           clearing: true
-          max_z: 0.4
-          min_z: -0.33
+          max_z: 0.35
+          min_z: -0.28
           vertical_fov_angle: 0.959931     # 55 degrees
           horizontal_fov_angle: 1.20428    # 69 degrees
           decay_acceleration: 1.0       # non-zero for RGBD
@@ -297,7 +297,7 @@ local_costmap:
         
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 10.0
+        cost_scaling_factor: 16.0
         inflation_radius: 0.65
 
       always_send_full_costmap: True
@@ -335,12 +335,27 @@ global_costmap:
           obstacle_max_range: 8.0
           raytrace_max_range: 9.0
           inf_is_valid: false
-          max_obstacle_height: 0.345
-          min_obstacle_height: 0.3
+          max_obstacle_height: 0.35
+          min_obstacle_height: 0.25
+
+      obstacle_layer_low:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          marking: true
+          clearing: true
+          obstacle_max_range: 8.0
+          raytrace_max_range: 9.0
+          inf_is_valid: false
+          max_obstacle_height: -0.25
+          min_obstacle_height: -0.2
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 15.0
+        cost_scaling_factor: 8.0
         inflation_radius: 0.75
 
       always_send_full_costmap: True

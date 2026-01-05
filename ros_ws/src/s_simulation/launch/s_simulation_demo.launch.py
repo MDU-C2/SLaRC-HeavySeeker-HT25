@@ -304,6 +304,11 @@ def generate_launch_description():
         name="cloud_frame_relay",
     )
 
+    oakd_filter_node = Node(
+        package="s_perception",
+        executable="oakd_filter.py",
+        name="oakd_self_filter",
+    )
 
 
 
@@ -317,6 +322,7 @@ def generate_launch_description():
         bridge,
         relay_bridge,
         scan_converter_launch_description,
+        oakd_filter_node,
         navigation_launch_description,
         ui_launch_description_fox,
         ui_launch_description_no_fox,
