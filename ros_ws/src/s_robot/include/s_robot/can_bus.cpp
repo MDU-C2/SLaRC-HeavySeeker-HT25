@@ -14,7 +14,7 @@
 #include <net/if.h>
 #include <linux/can.h>
 #include <linux/can/raw.h>
-
+#include <fcntl.h>
 
 #include "can_bus.hpp"
 
@@ -151,5 +151,8 @@ void CanBus::setup_socket() {
         perror("Bind");
         return;
     }
+
+    int flags = fcntl(m_socket, F_GETFL, 0);
+    fcntl(m_socket, F_SETFL, flags | O_NONBLOCK);
 
 }
