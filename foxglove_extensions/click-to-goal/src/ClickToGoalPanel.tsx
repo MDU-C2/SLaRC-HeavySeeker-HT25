@@ -26,6 +26,7 @@ type WaypointProgress = {
   status: number;
 };
 
+
 // enum WaypointStatus {
 //   UNKNOWN = 0,
 //   SUCCEEDED = 1,
@@ -54,6 +55,57 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   //const [waypointProgress, setWaypointProgress] = useState<Array<number>>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorMessageColor, setErrorMessageColor] = useState("rgba(255,0,0,0.8)");
+
+  const mapStyleOptions = {
+    standard: {label: "Standard", url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png"},
+    satellite: {label: "Satellite", url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"},
+    terrain: {label: "Terrain", url: "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"},
+  };
+
+  const [mapStyle,setMapStyle] = useState(mapStyleOptions.standard.url);
+  const [mapStyleLabel,setMapStyleLabel] = useState(mapStyleOptions.standard.label);
+  const isRunningRef = useRef(isRunning);
+
+  useEffect(() => {
+    isRunningRef.current = isRunning;
+  }, [isRunning]);
+
+  function cycleMapStyle() {
+    if (mapStyle === mapStyleOptions.standard.url) {
+      setMapStyle(mapStyleOptions.satellite.url);
+      setMapStyleLabel(mapStyleOptions.satellite.label);
+    } else if (mapStyle === mapStyleOptions.satellite.url) {
+      setMapStyle(mapStyleOptions.terrain.url);
+      setMapStyleLabel(mapStyleOptions.terrain.label);
+    } else {
+      setMapStyle(mapStyleOptions.standard.url);
+      setMapStyleLabel(mapStyleOptions.standard.label);
+    }
+  }
+
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    mapRef.current.setStyle({
+      version: 8,
+      sources: {
+        osm: {
+          type: "raster",
+          tiles: [mapStyle],
+          tileSize: 256,
+          attribution: "© OpenStreetMap contributors",
+        },
+      },
+      layers: [
+        {
+          id: "osm",
+          type: "raster",
+          source: "osm",
+        },
+      ],
+    });
+  }, [mapStyle]);
 
 
 
@@ -141,6 +193,8 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
     return;
   }, [context, pubReady, initialCenter]);
 
+  
+
   useEffect(() => {
     // vi behöver ett container-element, inget befintligt map-objekt, OCH en initialCenter för att starta upp kartan på robotens position
     if (!containerRef.current || mapRef.current || !initialCenter) {
@@ -157,7 +211,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
           osm: {
             type: "raster",
             tiles: [
-              "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+              mapStyle
             ],
             tileSize: 256,
             attribution:
@@ -179,9 +233,8 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
     mapRef.current.addControl(new maplibregl.NavigationControl());
 
     mapRef.current.on("click", (e) => {
-      if (isRunning){
-        return;
-      }
+      if (isRunningRef.current) return;
+      
       const lng = e.lngLat.lng;
       const lat = e.lngLat.lat;
 
@@ -209,7 +262,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
         };
         context.publish("/clicked_point", msg);
         console.log(msg)
-      }
+    }
     });
   }, [context, initialCenter]);
 
@@ -393,9 +446,43 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   ];
 
 
+
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
+          <button
+            onClick={cycleMapStyle}
+            style={{
+              position: "absolute",
+              top: 8,
+              left: 8,
+              width: 100,
+              height: 80,
+              display: "flex",
+              flexDirection: "column", 
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,                   
+              background: "rgba(255,255,255,0.9)",
+              color: "#111",
+              border: "1px solid rgba(0,0,0,0.1)",
+              borderRadius: 10,
+                cursor: "pointer",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+              }}
+            >
+              {/* <div style={{ fontSize: 12, opacity: 0.7 }}>
+                Map type
+              </div> */}
+
+              <div style={{ fontSize: 34, lineHeight: 1 }}>
+                🗺️
+              </div>
+
+              <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.7)" }}>
+                {mapStyleLabel} 
+              </div>
+            </button>
             <div
         style={{
           position: "absolute",
