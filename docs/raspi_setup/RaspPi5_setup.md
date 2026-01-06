@@ -52,62 +52,40 @@ The Imager writes the image with your settings; when it finishes, eject the medi
 3) Copy and paste following (make sure that the IP-adress is the same as the receiver):
    ```bash
    #!/bin/bash
-   # Exit immediately if any command fails
    set -e
 
    # Give the system a few seconds to finish booting / initializing hardware
    sleep 3
 
-   # Start Raspberry Pi camera capture and stream video
    exec rpicam-vid \
-   # Use H.264 video codec
+   --mode 1332:990:10 \
    --codec h264 \
-   # Use Main profile (better compression than baseline, widely supported)
    --profile main \
-   # H.264 level 3.1 (suitable for 720p @ 30fps)
    --level 3.1 \
-   # Video resolution
-   # If you change width/height or framerate, you may need to adjust bitrate
    --width 1280 \
    --height 720 \
-   # If you change framerate, you should usually change intra accordingly
    --framerate 30 \
-   # Intra-frame period (keyframe interval)
-   --intra 30 \
-   # Target bitrate in bits per second (3 Mbps)
-   --bitrate 3000000 \
-   # Include SPS/PPS headers inline with the stream
+   --intra 15 \
+   --bitrate 3500000 \
+   --denoise cdn_hq \
    --inline \
-   # Disable camera preview window
    --nopreview \
-   # Run indefinitely
    --timeout 0 \
-   # Output raw H.264 stream
    --libav-format h264 \
-   # Output video to stdout
    -o - \
-   | \
-   ffmpeg -nostdin -loglevel error \
-   # Generate presentation timestamps if missing
+   | ffmpeg -nostdin -loglevel error \
    -fflags +genpts \
-   # Use wall-clock time as timestamps
    -use_wallclock_as_timestamps 1 \
-   # Input format is raw H.264 from stdin
    -f h264 -i pipe:0 \
-   # Reset timestamps so the stream starts cleanly
    -reset_timestamps 1 \
-   # Convert H.264 bitstream to Annex B format
-   -bsf:v h264_mp4toannexb \
-   # Copy video without re-encoding
    -c copy \
-   # Resend headers and mark initial discontinuity
    -mpegts_flags +resend_headers+initial_discontinuity \
-   # Reduce muxing latency
    -muxdelay 0 \
    -muxpreload 0 \
-   # Output format: MPEG transport stream
+   -flush_packets 1 \
    -f mpegts \
    "udp://192.168.10.222:5600?pkt_size=1316&buffer_size=425984"
+
    ```
 4) Save the script (`Ctrl + S` to save and `Ctrl + X` to exit), then make it executable:
 

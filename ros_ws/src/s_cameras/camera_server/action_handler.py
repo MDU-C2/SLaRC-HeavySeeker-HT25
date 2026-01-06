@@ -32,6 +32,7 @@ class CameraActionHandler:
             execute_callback=self._stop_exec,
             goal_callback=self._stop_goal,
         )
+        
 
     # ------------------------------
     # START
