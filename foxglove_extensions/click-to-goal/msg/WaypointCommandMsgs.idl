@@ -3,7 +3,7 @@
 // generated code does not contain a copyright notice
 
 
-module hs_msgs {
+module s_msgs {
   module msg {
     module WaypointCommand_Constants {
       const int32 START = 0;

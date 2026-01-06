@@ -5,7 +5,6 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./ClickToGoalPanel.css";
 import { Command } from "./types/Command";
 import type { PanelExtensionContext } from "@foxglove/studio";
-// import { NodeNotFoundError } from "rclnodejs";
 
 
 type PointStamped = {
@@ -52,7 +51,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   const [isRunning, setIsRunning] = useState(false);
 
   const waypointMarkersRef = useRef<maplibregl.Marker[]>([]);
-  const [waypointProgress, setWaypointProgress] = useState<Array<number>>([]);
+  //const [waypointProgress, setWaypointProgress] = useState<Array<number>>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorMessageColor, setErrorMessageColor] = useState("rgba(255,0,0,0.8)");
 
@@ -118,19 +117,19 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
           const last = progressMsgs[progressMsgs.length - 1];
           const msg = last?.message as WaypointProgress;
 
-          
-          if (msg.current_waypoint > waypointProgress.length - 1) {
-              setWaypointProgress(waypointProgress => [...waypointProgress, msg.status]);
-              updateWaypointMarkerColors(msg.current_waypoint);
-          }
-          else{
-              updateWaypointMarkerColors(msg.current_waypoint);
-              setWaypointProgress(waypointProgress => {
-                  const newProgress = [...waypointProgress];
-                  newProgress[msg.current_waypoint] = msg.status;
-                  return newProgress;
-              });
-          }
+          updateWaypointMarkerColors(msg.current_waypoint);
+          // if (msg.current_waypoint > waypointProgress.length - 1) {
+          //     setWaypointProgress(waypointProgress => [...waypointProgress, msg.status]);
+              
+          // }
+          // else{
+          //     updateWaypointMarkerColors(msg.current_waypoint);
+          //     setWaypointProgress(waypointProgress => {
+          //         const newProgress = [...waypointProgress];
+          //         newProgress[msg.current_waypoint] = msg.status;
+          //         return newProgress;
+          //     });
+          // }
         }
 
       }
@@ -180,6 +179,9 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
     mapRef.current.addControl(new maplibregl.NavigationControl());
 
     mapRef.current.on("click", (e) => {
+      if (isRunning){
+        return;
+      }
       const lng = e.lngLat.lng;
       const lat = e.lngLat.lat;
 
@@ -218,29 +220,30 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
 
       if (index < currentIndex) {
         // previous
-        switch(waypointProgress[index]){
-          case 1:
-            el.style.backgroundColor = "#2ecc71";  //   SUCCEEDED = 1,
-            setErrorMessageColor("rgba(41, 84, 213, 0.8)");
-            showTemporaryError(`Waypoint ${index + 1} reached successfully.`);
-            break;
-          case 2:
-            el.style.backgroundColor = "#e67e22";  //   CANCELED = 2,
-            showTemporaryError(`Waypoint ${index + 1} was canceled.`);
-            break;
-          case 3:
-            el.style.backgroundColor = "#e74c3c";  //   FAILED = 3,
-            showTemporaryError(`Waypoint ${index + 1} failed to reach.`);
-            break;
-          case 0:
-            el.style.backgroundColor = "#5a5858ff";  //UNKNOWN = 0,
-            showTemporaryError(`Waypoint ${index + 1} has unknown status.`);
-            break;
-          default:
-            el.style.backgroundColor = "#5a5858ff";  //UNKNOWN = 0,
-            showTemporaryError(`Waypoint ${index + 1} has unknown status.`);
-            break;  
-        }
+        el.style.backgroundColor = "#2ecc71";  //   SUCCEEDED = 1,
+        // switch(waypointProgress[index]){
+        //   case 1:
+        //     el.style.backgroundColor = "#2ecc71";  //   SUCCEEDED = 1,
+        //     setErrorMessageColor("rgba(41, 84, 213, 0.8)");
+        //     showTemporaryError(`Waypoint ${index + 1} reached successfully.`);
+        //     break;
+        //   case 2:
+        //     el.style.backgroundColor = "#e67e22";  //   CANCELED = 2,
+        //     showTemporaryError(`Waypoint ${index + 1} was canceled.`);
+        //     break;
+        //   case 3:
+        //     el.style.backgroundColor = "#e74c3c";  //   FAILED = 3,
+        //     showTemporaryError(`Waypoint ${index + 1} failed to reach.`);
+        //     break;
+        //   case 0:
+        //     el.style.backgroundColor = "#5a5858ff";  //UNKNOWN = 0,
+        //     showTemporaryError(`Waypoint ${index + 1} has unknown status.`);
+        //     break;
+        //   default:
+        //     el.style.backgroundColor = "#5a5858ff";  //UNKNOWN = 0,
+        //     showTemporaryError(`Waypoint ${index + 1} has unknown status.`);
+        //     break;  
+        // }
       } else if (index === currentIndex) {
         // current
         el.style.backgroundColor = "#f1c40f";
@@ -286,7 +289,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
   const clearAllMarkers = () => {
     waypointMarkersRef.current.forEach(m => m.remove());
     waypointMarkersRef.current = [];
-    setWaypointProgress([]);
+    //setWaypointProgress([]);
   };
 
   const removeLastMarker = () => {
