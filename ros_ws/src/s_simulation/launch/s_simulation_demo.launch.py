@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch_ros.actions import Node
+from launch_ros.actions import Node, SetRemap
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import (
     ExecuteProcess,
@@ -8,6 +8,7 @@ from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
     LogInfo,
+    GroupAction,
 )
 from launch.substitutions import (
     PathJoinSubstitution,
@@ -67,6 +68,19 @@ def generate_launch_description():
         choices=['True', 'False'],
     )
 
+    fast_lio_arg = DeclareLaunchArgument(
+        "use_fast_lio",
+        default_value="False",
+        description="Use fast_lio as the odometry source",
+        choices=['True', 'False'],
+    )
+
+    fast_lio_config_arg = DeclareLaunchArgument(
+        "fast_lio_config",
+        default_value="sim.yaml",
+        description="Absolute path to fast_lio config"
+    )
+
     # ------------------ Paths to package resources (world, models, configs) -------------------
 
     Robot_description_launch = PathJoinSubstitution([
@@ -123,6 +137,14 @@ def generate_launch_description():
             ]
         )
     
+    fast_lio_config = PathJoinSubstitution(
+        [
+            get_package_share_directory('fast_lio'),
+            'config',
+            'sim.yaml'
+        ]
+    )
+    
     slam_params_file = PathJoinSubstitution(
             [
                 get_package_share_directory("s_simulation"), 
@@ -133,6 +155,7 @@ def generate_launch_description():
     
     slam_toolbox_dir = get_package_share_directory('slam_toolbox')
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
+    fast_lio_dir = get_package_share_directory('fast_lio')
 
 
     # Set GZ_SIM_RESOURCE_PATH to include the model paths
@@ -169,6 +192,7 @@ def generate_launch_description():
 
 
     model = LaunchConfiguration('model')
+    use_fast_lio = LaunchConfiguration('use_fast_lio')
 
     launch_Robot_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(Robot_description_launch),
@@ -180,6 +204,21 @@ def generate_launch_description():
         }.items()
     )
 
+    fast_lio_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [fast_lio_dir, "launch", "mapping.launch.py"]),
+        ),
+        launch_arguments=[
+            ("use_sim_time", 'true'),
+            ("config_path", fast_lio_config)
+        ],
+        condition=IfCondition(use_fast_lio)
+    )
+
+    fast_lio_group = GroupAction([
+        SetRemap(src='tf', dst='tf_unused'), fast_lio_launch])
+
     navigation_launch_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(navigation_launch_root),
         launch_arguments={
@@ -187,7 +226,19 @@ def generate_launch_description():
             'navsat_config': 'simulation_ekf.yaml',
             'nav2_config': 'nav2_params_sim.yaml',
             'namespace': namespace,
-        }.items()
+        }.items(),
+        condition=UnlessCondition(use_fast_lio)
+    )
+
+    navigation_launch_description_fast_lio = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(navigation_launch_root),
+        launch_arguments={
+            'use_sim_time': 'True',
+            'navsat_config': 'simulation_ekf_fast_lio.yaml',
+            'nav2_config': 'nav2_params_sim.yaml',
+            'namespace': namespace,
+        }.items(),
+        condition=IfCondition(use_fast_lio)
     )
 
     scan_converter_launch_description = IncludeLaunchDescription(
@@ -368,7 +419,8 @@ def generate_launch_description():
         navigation_launch_description,
         ui_launch_description_fox,
         ui_launch_description_no_fox,
-        
+        fast_lio_group,
+        navigation_launch_description_fast_lio,
             ],
     )
 
@@ -379,6 +431,8 @@ def generate_launch_description():
     ld.add_action(model_arg)
     ld.add_action(use_foxglove_arg)
     ld.add_action(spawn_coordinates_arg)
+    ld.add_action(fast_lio_arg)
+    ld.add_action(fast_lio_config_arg)
 
     ld.add_action(set_gz_path)
     ld.add_action(start_gz)
