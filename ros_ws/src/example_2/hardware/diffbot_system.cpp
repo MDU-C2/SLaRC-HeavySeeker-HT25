@@ -98,13 +98,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
   motorCanID.insert({"front_right_wheel_link_joint", 0x03});
   motorCanID.insert({"rear_right_wheel_link_joint",  0x04});
 
-  for (size_t i = 0; i < joint_commands_.size(); i++) {
-    RCLCPP_INFO(get_logger(),
-        "Command interface %zu → joint=%s, iface=%s",
-        i,
-        joint_commands_[i]->get_name().c_str(),
-        joint_commands_[i]->get_interface_name().c_str());
-}
+  
 
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -117,7 +111,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
   RCLCPP_INFO(get_logger(), "Configuring ...please wait...");
 
   //canBus = std::make_unique<CanBus>("vcan0", 1);
-  canBus.setup_with_Interface("vcan0");
+  canBus.setup_with_ID(MOTOR_ADAPTER_ID);
 
   // reset values always when configuring hardware
   for (const auto & [name, descr] : joint_state_interfaces_)
@@ -200,34 +194,23 @@ hardware_interface::return_type ros2_control_demo_example_2 ::DiffBotSystemHardw
 
   struct can_frame frame {};
   std::array<uint8_t, 4> canData;
-  /*
+  std::string realName;
+  int eRPM;
+
   for (const auto & [name, descr] : joint_command_interfaces_) {
+    realName = name.substr(0, name.size() - 9);
+
+    frame.can_id = get_eid(CMD_SET_RPM, motorCanID[realName]) | CAN_EFF_FLAG;
+    frame.len = 4;
     
-    frame.can_id = get_eid(CMD_SET_RPM, motorCanID[name]) | CAN_EFF_FLAG;
-    frame.len = 4;
-    canData = pack_int32(radToErpm(get_command(name)));
+    eRPM = radToErpm(get_command(name));
+    canData = pack_int32(eRPM);
     memcpy(frame.data, &canData, 4);
 
     canBus.send_frame(frame);
+    RCLCPP_INFO(get_logger(), "CAN 0x%X → %.3f rad/s", frame.can_id, get_command(name));
   }
-  */
-
-  for (size_t i = 0; i < info_.joints.size(); i++) {
-    const std::string &name = info_.joints[i].name;
-
-    frame.can_id = get_eid(CMD_SET_RPM, motorCanID[name]) | CAN_EFF_FLAG;
-    frame.len = 4;
-
-    double vel_cmd = joint_commands_[i]->get_value();
-    canData = pack_int32(radToErpm(vel_cmd));
-    memcpy(frame.data, &canData, 4);
-
-    canBus.send_frame(frame);
-
-    //RCLCPP_INFO(get_logger(), "%s → %.3f rad/s → CAN 0x%X", name.c_str(), vel_cmd, frame.can_id);
-  }
-
-
+  
   return hardware_interface::return_type::OK;
 }
 

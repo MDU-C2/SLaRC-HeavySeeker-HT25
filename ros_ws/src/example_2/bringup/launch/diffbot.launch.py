@@ -105,7 +105,7 @@ def generate_launch_description():
             "--param-file",
             robot_controllers,
             "--controller-ros-args",
-            "-r /diffbot_base_controller/cmd_vel:=/cmd_vel",
+            "-r /diffbot_base_controller/cmd_vel:=platform/cmd_vel",
         ],
     )
 
