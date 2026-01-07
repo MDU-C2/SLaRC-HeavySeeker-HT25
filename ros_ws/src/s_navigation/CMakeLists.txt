@@ -20,7 +20,7 @@ install(
 
 install(
   PROGRAMS 
-  s_navigation/waypoint_bridge_node.py
+  s_navigation/waypoint_command_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
