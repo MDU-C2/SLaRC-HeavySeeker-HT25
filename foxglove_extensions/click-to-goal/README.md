@@ -1,5 +1,8 @@
 # Click-to-goal Foxglove Extension
 
+#TODO: Add information about logging into foxglove using the shared account
+#TODO: Update info of running behavior
+
 This extension lets you click waypoints on a map in Foxglove Desktop and
 publishes them as ROS 2 messages (e.g., `/goal_geo`) for our robot stack
 
