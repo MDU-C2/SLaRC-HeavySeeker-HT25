@@ -28,14 +28,14 @@
             </mesh>
           </geometry>
         </visual>
-        <collision name="${base_frame}_collision">
+        <!--<collision name="${base_frame}_collision">
           <pose relative_to="${base_frame}">${collision_offset_x} ${collision_offset_y} ${collision_offset_z} 0 0 0</pose>
           <geometry>
             <box>
               <size>${collision_length_x} ${collision_length_y} ${collision_length_z}</size>
             </box>
           </geometry>
-        </collision>
+        </collision>-->
         <inertial>
           <mass>${mass}</mass>
           <inertia>

@@ -1,46 +1,46 @@
-amcl:
-  ros__parameters:
-    alpha1: 0.2
-    alpha2: 0.2
-    alpha3: 0.2
-    alpha4: 0.2
-    alpha5: 0.2
-    base_frame_id: "base_link" #Check
-    beam_skip_distance: 0.5
-    beam_skip_error_threshold: 0.9
-    beam_skip_threshold: 0.3
-    do_beamskip: false
-    global_frame_id: "map"
-    lambda_short: 0.1
-    laser_likelihood_max_dist: 2.0
-    laser_max_range: 100.0
-    laser_min_range: -1.0
-    laser_model_type: "likelihood_field"
-    max_beams: 60
-    max_particles: 2000
-    min_particles: 500
-    odom_frame_id: "odom"
-    pf_err: 0.05
-    pf_z: 0.99
-    recovery_alpha_fast: 0.0
-    recovery_alpha_slow: 0.0
-    resample_interval: 1
-    robot_model_type: "nav2_amcl::DifferentialMotionModel"
-    save_pose_rate: 0.5
-    sigma_hit: 0.2
-    tf_broadcast: true
-    transform_tolerance: 1.0
-    update_min_a: 0.2
-    update_min_d: 0.25
-    z_hit: 0.5
-    z_max: 0.05
-    z_rand: 0.5
-    z_short: 0.05
-    scan_topic: '/scan'
+# amcl:
+#   ros__parameters:
+#     alpha1: 0.2
+#     alpha2: 0.2
+#     alpha3: 0.2
+#     alpha4: 0.2
+#     alpha5: 0.2
+#     base_frame_id: "base_link" #Check
+#     beam_skip_distance: 0.5
+#     beam_skip_error_threshold: 0.9
+#     beam_skip_threshold: 0.3
+#     do_beamskip: false
+#     global_frame_id: "map"
+#     lambda_short: 0.1
+#     laser_likelihood_max_dist: 2.0
+#     laser_max_range: 100.0
+#     laser_min_range: -1.0
+#     laser_model_type: "likelihood_field"
+#     max_beams: 60
+#     max_particles: 2000
+#     min_particles: 500
+#     odom_frame_id: "odom"
+#     pf_err: 0.05
+#     pf_z: 0.99
+#     recovery_alpha_fast: 0.0
+#     recovery_alpha_slow: 0.0
+#     resample_interval: 1
+#     robot_model_type: "nav2_amcl::DifferentialMotionModel"
+#     save_pose_rate: 0.5
+#     sigma_hit: 0.2
+#     tf_broadcast: true
+#     transform_tolerance: 1.0
+#     update_min_a: 0.2
+#     update_min_d: 0.25
+#     z_hit: 0.5
+#     z_max: 0.05
+#     z_rand: 0.5
+#     z_short: 0.05
+#     scan_topic: /scan
 
 bt_navigator:
   ros__parameters:
-    global_frame: map
+
     robot_base_frame: base_link
     odom_topic: /odometry/local #Check
     bt_loop_duration: 10
@@ -69,9 +69,9 @@ bt_navigator:
 controller_server:
   ros__parameters:
     controller_frequency: 20.0
-    costmap_update_timeout: 0.30
+    costmap_update_timeout: 0.60
     min_x_velocity_threshold: 0.001 #Colud change
-    min_y_velocity_threshold: 0.5
+    min_y_velocity_threshold: 0.001 #Could change
     min_theta_velocity_threshold: 0.001 #Could change
     failure_tolerance: 0.3
     progress_checker_plugins: ["progress_checker"]
@@ -83,8 +83,8 @@ controller_server:
 
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
-      movement_time_allowance: 10.0
+      required_movement_radius: 0.15
+      movement_time_allowance: 20.0
 
     general_goal_checker:
       stateful: True
@@ -101,13 +101,13 @@ controller_server:
       ax_min: -3.0
       ay_max: 3.0
       az_max: 3.5
-      vx_std: 0.2
-      vy_std: 0.2
-      wz_std: 0.4
+      vx_std: 0.16
+      vy_std: 0.16
+      wz_std: 0.55
       vx_max: 0.5
       vx_min: -0.35
       vy_max: 0.5
-      wz_max: 1.9
+      wz_max: 0.45
       iteration_count: 1
       prune_distance: 1.7
       transform_tolerance: 0.1
@@ -195,19 +195,21 @@ controller_server:
         max_angle_to_furthest: 1.0
         mode: 0
 
-
 # LOCAL COSTMAP — NO STVL
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 10.0
-      publish_frequency: 5.0
+      update_frequency: 7.0
+      publish_frequency: 3.0
       global_frame: odom
       robot_base_frame: base_link #Check
       rolling_window: true
-      width: 8
-      height: 8
-      resolution: 0.02
+      width: 6
+      height: 6
+      origin_x: -3.0
+      origin_y: -3.0
+
+      resolution: 0.05
       footprint: "[[0.47, 0.4175], [0.47, -0.4175], [-0.47, -0.4175], [-0.47, 0.4175]]" #Check
       #robot_radius: 0.22
 
@@ -216,8 +218,8 @@ local_costmap:
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         enabled: true
-        voxel_decay: 1.5 #secons if the decay model is 0 (linear)
-        decay_model: 0 
+        voxel_decay: 3.0 #secons if the decay model is 0 (linear)
+        decay_model: 0
         voxel_size: 0.05
         track_unknown_space: true
         mark_threshold: 3
@@ -228,42 +230,42 @@ local_costmap:
         publish_voxel_map: true
         transform_tolerance: 0.2
         mapping_mode: false
-        map_save_duration: 30.0
+        map_save_duration: 5.0
 
-        observation_sources:  camera_mark camera_clear lidar_mark #lidar_clear
+        observation_sources: camera_mark camera_clear lidar_mark lidar_clear
 
         lidar_mark:
           data_type: PointCloud2
           topic: "/lidar_points_fixed"
           marking: true
           clearing: false
-          obstacle_range: 20.0
-          min_obstacle_height: -0.4
-          max_obstacle_height: 0.4
+          obstacle_range: 5.0
+          min_obstacle_height: -0.32
+          max_obstacle_height: 0.35
           filter: "voxel"
-          voxel_min_points: 1
+          voxel_min_points: 3
 
         lidar_clear:
           data_type: PointCloud2
           topic: "/lidar_points_fixed"
           marking: false 
           clearing: true
-          obstacle_range: 20.0
-          min_obstacle_height: -0.4
-          max_obstacle_height: 0.4
+          obstacle_range: 5.0
+          min_obstacle_height: -0.32
+          max_obstacle_height: 0.35
           filter: "voxel"
           voxel_min_points: 1
           model_type: 1
         
         camera_mark:
           data_type: PointCloud2
-          topic: "/oakd_points_1_fixed"
+          topic: "/oakd_points_1_filtered"
           transport_type: "raw"
           marking: true
           clearing: false
           obstacle_range: 5.0
-          min_obstacle_height: -0.4
-          max_obstacle_height: 0.4
+          min_obstacle_height: -0.32
+          max_obstacle_height: 0.35
           expected_update_rate: 0.0
           observation_persistence: 0.0
           inf_is_valid: false
@@ -278,7 +280,7 @@ local_costmap:
       
         camera_clear:
           data_type: PointCloud2
-          topic: "/oakd_points_1_fixed"
+          topic: "/oakd_points_1_filtered"
           marking: false
           clearing: true
           max_z: 0.4
@@ -294,36 +296,36 @@ local_costmap:
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 10.0
+        cost_scaling_factor: 16.0
         inflation_radius: 0.65
 
-      always_send_full_costmap: true
-
-
+      always_send_full_costmap: True
 
 # GLOBAL COSTMAP — STVL ONLY
 global_costmap:
   global_costmap:
     ros__parameters:
-      update_frequency: 1.0
+      update_frequency: 2.0
       publish_frequency: 1.0
-      global_frame: map
+      global_frame: odom
       robot_base_frame: base_link
       track_unknown_space: true
       footprint: "[[0.47, 0.4175], [0.47, -0.4175], [-0.47, -0.4175], [-0.47, 0.4175]]"
       rolling_window: true
-      width: 200 
-      height: 200
-      resolution: 0.02
+      width: 100
+      height: 100
+      origin_x: -50.0
+      origin_y: -50.0
+      resolution: 0.05
 
       plugins: ["obstacle_layer", "inflation_layer"]
 
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
-        enable: True
+        enabled: true
         observation_sources: scan
         scan:
-          topic: '/scan'
+          topic: /scan
           data_type: "LaserScan"
           marking: true
           clearing: true
@@ -332,11 +334,10 @@ global_costmap:
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 10.0
-        inflation_radius: 0.65
+        cost_scaling_factor: 9.0
+        inflation_radius: 0.75
 
-      always_send_full_costmap: true
-
+      always_send_full_costmap: True
 
 map_saver:
   ros__parameters:
@@ -385,7 +386,7 @@ behavior_server:
     assisted_teleop:
       plugin: "nav2_behaviors::AssistedTeleop"
     local_frame: odom
-    global_frame: map
+    global_frame: odom
     robot_base_frame: base_link
     transform_tolerance: 0.1
     simulate_ahead_time: 2.0
@@ -429,7 +430,7 @@ collision_monitor:
     enable_stamped_cmd_vel: true
     state_topic: "collision_monitor_state"
     transform_tolerance: 0.2
-    source_timeout: 1.0
+    source_timeout: 1.8
     base_shift_correction: True
     stop_pub_timeout: 2.0
     polygons: ["FootprintApproach"]
@@ -495,11 +496,11 @@ docking_server:
       simulation_step: 0.1
       dock_collision_threshold: 0.3
 
-loopback_simulator:
-  ros__parameters:
-    base_frame_id: "base_link"
-    odom_frame_id: "odom"
-    map_frame_id: "map"
-    scan_frame_id: "base_scan"
-    update_duration: 0.02
-    enable_stamped_cmd_vel: true
+# loopback_simulator:
+#   ros__parameters:
+#     base_frame_id: "base_link"
+#     odom_frame_id: "odom"
+#     map_frame_id: "map"
+#     scan_frame_id: "livox_frame"
+#     update_duration: 0.02
+#     enable_stamped_cmd_vel: true
