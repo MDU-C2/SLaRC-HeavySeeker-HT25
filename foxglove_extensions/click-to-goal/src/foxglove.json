@@ -1,0 +1,15 @@
+{
+  "name": "waypoint_extension",
+  "id": "waypoint-extension",
+  "version": "0.0.1",
+  "messageDefinitions": {
+    "rosidl": {
+      "msg": {
+        "Command": "msg/WaypointCommand.idl"
+      },
+      "srv": {
+        "WaypointCommand": "srv/WaypointCommand.idl"
+      }
+    }
+  }
+}
