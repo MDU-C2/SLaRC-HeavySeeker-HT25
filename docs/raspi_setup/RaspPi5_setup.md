@@ -37,6 +37,18 @@ The Imager writes the image with your settings; when it finishes, eject the medi
 - Insert the imaged microSD in the Pi, connect a screen and keyboard, power it on, and follow the on‑screen setup steps.
 
 ## Enable SSH
+To enable SSH on the Raspberry run following command in the terminal then follow the images.
+   ```bash
+   sudo raspi-config
+   ```
+1) Select Interface Options and press enter<br>
+   <img src="images/interface_options.png" width="420" />
+
+2) Select SSH<br>
+   <img src="images/enable_ssh.png" width="420" />
+
+3) Choose YES and press enter<br>
+   <img src="images/enable_ssh_yes.png" width="420" />
 
 ## Stream setup (requirements + autostart)
 1) Install dependencies:
@@ -49,12 +61,20 @@ The Imager writes the image with your settings; when it finishes, eject the medi
    ```bash
    nano /home/slarc/fpv_stream.sh
    ```
-3) Copy and paste following (make sure that the IP-adress is the same as the receiver):
+3) Copy and paste following: 
+> ⚠️ **Important**
+>
+> **The IP address MUST match the server (the NUC).**  
+> If the IP address is incorrect, the connection will fail.
+>
+
+> **Note**
+> If you are experiencing a lot of artifacts, the intra value can be lowered to 1, but this is not preferred in the long run. Most of these settings were used with a Raspberry Pi Camera Module 3 from the beginning and worked perfectly even with an intra value of 30. However, the HQ camera arrived close to the end of the project and could not be fully optimized.
+
    ```bash
    #!/bin/bash
    set -e
 
-   # Give the system a few seconds to finish booting / initializing hardware
    sleep 3
 
    exec rpicam-vid \
