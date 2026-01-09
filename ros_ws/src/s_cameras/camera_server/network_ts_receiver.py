@@ -150,7 +150,7 @@ class NetworkTSReceiver:
             "-hide_banner",
             "-loglevel", "info",
 
-            # 🔑 CRITICAL LOW-LATENCY FLAGS
+            # CRITICAL LOW-LATENCY FLAGS
             "-fflags", "+genpts+nobuffer",
             "-use_wallclock_as_timestamps", "1",
             "-flags", "low_delay",
