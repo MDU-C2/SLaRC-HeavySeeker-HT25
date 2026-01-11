@@ -11,11 +11,11 @@ class TestNode : public rclcpp::Node {
 
     public:
     TestNode()
-     : Node("test_node"), battery_bus("can0", 1) {
+     : Node("test_node"), battery_bus(MOTOR_ADAPTER_ID) {
 
 
         using namespace std::chrono_literals;
-        timer = this->create_timer(250ms, std::bind(&TestNode::callback_timer, this));
+        timer = this->create_timer(100ms, std::bind(&TestNode::callback_timer, this));
 
         RCLCPP_INFO(this->get_logger(), "Test Node Is Running");
     
@@ -29,12 +29,17 @@ class TestNode : public rclcpp::Node {
 
 
         if (battery_bus.recive_frame(frame) > 0) {
+            RCLCPP_INFO(this->get_logger(), "DATA_BEGIN");
             std::cout << "ID: " << std::hex << frame.can_id
                 << " Data: ";
             for (int i = 0; i < frame.can_dlc; i++)
                 std::cout << std::hex << (int)frame.data[i] << " ";
             std::cout << std::endl;
+            RCLCPP_INFO(this->get_logger(), "DATA_END");
         }
+        else
+            RCLCPP_INFO(this->get_logger(), "NO_DATA");
+
 
         return;
     }

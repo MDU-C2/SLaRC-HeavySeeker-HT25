@@ -16,7 +16,7 @@
 #include <linux/can/raw.h>
 #include <fcntl.h>
 
-#include "can_bus.hpp"
+#include "s_robot/can_bus.hpp"
 
 void runCmd(std::string &buffer, const std::string &cmd) {
     std::array<char, 128> local_buffer;
@@ -31,10 +31,13 @@ void runCmd(std::string &buffer, const std::string &cmd) {
     }    
 }
 
-CanBus::CanBus() { }
+CanBus::CanBus() { m_socket = 0; }
 
 CanBus::CanBus(const std::string &adapter_ID) {
-    setup_with_ID(adapter_ID);
+    get_interface_from_ID(adapter_ID);
+
+    bring_up_can();
+    setup_socket();
 }
 
 CanBus::CanBus(const std::string &interface_Name, bool use_ifacename) {
@@ -43,7 +46,6 @@ CanBus::CanBus(const std::string &interface_Name, bool use_ifacename) {
     bring_up_can();
     setup_socket();
  
-
 }
 
 CanBus::~CanBus() {
@@ -68,6 +70,18 @@ void CanBus::setup_with_ID(const std::string &adapter_ID) {
 
 }
 
+void CanBus::setup_with_interface(const std::string &interface_name) {
+    if (m_socket != 0)
+        return;
+
+    m_interface = interface_name;
+
+    bring_up_can();
+    setup_socket();
+
+}
+
+
 void CanBus::send_frame(const struct can_frame &frame) {
 
     if (write(m_socket, &frame, sizeof(frame)) != sizeof(frame)) {
@@ -76,7 +90,7 @@ void CanBus::send_frame(const struct can_frame &frame) {
     }
 }
 
-int CanBus::recive_frame(struct can_frame &frame) {
+ssize_t CanBus::recive_frame(struct can_frame &frame) {
 
     return read(m_socket, &frame, sizeof(frame));
 
@@ -95,10 +109,12 @@ void CanBus::get_interface_from_ID(const std::string &adapter_ID){
 
     size_t num_interfaces = std::count(interfaces.begin(), interfaces.end(), '\n');
     
-    for (int i = 0; i < num_interfaces; i++) {
+    
+    for (size_t i = 0; i < num_interfaces; i++) {
         interface_to_check = interfaces.substr(0, interfaces.find('\n'));
         interfaces.erase(0, interfaces.find('\n')+1);
 
+        // get 
         cmd = "udevadm info /sys/class/net/" + interface_to_check + " | grep ID_SERIAL_SHORT";
         buffer = "";
         runCmd(buffer, cmd);

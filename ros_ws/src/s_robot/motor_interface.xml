@@ -1,0 +1,9 @@
+<library path="motor_interface">
+  <class name="motor_interface/DiffBotSystemHardware"
+         type="motor_interface::DiffBotSystemHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Using ros2_control hardware interface to control an skidsteer differential drive robot. It has command for velocity and state for velocity and position.
+    </description>
+  </class>
+</library>

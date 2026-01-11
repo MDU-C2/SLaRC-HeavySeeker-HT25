@@ -18,9 +18,10 @@ class CanBus {
     ~CanBus();
 
     void setup_with_ID(const std::string &adapter_ID);
+    void setup_with_interface(const std::string &interface_name);
 
     void send_frame(const struct can_frame &frame);
-    int recive_frame(struct can_frame &frame);
+    ssize_t recive_frame(struct can_frame &frame);
 
     private:
     void get_interface_from_ID(const std::string &adapter_ID);

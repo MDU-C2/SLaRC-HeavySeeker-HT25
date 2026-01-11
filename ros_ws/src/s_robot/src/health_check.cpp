@@ -91,7 +91,7 @@ class HealthCheckNode : public rclcpp::Node {
 
     Status<std_msgs::msg::Bool> status_battery;
     Status<std_msgs::msg::Bool> status_motor;
-    std::array<std::reference_wrapper<Status<std_msgs::msg::Bool>>, 2> status_platform = {status_motor, status_battery};
+    std::array<std::reference_wrapper<Status<std_msgs::msg::Bool>>, 2> status_platform = {{status_motor, status_battery}};
 
     Status<sensor_msgs::msg::Joy> status_controller;
 
@@ -105,10 +105,10 @@ class HealthCheckNode : public rclcpp::Node {
         this->status_motor.time_recived = this->get_clock()->now();
 
         // Stop system if motors not ready
-        if(this->status_motor.last_msg.data == false) {
+        /*if(this->status_motor.last_msg.data == false) {
             saftey_stop.data = true;
             pub_saftey_stop->publish(this->saftey_stop);
-        }
+        }*/
     }
 
     void callback_sub_platform_battery(std_msgs::msg::Bool batteryReady){
@@ -116,10 +116,10 @@ class HealthCheckNode : public rclcpp::Node {
         this->status_battery.time_recived = this->get_clock()->now();
 
         // Stop system if battery not ready
-        if(this->status_motor.last_msg.data == false) {
+        /*if(this->status_motor.last_msg.data == false) {
             saftey_stop.data = true;
             pub_saftey_stop->publish(this->saftey_stop);
-        }
+        }*/
     }
 
     void callback_sub_manual_controllers(sensor_msgs::msg::Joy joy) {
@@ -143,6 +143,7 @@ class HealthCheckNode : public rclcpp::Node {
     void platform_saftey_check() {
 
         // check that hardware is OK
+        /*
         for (const Status<std_msgs::msg::Bool> &status : status_platform) { 
             // check platform message age
             if (this->get_clock()->now().nanoseconds() - status.time_recived.nanoseconds() > 600*1000000) {
@@ -155,7 +156,7 @@ class HealthCheckNode : public rclcpp::Node {
                 activate_safety_lock();
                 return;
             }
-        }
+        }*/
 
         // check for manual controllers
         if (this->get_clock()->now().nanoseconds() - this->status_controller.time_recived.nanoseconds() > 600*1000000) {
@@ -166,6 +167,8 @@ class HealthCheckNode : public rclcpp::Node {
         // all topics are up to date and delivers system ok, manual controller connected
         saftey_stop.data = false;
         pub_saftey_stop->publish(saftey_stop);
+
+        // check for sensors
     
     }
 
