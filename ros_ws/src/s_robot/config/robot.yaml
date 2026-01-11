@@ -4,7 +4,7 @@ health_checker:
       motor: "platform/motorOK"
       battery: "platform/batteryOK"
     manual_controllers:
-      topics: ["local_joy/joy", "telop_joy/joy", "/a200_0309/joy_teleop/joy"]
+      topics: ["local_joy/joy", "telop_joy/joy"]
     requirements:
       telop:
         fpv_camera: ""

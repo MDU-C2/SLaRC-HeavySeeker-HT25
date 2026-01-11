@@ -11,11 +11,6 @@ twist_mux:
         topic: 'telop_joy/cmd_vel'
         timeout: 0.5
         priority: 50
-      # just an test joy that is recorded
-      telop_control_test:
-        topic: '/a200_0309/joy_teleop/cmd_vel'
-        timeout: 0.1
-        priority: 49
         
       #Autonomous control
       auto_control:
@@ -35,10 +30,10 @@ twist_mux:
         priority: 255
 
       # Mode locks
-      #stop_auto:
-      #  topic: 'locks/auto'
-      #  timeout: 0.0
-      #  priority: 11
+      stop_auto:
+        topic: 'locks/auto'
+        timeout: 0.0
+        priority: 11
       #stop_telop:
       #  topic: 'locks/telop_control'
       #  timeout: 0.0
