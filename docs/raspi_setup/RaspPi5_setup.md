@@ -152,8 +152,8 @@ To enable SSH on the Raspberry run following command in the terminal then follow
    sudo systemctl start fpv-stream.service
    ```
 
-10) Check logs to verify that it works:
+9) Check logs to verify that it works:
    ```bash
    journalctl -u fpv-stream.service -f
    ```
-11) Now all should be setup and the Raspberry Pi should start the camera, encode to H.264 and start sending over ethernet to the server.
+10) Now all should be setup and the Raspberry Pi should start the camera, encode to H.264 and start sending over ethernet to the server when powered on.
