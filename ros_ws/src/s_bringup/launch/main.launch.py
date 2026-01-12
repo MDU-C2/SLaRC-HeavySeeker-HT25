@@ -103,9 +103,9 @@ def generate_launch_description():
     )
     )
 
-    autonomus_condition = IfCondition(
+    autonomous_condition = IfCondition(
     PythonExpression(
-        ["'", LaunchConfiguration("control_mode"), "' in ['autonomus']"]
+        ["'", LaunchConfiguration("control_mode"), "' in ['autonomous']"]
     )
     )
 
