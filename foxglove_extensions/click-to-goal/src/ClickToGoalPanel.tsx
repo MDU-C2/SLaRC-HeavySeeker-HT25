@@ -1,13 +1,38 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import "./ClickToGoalPanel.css";
+import { Command } from "./types/Command";
 import type { PanelExtensionContext } from "@foxglove/studio";
+
 
 type PointStamped = {
   header: { frame_id: string; stamp: { sec: number; nsec: number } };
   point: { x: number; y: number; z: number };
 };
+
+type Action = {
+  id: string;
+  label: string;
+  icon?: ReactNode;
+  onClick: () => void;
+};
+
+type WaypointProgress = {
+  current_waypoint: number;
+  total_waypoints: number;
+  is_running: boolean;
+  status: number;
+};
+
+
+// enum WaypointStatus {
+//   UNKNOWN = 0,
+//   SUCCEEDED = 1,
+//   CANCELED = 2,
+//   FAILED = 3,
+// }
 
 function nowStamp() {
   const t = Date.now() / 1000;
@@ -19,17 +44,79 @@ function nowStamp() {
 export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const goalMarkerRef = useRef<maplibregl.Marker | null>(null);
+  //const goalMarkerRef = useRef<maplibregl.Marker | null>(null);
   const robotMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   const [initialCenter, setInitialCenter] = useState<[number, number] | null>(null);
   const [pubReady, setPubReady] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+
+  const waypointMarkersRef = useRef<maplibregl.Marker[]>([]);
+  //const [waypointProgress, setWaypointProgress] = useState<Array<number>>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessageColor, setErrorMessageColor] = useState("rgba(255,0,0,0.8)");
+
+  const mapStyleOptions = {
+    standard: {label: "Standard", url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png"},
+    satellite: {label: "Satellite", url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"},
+    terrain: {label: "Terrain", url: "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"},
+  };
+
+  const [mapStyle,setMapStyle] = useState(mapStyleOptions.standard.url);
+  const [mapStyleLabel,setMapStyleLabel] = useState(mapStyleOptions.standard.label);
+  const isRunningRef = useRef(isRunning);
+
+  useEffect(() => {
+    isRunningRef.current = isRunning;
+  }, [isRunning]);
+
+  function cycleMapStyle() {
+    if (mapStyle === mapStyleOptions.standard.url) {
+      setMapStyle(mapStyleOptions.satellite.url);
+      setMapStyleLabel(mapStyleOptions.satellite.label);
+    } else if (mapStyle === mapStyleOptions.satellite.url) {
+      setMapStyle(mapStyleOptions.terrain.url);
+      setMapStyleLabel(mapStyleOptions.terrain.label);
+    } else {
+      setMapStyle(mapStyleOptions.standard.url);
+      setMapStyleLabel(mapStyleOptions.standard.label);
+    }
+  }
+
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    mapRef.current.setStyle({
+      version: 8,
+      sources: {
+        osm: {
+          type: "raster",
+          tiles: [mapStyle],
+          tileSize: 256,
+          attribution: "© OpenStreetMap contributors",
+        },
+      },
+      layers: [
+        {
+          id: "osm",
+          type: "raster",
+          source: "osm",
+        },
+      ],
+    });
+  }, [mapStyle]);
+
+
 
   useEffect(() => {
 
     try{
       context.watch?.("currentFrame");
-      context.subscribe?.([{ topic: "/gps/filtered" }]);
+      context.subscribe?.([
+        { topic: "/gps/filtered" },
+        { topic: "/waypoint_progress" },
+      ]);
     }catch(e){
       console.log("Subscribe error: "+e)
     }
@@ -73,6 +160,30 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
             }
           }
         }
+
+        const progressMsgs = frame.filter(
+          (m: any) => m.topic === "/waypoint_progress"
+        );
+
+        if (progressMsgs.length > 0) {
+          const last = progressMsgs[progressMsgs.length - 1];
+          const msg = last?.message as WaypointProgress;
+
+          updateWaypointMarkerColors(msg.current_waypoint);
+          // if (msg.current_waypoint > waypointProgress.length - 1) {
+          //     setWaypointProgress(waypointProgress => [...waypointProgress, msg.status]);
+              
+          // }
+          // else{
+          //     updateWaypointMarkerColors(msg.current_waypoint);
+          //     setWaypointProgress(waypointProgress => {
+          //         const newProgress = [...waypointProgress];
+          //         newProgress[msg.current_waypoint] = msg.status;
+          //         return newProgress;
+          //     });
+          // }
+        }
+
       }
       // Call done when you've rendered all the UI for this renderState.
       // If your UI framework delays rendering, call done when rendering has actually happened.
@@ -81,6 +192,8 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
 
     return;
   }, [context, pubReady, initialCenter]);
+
+  
 
   useEffect(() => {
     // vi behöver ett container-element, inget befintligt map-objekt, OCH en initialCenter för att starta upp kartan på robotens position
@@ -98,7 +211,7 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
           osm: {
             type: "raster",
             tiles: [
-              "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+              mapStyle
             ],
             tileSize: 256,
             attribution:
@@ -120,16 +233,19 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
     mapRef.current.addControl(new maplibregl.NavigationControl());
 
     mapRef.current.on("click", (e) => {
+      if (isRunningRef.current) return;
+      
       const lng = e.lngLat.lng;
       const lat = e.lngLat.lat;
 
-      if (!goalMarkerRef.current) {
-        goalMarkerRef.current = new maplibregl.Marker({ color: "#e53935" })
-          .setLngLat([lng, lat])
-          .addTo(mapRef.current!);
-      } else {
-        goalMarkerRef.current.setLngLat([lng, lat]);
-      }
+      if (!mapRef.current) return;
+
+      const index = waypointMarkersRef.current.length;
+      const marker = createNumberedMarker(index)
+        .setLngLat([lng, lat])
+        .addTo(mapRef.current);
+
+      waypointMarkersRef.current.push(marker);
 
 
       if (pubReady && context.publish) {
@@ -146,13 +262,272 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
         };
         context.publish("/clicked_point", msg);
         console.log(msg)
-      }
+    }
     });
   }, [context, initialCenter]);
+
+
+  function updateWaypointMarkerColors(currentIndex: number) {
+    waypointMarkersRef.current.forEach((marker, index) => {
+      const el = marker.getElement();
+
+      if (index < currentIndex) {
+        // previous
+        el.style.backgroundColor = "#2ecc71";  //   SUCCEEDED = 1,
+        // switch(waypointProgress[index]){
+        //   case 1:
+        //     el.style.backgroundColor = "#2ecc71";  //   SUCCEEDED = 1,
+        //     setErrorMessageColor("rgba(41, 84, 213, 0.8)");
+        //     showTemporaryError(`Waypoint ${index + 1} reached successfully.`);
+        //     break;
+        //   case 2:
+        //     el.style.backgroundColor = "#e67e22";  //   CANCELED = 2,
+        //     showTemporaryError(`Waypoint ${index + 1} was canceled.`);
+        //     break;
+        //   case 3:
+        //     el.style.backgroundColor = "#e74c3c";  //   FAILED = 3,
+        //     showTemporaryError(`Waypoint ${index + 1} failed to reach.`);
+        //     break;
+        //   case 0:
+        //     el.style.backgroundColor = "#5a5858ff";  //UNKNOWN = 0,
+        //     showTemporaryError(`Waypoint ${index + 1} has unknown status.`);
+        //     break;
+        //   default:
+        //     el.style.backgroundColor = "#5a5858ff";  //UNKNOWN = 0,
+        //     showTemporaryError(`Waypoint ${index + 1} has unknown status.`);
+        //     break;  
+        // }
+      } else if (index === currentIndex) {
+        // current
+        el.style.backgroundColor = "#f1c40f";
+      } else {
+        // remaining
+        el.style.backgroundColor = "#3498db";
+      }
+
+      // el.classList.toggle("current", index === currentIndex);
+    });
+  }
+
+  async function sendWaypointCommand(context: any, command: number, index = -1) {
+    try {
+      const response = await context.callService("/waypoint_command", {
+        command,
+        waypoint_index: index
+      });
+
+      console.log("Response:", response);
+      if (response === undefined) {
+        return { success: false, message: "No response from service" };
+      }
+      return response
+    } catch (err) {
+      console.error("Service call failed:", err);
+      return { success: false, message: err || "Service call failed" };
+    }
+  }
+
+
+  function createNumberedMarker(index: number) {
+    const el = document.createElement("div");
+    el.className = "goal-marker";
+    el.innerText = String(index + 1); 
+
+    el.style.backgroundColor = "#3498db";
+
+    return new maplibregl.Marker({ element: el });
+  }
+
+
+  const clearAllMarkers = () => {
+    waypointMarkersRef.current.forEach(m => m.remove());
+    waypointMarkersRef.current = [];
+    //setWaypointProgress([]);
+  };
+
+  const removeLastMarker = () => {
+    const last = waypointMarkersRef.current.pop();
+    last?.remove();
+  };
+
+
+  function showTemporaryError(message: string, duration = 3000) {
+    setErrorMessage(message);
+    setTimeout(() => {
+        setErrorMessage(null);
+        setErrorMessageColor("rgba(255,0,0,0.8)");
+    },duration);
+  }
+
+
+  const handleStart = async () => {
+    console.log("Start clicked");
+    const result = await sendWaypointCommand(context, Command.START);
+    if (result.success){
+        setIsRunning(true);
+        setErrorMessage(null);
+    }
+    else{
+        showTemporaryError(result.message || "Failed to start waypoint navigation.");
+    }
+  };
+
+  const handlePause = async () => {
+    console.log("Pause clicked");
+    if (!isRunning){
+        clearAllMarkers();
+        return;
+    };
+    const result = await sendWaypointCommand(context, Command.STOP);
+    if (result.success){
+        setIsRunning(false);
+        clearAllMarkers();
+        setErrorMessage(null);
+    }
+    else{
+        showTemporaryError(result.message || "Failed to pause waypoint navigation.");
+    }
+  };
+
+  const handleUndo = async () => {
+    console.log("Undo clicked");
+    const result = await sendWaypointCommand(context, Command.UNDO);
+    if (result.success){
+      removeLastMarker();
+      setErrorMessage(null);
+    }
+    else{
+        showTemporaryError(result.message || "Failed to undo last waypoint.");
+    }
+  };
+
+  const handleClear = async () => {
+    console.log("Clear all clicked");
+    const result = await sendWaypointCommand(context, Command.CLEAR_ALL);
+    if (result.success){
+      clearAllMarkers();
+      setErrorMessage(null);
+    }
+    else{
+        showTemporaryError(result.message || "Failed to clear waypoints.");
+    }
+  };
+
+
+  const actions: Action[] = [
+    {
+      id: "startPause",
+      label: isRunning ? "Stop" : "Start",
+      icon: isRunning ? "⏸️" : "▶️",
+      onClick: () => {
+        if (isRunning) {
+          handlePause();
+        } else {
+          handleStart();
+        }
+      },
+    },
+    {
+      id: "clear",
+      label: "Clear all",
+      icon: "🗑️",
+      onClick: () => {
+        handleClear();
+      },
+    },
+    {
+      id: "undo",
+      label: "Undo",
+      icon: "↩️",
+      onClick: () => {
+        handleUndo();
+      },
+    },
+  ];
+
+
 
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
+          <button
+            onClick={cycleMapStyle}
+            style={{
+              position: "absolute",
+              top: 8,
+              left: 8,
+              width: 100,
+              height: 80,
+              display: "flex",
+              flexDirection: "column", 
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,                   
+              background: "rgba(255,255,255,0.9)",
+              color: "#111",
+              border: "1px solid rgba(0,0,0,0.1)",
+              borderRadius: 10,
+                cursor: "pointer",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+              }}
+            >
+              {/* <div style={{ fontSize: 12, opacity: 0.7 }}>
+                Map type
+              </div> */}
+
+              <div style={{ fontSize: 34, lineHeight: 1 }}>
+                🗺️
+              </div>
+
+              <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.7)" }}>
+                {mapStyleLabel} 
+              </div>
+            </button>
+            <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          padding: "12px 16px",
+          background: "rgba(0, 0, 0, 0.55)",
+          display: "flex",
+          borderTopRightRadius:12,
+          borderTopLeftRadius:12,
+          flexWrap: "wrap",
+          gap: 8,
+          justifyContent: "space-around",
+          alignItems: "center",
+          zIndex: 10,
+        }}
+      >
+        {actions.map((action) => (
+          <button
+            key={action.id}
+            onClick={action.onClick}
+            style={{
+              flex: 1,
+              minWidth: 100,
+              height:40,
+              display: (isRunning && action.id != "startPause") ? "none" : "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "10px 12px",
+              background: waypointMarkersRef.current.length < 1 && action.id != "startPause" ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.7)",
+              color: "#111",
+              border: "none",
+              borderRadius: 8,
+              cursor: "pointer",
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          >
+            {action.icon && <span>{action.icon}</span>}
+            <span>{action.label}</span>
+          </button>
+        ))}
+      </div>
       {!initialCenter && (
         <div
           style={{
@@ -169,6 +544,23 @@ export function ClickToGoalPanel({ context }: { context: PanelExtensionContext }
           Waiting for first GPS fix on <code>/gps/filtered</code>...
         </div>
       )}
+      {errorMessage && (
+      <div
+        style={{
+          position: "absolute",
+          bottom: 60,
+          left: 8,
+          padding: "8px 12px",
+          background: errorMessageColor,
+          color: "white",
+          borderRadius: 8,
+          fontSize: 12,
+          zIndex: 20,
+        }}
+      >
+        {errorMessage}
+      </div>
+    )}
     </div>
   );
 }

@@ -1,6 +1,0 @@
-# Request (empty)
----
-
-# Response
-string[] cameras
-string[] active_cameras
