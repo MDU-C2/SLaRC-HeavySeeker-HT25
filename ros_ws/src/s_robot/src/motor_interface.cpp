@@ -88,10 +88,10 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     }
   }
 
-  motorCanID.insert({"front_left_wheel_link_joint",  0x01});
-  motorCanID.insert({"rear_left_wheel_link_joint",   0x02});
-  motorCanID.insert({"front_right_wheel_link_joint", 0x03});
-  motorCanID.insert({"rear_right_wheel_link_joint",  0x04});
+  motorCanID.insert({"front_left_wheel_link_joint",  0x02});
+  motorCanID.insert({"rear_left_wheel_link_joint",   0x04});
+  motorCanID.insert({"front_right_wheel_link_joint", 0x01});
+  motorCanID.insert({"rear_right_wheel_link_joint",  0x03});
 
   
 
@@ -105,8 +105,8 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
 
   RCLCPP_INFO(get_logger(), "Configuring ...please wait...");
 
-  //canBus.setup_with_ID(MOTOR_ADAPTER_ID);
-  canBus.setup_with_interface("vcan0");
+  canBus.setup_with_ID(MOTOR_ADAPTER_ID);
+  //canBus.setup_with_interface("vcan0");
 
   // reset values always when configuring hardware
   for (const auto & [name, descr] : joint_state_interfaces_)

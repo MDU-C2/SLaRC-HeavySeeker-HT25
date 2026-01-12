@@ -116,7 +116,7 @@ class HealthCheckNode : public rclcpp::Node {
         this->status_battery.time_recived = this->get_clock()->now();
 
         // Stop system if battery not ready
-        /*if(this->status_motor.last_msg.data == false) {
+        /*if(this->status_battery.last_msg.data == false) {
             saftey_stop.data = true;
             pub_saftey_stop->publish(this->saftey_stop);
         }*/
