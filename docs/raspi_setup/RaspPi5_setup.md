@@ -49,7 +49,10 @@ To enable SSH on the Raspberry run following command in the terminal then follow
 
 3) Choose YES and press enter<br>
    <img src="images/enable_ssh_yes.png" width="420" />
-
+4) If the raspberry is connected to the RUTX router and you are connected to the RUTX network, you should be able to SSH into the raspberry like so:
+   ```bash
+      ssh slarc@192.168.10.21
+   ```
 ## Stream setup (requirements + autostart)
 1) Install dependencies:
    ```bash
@@ -68,8 +71,8 @@ To enable SSH on the Raspberry run following command in the terminal then follow
 > If the IP address is incorrect, the connection will fail.
 >
 
-> **Note**
-> If you are experiencing a lot of artifacts, the intra value can be lowered to 1, but this is not preferred in the long run. Most of these settings were used with a Raspberry Pi Camera Module 3 from the beginning and worked perfectly even with an intra value of 30. However, the HQ camera arrived close to the end of the project and could not be fully optimized.
+> **<u>Note</u>**
+>Most of these settings were used with a Raspberry Pi Camera Module 3 from the beginning and worked perfectly, even with an intra value of <b>30</b>. However, the HQ camera arrived near the end of the project and could not be fully optimized. Therefore, to ensure reliable operation, the intra value is currently set to <b>1</b>. With further tuning, the intra value should be increased (preferably to match the frame rate) to reduce latency
 
    ```bash
    #!/bin/bash
@@ -79,14 +82,15 @@ To enable SSH on the Raspberry run following command in the terminal then follow
 
    exec rpicam-vid \
    --mode 1332:990:10 \
+   --roi 0,0.22,1,0.757
    --codec h264 \
    --profile main \
    --level 3.1 \
    --width 1280 \
    --height 720 \
    --framerate 30 \
-   --intra 15 \
-   --bitrate 3500000 \
+   --intra 1 \
+   --bitrate 4000000 \
    --denoise cdn_hq \
    --inline \
    --nopreview \
@@ -104,7 +108,7 @@ To enable SSH on the Raspberry run following command in the terminal then follow
    -muxpreload 0 \
    -flush_packets 1 \
    -f mpegts \
-   "udp://192.168.10.222:5600?pkt_size=1316&buffer_size=425984"
+   "udp://192.168.10.20:5600?pkt_size=1316&buffer_size=425984"
 
    ```
 4) Save the script (`Ctrl + S` to save and `Ctrl + X` to exit), then make it executable:
