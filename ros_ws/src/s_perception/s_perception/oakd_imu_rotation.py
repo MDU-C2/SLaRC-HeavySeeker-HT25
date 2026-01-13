@@ -13,6 +13,12 @@ import numpy as np
 
 
 class OakdImuRotataion(Node):
+    """
+    The IMU data from OAK-D camera, when used with depthai-ros driver
+    has a weirdly rotated coordinate frame. In order to use it
+    in packages such as `robot_localization`, we first have to
+    transform it to East-North-Up (ENU) frame.
+    """
     def __init__(self):
         super().__init__('oakd_imu_rotation')
         self.imu_sub = self.create_subscription(
