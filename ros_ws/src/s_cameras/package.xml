@@ -4,8 +4,8 @@
   <version>0.1.0</version>
   <description>Camera management, FPV streaming, and action interfaces for ROS 2</description>
 
-  <maintainer email="slarc25@proton.me">Kim</maintainer>
-  <license>MIT</license>
+  <maintainer email="slarc25@proton.me">slarc</maintainer>
+  <license>TODO: License declaration</license>
 
   <!-- Build tools -->
   <buildtool_depend>ament_cmake</buildtool_depend>

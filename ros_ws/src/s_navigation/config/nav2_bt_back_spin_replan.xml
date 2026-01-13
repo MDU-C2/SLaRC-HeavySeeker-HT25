@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+
+    <RecoveryNode number_of_retries="4" name="NavigateRecovery">
+      <!-- Normal navigate loop -->
+      <PipelineSequence name="NavigateWithReplanning">
+        <RateController hz="2.0">
+          <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+        </RateController>
+        <FollowPath path="{path}" controller_id="FollowPath"/>
+      </PipelineSequence>
+
+      <!-- Recovery actions when FollowPath/ComputePath fails or progress checker triggers -->
+      <ReactiveFallback name="RecoveryActions">
+        <Sequence name="BackupSpinReplan">
+          <BackUp backup_dist="0.35" backup_speed="0.15"/>
+          <Spin spin_dist="1.57"/>
+          <Wait wait_duration="1.0"/>
+          <ClearEntireCostmap service_name="/local_costmap/clear_entirely_local_costmap"/>
+          <ClearEntireCostmap service_name="/global_costmap/clear_entirely_global_costmap"/>
+        </Sequence>
+      </ReactiveFallback>
+    </RecoveryNode>
+
+  </BehaviorTree>
+</root>
+

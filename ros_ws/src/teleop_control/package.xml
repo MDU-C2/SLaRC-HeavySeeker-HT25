@@ -4,8 +4,8 @@
   <name>teleop_control</name>
   <version>0.0.0</version>
   <description>Teleoperation control using joystick and keyboard</description>
-  <maintainer email="mhr21003@student.mdu.se">Mobina_Hatefipour</maintainer>
-  <license>Apache License 2.0</license>
+  <maintainer email="slarc25@proton.me">slarc</maintainer>
+  <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>

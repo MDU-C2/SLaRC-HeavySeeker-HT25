@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>s_ui</name>
+  <version>0.0.1</version>
+  <description>UI launch package for Seeker (RViz, Foxglove, Mapviz).</description>
+
+  <maintainer email="slarc25@proton.me">slarc</maintainer>
+  <license>TODO: License</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>foxglove_bridge</exec_depend>
+  <exec_depend>mapviz</exec_depend>
+
+  <!-- Tests (optional) -->
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
