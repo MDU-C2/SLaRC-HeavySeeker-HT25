@@ -3,13 +3,13 @@
 This package integrates `nav2`-based navigation stack with **seeker** UGV
 
 ## Quick Start
-`ros2 launch s_navigation s_navigation.launch.py` - starts `nav2` and `robot_localization` with default configs from `s_navigation/config` directory, begins listening to `/clicked_point` to collect waypoints, activates on `start` command on `/waypoint_command`.
+`ros2 launch s_navigation s_navigation.launch.py` - starts `nav2` and `robot_localization` with default configuration files from `s_navigation/config` directory, begins listening to `/clicked_point` to collect waypoints, activates on `start` command on `/waypoint_command`.
 
 ## Launch
 ### [`s_navigation.launch.py`](./launch/s_navigation.launch.py)
 Launch **seeker**'s navigation stack. The stack includes `nav2_bringup`, `robot_localization` and custom nodes from this package.
 
-Args:
+Arguments:
 
 - `nav2_config: relative_path` - file in `config` directory with configuration for `nav2`. Default: `"nav2_params.yaml"`
 - `navsat_config: relative_path` - file in `config` directory with nodes' configuration. Default: `"dual_ekf_navsat.yaml"`
@@ -19,7 +19,7 @@ Args:
 ### [`s_navsat.launch.py`](./launch/s_navsat.launch.py)
 Launch `robot_localization` nodes. Creates `map` -> `odom` -> `base_link` transform.
 
-Args:
+Arguments:
 
 - `namespace: str` - Robot namespace. Default: `""`
 - `use_sim_time: [True, False]` - use clock source from simulation (topic named `/clock`). Default: `False`
@@ -35,7 +35,7 @@ Args:
 ### [`waypoint_command_node.py`](./s_navigation/waypoint_command_node.py)
 This node converts [`geometry_msgs/PointStamped`](https://docs.ros.org/en/jazzy/p/geometry_msgs/msg/PointStamped.html) in _wgs84_ coordinates and redirects it to `nav2`
 
-Subscribtions:
+Subscriptions:
 
 - `/clicked_point`:[`geometry_msgs/PointStamped`](https://docs.ros.org/en/jazzy/p/geometry_msgs/msg/PointStamped.html) - waypoint in _wgs84_ coordinates
 
