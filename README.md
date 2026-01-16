@@ -11,7 +11,7 @@ git submodule update --init --recursive
 ```
 
 # Running the robot
-This section is a guide on how to build and run on the onboard computer. For client-side, see [this section](#running-client-side-interface)
+This section is a guide on how to build and run on the onboard computer.
 ## 1.1 Prerequisites
 * OS:
   * Linux: Ubuntu Server 18.04 or above
