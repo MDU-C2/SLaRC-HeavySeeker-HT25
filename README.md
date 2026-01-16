@@ -10,10 +10,11 @@ If you've already cloned without submodules, initialize them separately:
 git submodule update --init --recursive
 ```
 
-# Running the lidars
+# Running the robot
+This section is a guide on how to build and run on the onboard computer. For client-side, see [this section](#running-client-side-interface)
 ## 1.1 Prerequisites
 * OS:
-  * Linux: Ubuntu 18.04 or above
+  * Linux: Ubuntu Server 18.04 or above
 
 * Tools:
   * compilers that support C++11
@@ -24,8 +25,8 @@ git submodule update --init --recursive
   * ARM
 
 
-## 1.2 Instruction for Ubuntu 24.04
-If you are using the [docker container](docker/README.md), step 1 & 2 are already taken care of.
+## 1.2 Instruction for Ubuntu Server 24.04
+If you are using the [docker container](docker/README.md), steps 1 & 2 are already taken care of.
 
 1. Dependencies:
 
@@ -33,10 +34,39 @@ If you are using the [docker container](docker/README.md), step 1 & 2 are alread
 * gcc 4.8.1+
 * [ROS2 Jazzy](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)
 
-2. Install the **CMake** using apt:
+2. Install dependencies using apt:
 
 ```shell
-$ sudo apt install cmake
+$ sudo apt update && apt install -y \
+    curl  \
+    lsb-release \
+    gnupg \
+    build-essential \
+    cmake \
+    libpcl-dev \
+    gh \
+    python3-pip \
+    pcl-tools
+
+$ sudo apt update && apt install -y \
+    ros-dev-tools \
+    ros-jazzy-navigation2 \
+    ros-jazzy-nav2-bringup \
+    ros-jazzy-nav2-route \
+    ros-jazzy-depthai-ros \
+    ros-jazzy-pcl-conversions \
+    ros-jazzy-pcl-msgs \
+    ros-jazzy-pcl-ros \
+    ros-jazzy-septentrio-gnss-driver \
+    ros-jazzy-teleop-twist-keyboard \
+    ros-jazzy-teleop-twist-joy \
+    ros-jazzy-usb-cam \
+    ros-jazzy-pointcloud-to-laserscan \
+    ros-jazzy-robot-localization \
+    ros-jazzy-tile-map \
+    ros-jazzy-foxglove-bridge \
+    ros-jazzy-tf-transformations \
+    ros-jazzy-spatio-temporal-voxel-layer
 ```
 
 3. Compile and install the Livox-SDK2:
@@ -59,22 +89,26 @@ $ sudo rm -rf /usr/local/lib/liblivox_lidar_sdk_*
 $ sudo rm -rf /usr/local/include/livox_lidar_*
 ```
 
-4. Build Livox ROS drivers
+4. Build
 From ros workspace:
 ```shell
-$ colcon build --packages-select livox_ros_driver2 s_perception
+$ colcon build
 ```
-5. Start the lidars
+5. Connecting to the lidar
 * Make sure it is powerd and connected.
 > [!WARNING]
-> Do not connect the ethernet cables to a Power over Ethernet (PoE) port and make sure the lidars are not in view of each other or they will get damaged
+> Do not connect the ethernet cable to a Power over Ethernet (PoE) port and if using multiple, make sure the lidars are not in view of each other or they will get damaged
 * Set the wired IPv4 address to _192.168.10.222_ and the netmask to _255.255.255.0_ in order to be able to have a connection with the lidars, or [alter their configurations](ros_ws/src/s_perception/config/MID360_config.json).
 
-6. Connect to lidars
+6. Source and launch
 From ros workspace:
 ```shell
 $ source install/setup.bash
-$ ros2 launch s_perception livox_launch.py 
+$ ros2 launch s_bringup main.launch.py
 ```
+
+# Running client-side interface
+
+Add instructions here
 
 Happy debugging :)

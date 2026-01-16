@@ -2,7 +2,8 @@ import os
 import yaml
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     PathJoinSubstitution,
     LaunchConfiguration,
@@ -37,12 +38,23 @@ def generate_launch_description():
     camera_serever_config = config_params.get("camera_serever_config", "")
 
     #-------------------Paths to other launch files-------------------
-    #Not finished yet
     perception_dir = PathJoinSubstitution(
         [
             get_package_share_directory("s_perception"),
             "launch", "s_perception.launch.py",]
     )
+
+    cameras_dir = PathJoinSubstitution(
+        [
+            get_package_share_directory("s_cameras"),
+            "launch", "s_cameras.launch.py",]
+    )
+
+    fast_lio_dir = PathJoinSubstitution(
+        [
+            get_package_share_directory("FAST_LIO_SLAM_ros2"),
+            "launch", "mapping.launch.py",]
+    )    
 
     navigation_dir = PathJoinSubstitution(
         [
@@ -56,10 +68,10 @@ def generate_launch_description():
             "launch", "s_description.launch.py",]
     )
 
-    control_dir = PathJoinSubstitution(
+    teleop_control_dir = PathJoinSubstitution(
         [
-            get_package_share_directory("s_control"),
-            "launch", "s_control.launch.py",]
+            get_package_share_directory("teleop_control"),
+            "launch", "teleop_joy.launch.py",]
     )
 
     robot_dir = PathJoinSubstitution(
@@ -72,58 +84,105 @@ def generate_launch_description():
 
     control_arg = DeclareLaunchArgument(
         "control_mode",
-        default_value="teleop",
+        default_value="autonomous",
         description="Control mode for the robot, e.g., teleop or manual",
         choices=["teleop", "manual", "autonomous"],
     )
 
+    # perception_arg = DeclareLaunchArgument()
+    # cameras_arg = DeclareLaunchArgument()
+    # fast_lio_arg = DeclareLaunchArgument()
+    # navigation_arg = DeclareLaunchArgument()
+    # description_arg = DeclareLaunchArgument()
+    # teleop_control_arg = DeclareLaunchArgument()
+    # robot_arg = DeclareLaunchArgument()
+
     #-------------------Conditions------------------
 
-    auto_or_teleop_or_manual_condition = IfCondition(
-    PythonExpression(
-        ["'", LaunchConfiguration("control_mode"), "' in ['autonomous', 'manual', 'teleop']"]
+    any_condition = IfCondition(
+        PythonExpression(
+            ["'", LaunchConfiguration("control_mode"), "' in ['autonomous', 'manual', 'teleop']"]
+        )
     )
-)
 
-    auto_or_manual_condition = IfCondition(
-    PythonExpression(
-        ["'", LaunchConfiguration("control_mode"), "' in ['autonomous', 'manual']"]
+    auto_or_teleop_condition = IfCondition(
+        PythonExpression(
+            ["'", LaunchConfiguration("control_mode"), "' in ['autonomous', 'teleop']"]
+        )
     )
-)
     
     manual_condition = IfCondition(
-    PythonExpression(
-        ["'", LaunchConfiguration("control_mode"), "' in ['manual']"]
-    )
+        PythonExpression(
+            ["'", LaunchConfiguration("control_mode"), "' in ['manual']"]
+        )
     )
 
     teleop_condition = IfCondition(
-    PythonExpression(
-        ["'", LaunchConfiguration("control_mode"), "' in ['teleop']"]
-    )
+        PythonExpression(
+            ["'", LaunchConfiguration("control_mode"), "' in ['teleop']"]
+        )
     )
 
+    autonomous_condition = IfCondition(
+        PythonExpression(
+            ["'", LaunchConfiguration("control_mode"), "' in ['autonomous']"]
+        )
+    )
+    
+    #-------------------Launch Description------------------
+    perception_des = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(perception_dir),
+        # launch_arguments=perception_arg,
+        condition=auto_or_teleop_condition
+    )
+
+    cameras_des = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(cameras_dir),
+        # launch_arguments=cameras_arg,
+        condition=auto_or_teleop_condition
     autonomous_condition = IfCondition(
     PythonExpression(
         ["'", LaunchConfiguration("control_mode"), "' in ['autonomous']"]
     )
+
+    fast_lio_des = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(fast_lio_dir),
+        # launch_arguments=fast_lio_arg,
+        condition=auto_or_teleop_condition
     )
 
-    #-------------------Processes------------------
+    navigation_des = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(navigation_dir),
+        # launch_arguments=navigation_arg,
+        condition=autonomous_condition
+    )
 
-#     rviz_proc = ExecuteProcess(
-#     cmd=["rviz2"],
-#     output="screen",
-#     condition=manual_condition,
-# )
+    description_des = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(description_dir),
+        # launch_arguments=description_arg,
+        condition=auto_or_teleop_condition
+    )
 
-#     passed_log = LogInfo(
-#         msg=["passed"],
-#         condition=auto_or_manual_condition,
-#     )
-    
-    #-------------------Launch Description------------------
-    ld = LaunchDescription()
-    ld.add_action(control_arg)
+    teleop_control_des = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(teleop_control_dir),
+        # launch_arguments=teleop_control_arg,
+        condition=any_condition
+    )
 
-    return LaunchDescription([ld])
+    robot_des = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(robot_dir),
+        # launch_arguments=robot_arg,
+        condition=any_condition
+    )
+
+
+    return LaunchDescription([
+        control_arg,
+        perception_des,
+        cameras_des,
+        fast_lio_des,
+        navigation_des,
+        description_des,
+        teleop_control_des,
+        robot_des,
+    ])
