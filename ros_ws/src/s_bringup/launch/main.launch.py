@@ -140,6 +140,9 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(cameras_dir),
         # launch_arguments=cameras_arg,
         condition=auto_or_teleop_condition
+    autonomous_condition = IfCondition(
+    PythonExpression(
+        ["'", LaunchConfiguration("control_mode"), "' in ['autonomous']"]
     )
 
     fast_lio_des = IncludeLaunchDescription(
