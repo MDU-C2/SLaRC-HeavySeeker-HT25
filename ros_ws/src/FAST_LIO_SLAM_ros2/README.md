@@ -1,17 +1,9 @@
-## If you are going to clone the repository:
-
-##### Since this repo uses submodules, they need to be cloned as well. To do this run:
-```bash
-    cd <ros2_ws><slarc_ws>/src/FAST_LIO_SLAM_ros2
-    git submodule update --init --recursive
-```
-
 ## 1. Setup
-First: Make sure "lid_topic:" and "imu_topic:" is correct in [mid360.yaml](/SLaRC-HeavySeeker-HT25/ros_ws/src/FAST_LIO_SLAM_ros2/config/mid360.yaml).
+First: Make sure "lid_topic:" and "imu_topic:" is correct in config/mid360.yaml.
 
-Second: Follow this: [Running the lidars](/SLaRC-HeavySeeker-HT25/README.md).
-> [!NOTE]
-> Only '''$ ros2 launch s_perception livox_launch.py''' if you are using the physical LiDAR.
+Second: Follow the main README.md to setup Livox-SDK2 and colcon build.
+
+> Use '''$ ros2 launch s_perception livox_launch.py''' if you are using the physical LiDAR.
 
 ## 2. Launch 3D-SLAM with LiDAR 
 ```bash

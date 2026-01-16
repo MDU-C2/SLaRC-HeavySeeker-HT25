@@ -106,9 +106,3 @@ From ros workspace:
 $ source install/setup.bash
 $ ros2 launch s_bringup main.launch.py
 ```
-
-# Running client-side interface
-
-Add instructions here
-
-Happy debugging :)
