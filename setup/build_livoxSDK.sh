@@ -6,7 +6,7 @@ cat sdk_core/logger_handler/file_manager.h | grep '#include <cstdint>' || sed -i
 cat sdk_core/comm/define.h | grep '#include <cstdint>' || sed -i '34i #include <cstdint>' sdk_core/comm/define.h
 mkdir build
 cd build
-cmake .. && make -j
+cmake .. && make -j$(nproc --ignore=1)
 sudo make install
 
 # Configure dynamic linker run-time bindings
