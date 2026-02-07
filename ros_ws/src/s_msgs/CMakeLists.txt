@@ -17,6 +17,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetCameras.srv"
   "srv/SetOutputMode.srv"
   "msg/WaypointCommandMsgs.msg"
+  "msg/WaypointProgress.msg"
   "srv/WaypointCommand.srv"
   DEPENDENCIES builtin_interfaces
 )

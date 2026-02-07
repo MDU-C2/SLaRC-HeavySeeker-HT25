@@ -14,7 +14,7 @@
  * publish the correct control input to /cmd_vel
  * 
  * Subscribers:
- *  - /allowed_operation_modes - hs_msgs/msg/OperationModes - information about allowed operation modes, this is the heartbeat
+ *  - /allowed_operation_modes - s_msgs/msg/OperationModes - information about allowed operation modes, this is the heartbeat
  *  - /telop_cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel for manual control
  *  - /auto_cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel for autonomous control
  *  - /activate_autonomous_drive - std_msgs/msg/Bool - signal for robot node to activate autonomous drive
