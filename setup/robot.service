@@ -6,13 +6,13 @@ After=network.target
 [Service]
 Environment=ROS_DOMAIN_ID=20
 Environment=RMW_IMPLEMENTATION=rmw_zenoh_cpp
-Environment=
+
 
 Type=simple
 User=slarc
-WorkingDirectory=/home/sfd/dev/slarc-heavyseeker/ros_ws
+WorkingDirectory=/home/slarc/slarc/ros_ws
 Restart=on-failure
-ExecStart="/home/sfd/dev/slarc-heavyseeker/setup/startMinimalSystem.sh"
+ExecStart="/home/slarc/slarc/setup/robotMinimalStart.sh"
 
 
 [Install]

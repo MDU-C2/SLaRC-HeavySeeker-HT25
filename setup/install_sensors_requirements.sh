@@ -11,6 +11,7 @@ git submodule update --init --recursive
 ### non ROS sensor requirements ###
 
 # Camera
+sudo ufw allow 5600 # FPV Camera
 
 # LiDAR (Build/install livox sdk)
 ./build_livoxSDK.sh
@@ -23,4 +24,4 @@ sudo netplan apply
 cd ~/slarc/ros_ws
 rosdep install --from-path src --ignore-src -y -r
 
-#echo "source ~/slarc-heavyseeker/ros_ws/install/setup.bash" >> ~/.bashrc
+#echo "source ~/slarc/ros_ws/install/setup.bash" >> ~/.bashrc
