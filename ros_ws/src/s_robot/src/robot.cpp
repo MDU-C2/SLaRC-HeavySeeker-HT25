@@ -21,6 +21,7 @@
  * 
  * Publishers:
  *  - /cmd_vel - geometry_msgs/msg/TwistStamped - cmd_vel
+ *  - /operation_autonomously - std_msgs/msg/Bool - information about the current operation mode
  * 
  */
 class RobotNode : public rclcpp::Node {

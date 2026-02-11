@@ -4,7 +4,7 @@
   <name>s_robot</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="slarc25@proton.me">slarc</maintainer>
+  <maintainer email="sfd21003@student.mdu.se">Sebastian</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -12,7 +12,11 @@
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>s_msgs</depend>
+  <depend>joy</depend>
+  <depend>twist_mux</depend>
+  <depend>telop_twist_joy</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

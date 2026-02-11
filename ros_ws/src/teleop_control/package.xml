@@ -10,7 +10,6 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
-  <depend>turtlesim</depend>
   <depend>joy</depend>
   <depend>rclcpp</depend>
   <depend>std_srvs</depend>
@@ -18,6 +17,7 @@
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
   <depend>visualization_msgs</depend>
+  <depend>telop_twist_joy</depend>
   <build_depend>libsdl2-dev</build_depend>
   <exec_depend>libsdl2-dev</exec_depend>
 

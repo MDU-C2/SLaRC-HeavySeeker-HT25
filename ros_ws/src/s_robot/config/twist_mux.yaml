@@ -1,0 +1,44 @@
+twist_mux:
+  ros__parameters:
+    use_stamped: True
+    topics:
+      #Manual control
+      local_control:
+        topic: 'local_joy/cmd_vel'
+        timeout: 0.5
+        priority: 100
+      telop_control:
+        topic: 'telop_joy/cmd_vel'
+        timeout: 0.5
+        priority: 50
+        
+      #Autonomous control
+      auto_control:
+        topic: 'auto/cmd_vel'
+        timeout: 0.5
+        priority: 10
+    locks:
+      # emergency stop can not currently be detected from software
+      #emergency_stop:
+      #  topic: 'platform/emergency_stop'
+      #  timeout: 0.0
+      #  priority: 255
+      # saftey stop 
+      safety_stop:
+        topic: 'platform/safety_stop'
+        timeout: 0.0
+        priority: 255
+
+      # Mode locks
+      stop_auto:
+        topic: 'locks/auto'
+        timeout: 0.0
+        priority: 11
+      #stop_telop:
+      #  topic: 'locks/telop_control'
+      #  timeout: 0.0
+      #  priority: 51
+      #stop_control:
+      #  topic: 'locks/local_control'
+      #  timeout: 0.0
+      #  priority: 101

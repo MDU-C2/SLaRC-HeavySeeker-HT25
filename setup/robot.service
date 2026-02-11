@@ -1,0 +1,19 @@
+[Unit]
+Description=Robot service, that starts the robot
+#After=zenoh.service
+After=network.target
+
+[Service]
+Environment=ROS_DOMAIN_ID=20
+Environment=RMW_IMPLEMENTATION=rmw_zenoh_cpp
+
+
+Type=simple
+User=slarc
+WorkingDirectory=/home/slarc/slarc/ros_ws
+Restart=on-failure
+ExecStart="/home/slarc/slarc/setup/robotMinimalStart.sh"
+
+
+[Install]
+WantedBy=multi-user.target
