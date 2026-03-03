@@ -37,24 +37,27 @@ def generate_launch_description():
             {"encoder.prefer_hevc": False},
             {"encoder.quality": 5},
             {"encoder.latency": "ultra_low"},
-            {"encoder.bitrate_mode": "CRF"},
-            {"encoder.bitrate": "12M"},
-            {"encoder.maxrate": "12M"},
-            {"encoder.bufsize": "24M"},
-            {"encoder.crf": 23},
-            {"encoder.gop": 1},
+            {"encoder.bitrate_mode": "CBR"},
+            {"encoder.bitrate": "3M"},
+            {"encoder.maxrate": "6M"},
+            {"encoder.bufsize": "12M"},
+            #{"encoder.crf": 23}, #only used when crf is choosen
+            {"encoder.gop": 30},
             {"encoder.bframes": 0},
             {"encoder.mux": "mpegts"},
             {
                 "encoder.mux_flags":
-                    "-flush_packets 1 -fflags nobuffer -max_delay 0 "
-                    "-muxdelay 0 -muxpreload 0"
+                    "-flush_packets 1" 
+                    "-fflags nobuffer" 
+                    "-max_delay 0 "
+                    "-muxdelay 0" 
+                    "-muxpreload 0"
             },
         ]
+
     )
 
     return LaunchDescription([
         LogInfo(msg="Launching FPV camera server"),
-        LogInfo(msg=summary),
         server_node
     ])

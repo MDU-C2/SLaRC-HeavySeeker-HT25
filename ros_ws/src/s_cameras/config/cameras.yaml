@@ -148,7 +148,15 @@ usb_cameras:
   "2450ZB1354S8":
     name: camera0
     params:
-      image_width: 640
-      image_height: 480      
+      image_width: 1280
+      image_height: 720      
       pixel_format: mjpeg2rgb
-      framerate: 24.0
+      framerate: 30.0
+
+h264_network_cameras:
+  pi_front:
+    name: pi_front
+    url: "udp://0.0.0.0:5600?pkt_size=1316&buffer_size=425984"
+    port: 5600
+    params:
+      framerate: 30.0

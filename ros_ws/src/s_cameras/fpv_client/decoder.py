@@ -3,168 +3,200 @@ import sys
 import subprocess
 import threading
 import time
+import re
 import numpy as np
 import cv2
 import rclpy
-from pathlib import Path
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
 
 
 class FPVDecoder(Node):
-
     def __init__(self, topic_names):
         super().__init__("fpv_viewer_client")
-        self.get_logger().info("Decoder node started!")
+
         self.topic_names = topic_names
-        self.ffmpegs = {}
-        self.frames = {}
         self.running = True
+
+        self.ffmpegs = {}
         self.resolutions = {}
-        self.input_buffer = {t: b"" for t in topic_names}
+        self.frames = {}
+        self.frames_lock = threading.Lock()
+
+        self.first_packet_ts = {t: None for t in topic_names}
+        self.res_lock = threading.Lock()
+
         self.stats = {
-            t: {"bytes": 0, "mbit_s": 0.0, "fps": 0.0, "last_ts": None, "avg_window": []}
+            t: {
+                "bytes": 0,
+                "mbit_s": 0.0,
+                "avg_mbps": 0.0,
+                "fps": 0.0,
+                "last_ts": None,
+                "avg_window": [],
+            }
             for t in topic_names
         }
+        self.stats_lock = threading.Lock()
 
-
-        # Subscribe to each encoded stream
         for topic in topic_names:
-
+            self.resolutions[topic] = None
             self.create_subscription(
-                CompressedImage, topic,
-                lambda msg, t=topic: self.callback(msg, t), 10
+                CompressedImage,
+                topic,
+                lambda msg, t=topic: self.callback(msg, t),
+                10,
             )
             self.get_logger().info(f"Listening on {topic}")
 
-        # Launch display and bitrate monitor threads
         threading.Thread(target=self._display_loop, daemon=True).start()
         threading.Thread(target=self._stats_thread, daemon=True).start()
 
     # ------------------------------------------------------------------
-    def _start_ffmpeg(self, topic, codec):
-        """Spawn ffmpeg decoder process for one topic."""
-        proc = subprocess.Popen([
-            "ffmpeg",
-            "-hide_banner", "-loglevel", "error",
-            "-fflags", "nobuffer+discardcorrupt",
-            "-flags", "low_delay",
-            "-probesize", "32",
-            "-analyzeduration", "0",
-            "-f", "mpegts", "-i", "pipe:0",
-            "-map", "0:v:0",
-            "-pix_fmt", "bgr24",
-            "-f", "rawvideo", "-"
-        ], stdin=subprocess.PIPE, stdout=subprocess.PIPE, bufsize=0)
-
-        self.ffmpegs[topic] = proc
-        threading.Thread(target=self._frame_reader, args=(topic,), daemon=True).start()
+    def _parse_resolution_from_format(self, fmt: str):
+        if not fmt:
+            return None
+        m_w = re.search(r"width\s*=\s*(\d+)", fmt)
+        m_h = re.search(r"height\s*=\s*(\d+)", fmt)
+        if m_w and m_h:
+            w, h = int(m_w.group(1)), int(m_h.group(1))
+            if 64 <= w <= 8192 and 64 <= h <= 8192:
+                return (w, h)
+        return None
 
     # ------------------------------------------------------------------
-    def _frame_reader(self, topic):
-        """Continuously read decoded frames for one topic."""
-        w, h = self.resolutions.get(topic, (640, 480))
-        frame_size = w * h * 3
-        proc = self.ffmpegs[topic]
-        buf = b""
+    def _start_ffmpeg(self, topic):
+        self.get_logger().info(f"{topic}: starting ffmpeg")
 
-        while self.running and proc.poll() is None:
-            chunk = proc.stdout.read(frame_size)
-            if not chunk:
-                continue
-            buf += chunk
+        proc = subprocess.Popen(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel", "info",
 
-            while len(buf) >= frame_size:
-                raw = buf[:frame_size]
-                buf = buf[frame_size:]
-                frame = np.frombuffer(raw, np.uint8).reshape((h, w, 3))
-                self.frames[topic] = frame
+                "-fflags", "nobuffer",
+                "-flags", "low_delay",
+                "-max_delay", "0",
 
-        proc.stdout.close()
+                "-f", "mpegts",
+                "-i", "pipe:0",
+
+                "-pix_fmt", "bgr24",
+                "-f", "rawvideo",
+                "pipe:1",
+            ],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            bufsize=0,
+        )
+
+        self.ffmpegs[topic] = proc
+
+        threading.Thread(target=self._stderr_reader, args=(topic, proc), daemon=True).start()
+        threading.Thread(target=self._frame_reader, args=(topic, proc), daemon=True).start()
 
     # ------------------------------------------------------------------
     def callback(self, msg: CompressedImage, topic: str):
-        """Feed encoded bytes into per-topic ffmpeg and compute camera FPS."""
-        fmt = msg.format.lower()
+        # parse resolution from msg.format
+        if self.resolutions[topic] is None:
+            res = self._parse_resolution_from_format(msg.format)
+            if res:
+                with self.res_lock:
+                    self.resolutions[topic] = res
+                self.get_logger().info(f"{topic}: resolution from format {res[0]}x{res[1]}")
 
-        # Detect codec
-        if "h265" in fmt or "hevc" in fmt:
-            codec = "h265"
-        elif "h264" in fmt or "avc" in fmt:
-            codec = "h264"
-        else:
-            self.get_logger().warning(f"{topic}: unknown codec in format='{msg.format}', assuming h264")
-            codec = "h264"
+        proc = self.ffmpegs.get(topic)
+        if proc is None or proc.poll() is not None:
+            self._start_ffmpeg(topic)
+            proc = self.ffmpegs[topic]
 
-        # Extract width/height metadata
-        parts = dict(p.split("=", 1) for p in fmt.split(";") if "=" in p)
-        if "width" not in parts or "height" not in parts:
-            # Do NOT start ffmpeg until real metadata arrives
+        if self.first_packet_ts[topic] is None:
+            self.first_packet_ts[topic] = time.time()
+
+        try:
+            proc.stdin.write(msg.data)
+            with self.stats_lock:
+                self.stats[topic]["bytes"] += len(msg.data)
+        except Exception:
             return
 
-        w = int(parts["width"])
-        h = int(parts["height"])
-
-        # --- FIX: ensure only ONE ffmpeg per topic ---
-        proc = self.ffmpegs.get(topic)
-        needs_restart = proc is None or proc.poll() is not None
-
-        if needs_restart:
-            self.resolutions[topic] = (w, h)
-            self._start_ffmpeg(topic, codec)
-            self.get_logger().info(
-                f"\n====== New or restarted stream ======\n"
-                f"   • Topic: {topic}\n"
-                f"   • Codec: {codec.upper()}\n"
-                f"   • Resolution: {w}x{h}\n"
-                f"=====================================\n"
-            )
-
-        # --- Use real camera timestamps for FPS tracking ---
         try:
-            stamp = msg.header.stamp
-            t_sec = stamp.sec + stamp.nanosec * 1e-9
+            t = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
         except Exception:
-            t_sec = time.time()
+            t = time.time()
 
-        s = self.stats[topic]
-        last = s["last_ts"]
-        s["last_ts"] = t_sec
+        with self.stats_lock:
+            s = self.stats[topic]
+            last = s["last_ts"]
+            s["last_ts"] = t
 
-        if last is not None:
-            dt = t_sec - last
-            if 0.001 < dt < 1.0:
-                fps = 1.0 / dt
-                if fps < 240:  # ignore spikes
-                    s["avg_window"].append(fps)
-                    if len(s["avg_window"]) > 20:
-                        s["avg_window"].pop(0)
-                    s["fps"] = sum(s["avg_window"]) / len(s["avg_window"])
+            if last is not None:
+                dt = t - last
+                if 0.001 < dt < 1.0:
+                    fps = 1.0 / dt
+                    if fps < 240:
+                        s["avg_window"].append(fps)
+                        if len(s["avg_window"]) > 20:
+                            s["avg_window"].pop(0)
+                        s["fps"] = sum(s["avg_window"]) / len(s["avg_window"])
 
-        # --- Feed encoded bytes to ffmpeg ---
-        try:
-            proc = self.ffmpegs[topic]
-            if proc and proc.stdin:
-                data = bytes(msg.data)
-                self.input_buffer[topic] += data
+    # ------------------------------------------------------------------
+    def _stderr_reader(self, topic, proc):
+        rx = re.compile(r"(?<!\d)(\d{2,5})x(\d{2,5})(?!\d)")
+        while self.running and proc.poll() is None:
+            line = proc.stderr.readline()
+            if not line:
+                break
+            m = rx.search(line.decode(errors="ignore"))
+            if m and self.resolutions[topic] is None:
+                self.resolutions[topic] = (int(m.group(1)), int(m.group(2)))
+                self.get_logger().info(
+                    f"{topic}: resolution from ffmpeg {self.resolutions[topic][0]}x{self.resolutions[topic][1]}"
+                )
 
-                if len(self.input_buffer[topic]) > 65536:
-                    proc.stdin.write(self.input_buffer[topic])
-                    self.input_buffer[topic] = b""
+    # ------------------------------------------------------------------
+    def _frame_reader(self, topic, proc):
+        pending = bytearray()
+        current_res = None
+        frame_size = None
 
-                s["bytes"] += len(data)
-        except BrokenPipeError:
-            self.get_logger().error(f"{topic}: ffmpeg pipe closed")
-        except Exception as e:
-            self.get_logger().error(f"{topic}: write error: {e}")
+        while self.running and proc.poll() is None:
+            with self.res_lock:
+                res = self.resolutions[topic]
+            if res is None:
+                time.sleep(0.01)
+                continue
 
+            if res != current_res:
+                current_res = res
+                frame_size = res[0] * res[1] * 3
+                pending.clear()
+
+            chunk = proc.stdout.read(65536)
+            if not chunk:
+                time.sleep(0.002)
+                continue
+
+            pending.extend(chunk)
+            if len(pending) > frame_size * 2:
+                pending = pending[-frame_size:]
+
+            newest = None
+            while len(pending) >= frame_size:
+                raw = pending[:frame_size]
+                del pending[:frame_size]
+                newest = np.frombuffer(raw, np.uint8).reshape((res[1], res[0], 3))
+
+            if newest is not None:
+                with self.frames_lock:
+                    self.frames[topic] = newest
 
     # ------------------------------------------------------------------
     def _stats_thread(self):
-
         last_bytes = {t: 0 for t in self.topic_names}
         last_time = time.time()
-        alpha = 0.2  # smoothing factor
+        alpha = 0.2
 
         while rclpy.ok() and self.running:
             time.sleep(1.0)
@@ -174,66 +206,50 @@ class FPVDecoder(Node):
             if elapsed <= 0:
                 continue
 
-            for t in self.topic_names:
-                s = self.stats[t]
-                cur = s["bytes"]
-                mbps = (cur - last_bytes[t]) * 8 / (1_000_000 * elapsed)
-                last_bytes[t] = cur
-                s["avg_mbps"] = s.get("avg_mbps", mbps)
-                s["avg_mbps"] = (1 - alpha) * s["avg_mbps"] + alpha * mbps
-                s["mbit_s"] = s["avg_mbps"]
+            with self.stats_lock:
+                for t in self.topic_names:
+                    s = self.stats[t]
+                    cur = s["bytes"]
+                    mbps = (cur - last_bytes[t]) * 8 / (1_000_000 * elapsed)
+                    last_bytes[t] = cur
+                    s["avg_mbps"] = (1 - alpha) * s["avg_mbps"] + alpha * mbps
+                    s["mbit_s"] = s["avg_mbps"]
 
     # ------------------------------------------------------------------
-    # ------------------------------------------------------------------
     def _display_loop(self):
-        
         cv2.namedWindow("FPV MultiView", cv2.WINDOW_NORMAL)
         cv2.resizeWindow("FPV MultiView", 1280, 720)
 
         while self.running:
-            if not self.frames:
-                time.sleep(0.05)
+            with self.frames_lock:
+                items = list(self.frames.items())
+            if not items:
+                time.sleep(0.02)
                 continue
 
-            cams = list(self.frames.keys())
-            frames = [self.frames[c] for c in cams if c in self.frames]
-            if not frames:
-                continue
+            frames, names = zip(*[(k, v) for k, v in items if v is not None])
+            target_h = min(f.shape[0] for f in names)
 
-            # Normalize frame height
-            h = min(f.shape[0] for f in frames)
-            frames = [cv2.resize(f, (int(f.shape[1] * h / f.shape[0]), h)) for f in frames]
+            imgs = [
+                cv2.resize(v, (int(v.shape[1] * target_h / v.shape[0]), target_h))
+                for v in names
+            ]
+            combined = imgs[0] if len(imgs) == 1 else np.hstack(imgs)
 
-            num = len(frames)
-
-            if num == 1:
-                combined = frames[0]
-
-            elif num == 2:
-                combined = np.hstack(frames)
-
-            elif num == 3:
-                # top row: first 2
-                top = np.hstack(frames[:2])
-                # bottom row: single, padded to same width
-                bottom = frames[2]
-                pad_w = top.shape[1] - bottom.shape[1]
-                if pad_w > 0:
-                    pad = np.zeros((bottom.shape[0], pad_w, 3), np.uint8)
-                    bottom = np.hstack((bottom, pad))
-                combined = np.vstack((top, bottom))
-
-            else:  # 4 or more → 2-column grid
-                combined = self._grid(frames, cols=2)
-
-            # Draw stats overlays
             y = 30
-            for c in cams:
-                s = self.stats[c]
-                text = f"{c}: {s['mbit_s']:.2f} Mbps  {s['fps']:.1f} FPS"
-                cv2.putText(combined, text, (10, y), cv2.FONT_HERSHEY_SIMPLEX,
-                            0.7, (0, 255, 0), 2, cv2.LINE_AA)
-                y += 30
+            with self.stats_lock:
+                for t in frames:
+                    s = self.stats[t]
+                    cv2.putText(
+                        combined,
+                        f"{t}: {s['mbit_s']:.2f} Mbps {s['fps']:.1f} FPS",
+                        (10, y),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.7,
+                        (0, 255, 0),
+                        2,
+                    )
+                    y += 30
 
             cv2.imshow("FPV MultiView", combined)
             if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -242,29 +258,12 @@ class FPVDecoder(Node):
 
         cv2.destroyAllWindows()
 
-
-    # ------------------------------------------------------------------
-    def _grid(self, frames, cols=2):
-        """Arrange frames in a simple grid."""
-        rows = []
-        for i in range(0, len(frames), cols):
-            row = np.hstack(frames[i:i + cols])
-            rows.append(row)
-        max_w = max(r.shape[1] for r in rows)
-        for i, r in enumerate(rows):
-            if r.shape[1] < max_w:
-                pad = np.zeros((r.shape[0], max_w - r.shape[1], 3), np.uint8)
-                rows[i] = np.hstack((r, pad))
-        return np.vstack(rows)
-
     # ------------------------------------------------------------------
     def destroy_node(self):
-        """Stop all decoder processes cleanly."""
         self.running = False
         for p in self.ffmpegs.values():
             try:
-                if p.stdin:
-                    p.stdin.close()
+                p.stdin.close()
                 p.terminate()
             except Exception:
                 pass
@@ -277,11 +276,9 @@ def main(args=None):
     node = FPVDecoder(topics)
     try:
         rclpy.spin(node)
-    except KeyboardInterrupt:
-        node.get_logger().info("Multi decoder stopped")
     finally:
         node.destroy_node()
-        rclpy.try_shutdown()
+        rclpy.shutdown()
 
 
 if __name__ == "__main__":

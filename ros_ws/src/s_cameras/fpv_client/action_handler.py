@@ -40,8 +40,9 @@ class CameraActionManager:
     # Start Cameras
     # ------------------------------------------------------------
     def start_group(self, cameras: List[str], available: List[str]):
-        # Always use latest list from monitor
-        available = self.node.monitor.available_cameras
+        # Use registered list if available; otherwise fall back to active list
+        monitor = self.node.monitor
+        available = monitor.registered_cameras or monitor.available_cameras
         valid = [c for c in cameras if c in available]
         if not valid:
             log("No valid camera names.")
@@ -79,16 +80,21 @@ class CameraActionManager:
         for cam in new_cams:
             goal = StartCamera.Goal(camera_name=cam)
             future = self.start_client.send_goal_async(goal, feedback_callback=self._feedback)
-            future.add_done_callback(self._goal_response)
+            future.add_done_callback(lambda f, c=cam: self._goal_response(f, c))
 
-    def _goal_response(self, future):
+    def _goal_response(self, future, cam: str):
         try:
             goal_handle = future.result()
             if not goal_handle.accepted:
-                log("Start goal rejected.")
+                log(f"Start goal rejected for '{cam}'.")
+                if cam in self.current_cameras:
+                    self.current_cameras.remove(cam)
+                self.pending_starts.discard(cam)
                 return
             log("Start goal accepted.")
-            goal_handle.get_result_async().add_done_callback(self._result)
+            goal_handle.get_result_async().add_done_callback(
+                lambda f, c=cam: self._result(f, c)
+            )
         except Exception as e:
             log(f"Start goal failed: {e}")
 
@@ -96,7 +102,7 @@ class CameraActionManager:
         fb = feedback_msg.feedback
         log(f"Feedback: {fb.status}")
 
-    def _result(self, future):
+    def _result(self, future, cam: str):
         try:
             result = future.result().result
             msg, topic = result.message, getattr(result, "topic", "")
@@ -104,10 +110,10 @@ class CameraActionManager:
             if topic:
                 log(f"Encoded topic: {topic}")
 
-            cam = self._extract_name(msg)
-            if cam and cam in self.pending_starts:
+            # Track topic directly for the known camera
+            if topic:
                 self.camera_topics[cam] = topic
-                self.pending_starts.discard(cam)
+            self.pending_starts.discard(cam)
 
             if not self.pending_starts:
                 log("All cameras ready — updating decoder view.")
@@ -197,7 +203,7 @@ class CameraActionManager:
         # Just send stop goals and let the executor handle callbacks
         self.stop_cameras(self.current_cameras.copy())
 
-        # ------------------------------------------------------------
+    # ------------------------------------------------------------
     # Output Mode Control
     # ------------------------------------------------------------
     def set_output_mode(self, mode: str):
@@ -275,18 +281,6 @@ class CameraActionManager:
             print("  use headless                – encoder runs without producing topics")
             print()
             print("  exit                        – stop all + quit\n")
-
-        # Try to contact the service
-        if not self.client.client.wait_for_service(timeout_sec=3.0):
-            if not silent:
-                # Only print error when user explicitly asks for "list"
-                log("Service /get_available_cameras not available.")
-            _on_resp(None)
-            return
-
-        # Service available call and use same print function
-        fut = self.client.client.call_async(GetCameras.Request())
-        fut.add_done_callback(_on_resp)
 
         # Try to contact the service
         if not self.client.client.wait_for_service(timeout_sec=3.0):

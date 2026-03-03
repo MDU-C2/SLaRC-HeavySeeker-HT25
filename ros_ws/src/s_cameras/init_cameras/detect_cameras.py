@@ -25,7 +25,7 @@ class DepthAICamera(BaseCamera):
         super().__init__(name, camera_id, port_path)
         self.state = state
 
-
+# Detect usb and oak cameras. We dont start network cameras, hence we dont need to detect them to initalize them.
 class DetectCameras:
     def detect(self):
         logger.info("Detecting all cameras...")

@@ -11,7 +11,27 @@ def load_camera_configs(node):
 
     try:
         data = json.loads(raw)
-        return {c["name"]: c for c in data}
+
+        # If already a dict with expected keys, keep it
+        if isinstance(data, dict):
+            configs = data
+        # CameraManager passes a list of camera dicts → map by name
+        elif isinstance(data, list):
+            configs = {c["name"]: c for c in data if isinstance(c, dict) and "name" in c}
+        else:
+            raise ValueError(f"Unsupported cameras_json type: {type(data)}")
+
+        # Build h264_network_cameras block if missing (but do NOT mutate fields)
+        if "h264_network_cameras" not in configs:
+            h264 = {
+                name: cfg
+                for name, cfg in configs.items()
+                if isinstance(cfg, dict) and cfg.get("type") == "h264_network"
+            }
+            if h264:
+                configs["h264_network_cameras"] = h264
+
+        return configs
     except Exception as e:
         node.get_logger().error(f"Failed to parse cameras_json: {e}")
         return {}
@@ -35,8 +55,9 @@ def find_camera_topics(topics):
     return candidates
 
 
-def make_camera_status_json(active_cameras, encoder_info):
+def make_camera_status_json(active_cameras, encoder_info, registered_cameras=None):
     return json.dumps({
         "available_cameras": active_cameras,
+        "registered_cameras": registered_cameras or active_cameras,
         "encoder": encoder_info,
     })
