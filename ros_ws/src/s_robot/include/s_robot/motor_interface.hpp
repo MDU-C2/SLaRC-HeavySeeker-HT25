@@ -44,8 +44,8 @@
 // CubeMars packet size for mode commands example (duty: AA 05 46 00 00 4E 20 D6 4C BB)
 #define CMD_SET_MODE     = 10
 
-#define POLE_PAIRS 14
-#define MOTOR_REDUCTION_RATIO 6 //6:1
+#define POLE_PAIRS 21
+#define MOTOR_REDUCTION_RATIO 9 //9:1
 
 namespace motor_interface
 {
