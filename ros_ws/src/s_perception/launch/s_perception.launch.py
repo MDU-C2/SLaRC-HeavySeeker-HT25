@@ -87,9 +87,20 @@ def generate_launch_description():
         name="livox_g_to_ms2",
         output="screen",
         remappings=[
-            ("imu/data", "livox/imu_192_168_10_24"),
+            ("imu/data", "livox/imu_192_168_10_93"), # livox/imu_... topic name depends on the lidar in use
             ("imu_conv/data", "livox/imu/data")
         ]
+    )
+
+    oakd_imu_rotate = Node(
+        executable="oakd_imu_rotation.py",
+        package="s_perception",
+        name="oakd_imu_rotation",
+        output="screen",
+        remappings=[
+            ("oakd/imu/data", "oakd/imu/data"), # name of this imu topic depends on s_cameras
+            ("oakd/imu_rot/data", "oakd/imu_rot/data")
+        ],
     )
 
     actions = [
@@ -99,6 +110,7 @@ def generate_launch_description():
         cloud2scan_launch,
         ardu_heading_node,
         livox_imu_g_to_ms2_node,
+        oakd_imu_rotate
     ]
     launch_actions = GroupAction(actions=actions)
 
